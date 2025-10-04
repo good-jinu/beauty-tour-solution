@@ -1,0 +1,23 @@
+[env]
+_.file = '.env'
+
+[tools]
+aws = "2.31.7"
+node = "22.20.0"
+pnpm = "10.18.0"
+
+[tasks.dev]
+description = "Start the SST development server"
+run = "pnpm sst:dev"
+
+[tasks."dev-remove"]
+description = "Remove the SST development server"
+run = "pnpm dev-remove"
+
+[tasks.deploy]
+description = "Deploy the SST production server"
+run = "pnpm prod-deploy"
+
+[tasks.remove]
+description = "Remove the SST production server"
+run = "pnpm prod-remove"

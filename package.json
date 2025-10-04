@@ -1,0 +1,25 @@
+{
+	"name": "beauty-tour-solution",
+	"version": "1.0.0",
+	"keywords": [],
+	"author": "gooday6983@gmail.com",
+	"packageManager": "pnpm@10.18.0",
+	"scripts": {
+		"dev": "pnpm --filter @bts/web sst:dev",
+		"build": "pnpm --filter @bts/web build",
+		"preview": "pnpm --filter @bts/web preview",
+		"lint": "biome check",
+		"format": "biome format --write",
+		"dev-remove": "pnpm --filter @bts/web dev-remove",
+		"prod-deploy": "pnpm --filter @bts/web prod-deploy",
+		"prod-remove": "pnpm --filter @bts/web prod-remove"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.2.5"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild"
+		]
+	}
+}
