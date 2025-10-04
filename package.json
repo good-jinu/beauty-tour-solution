@@ -5,7 +5,7 @@
 	"author": "gooday6983@gmail.com",
 	"packageManager": "pnpm@10.18.0",
 	"scripts": {
-		"dev": "pnpm --filter @bts/web sst:dev",
+		"sst:dev": "pnpm --filter @bts/web sst:dev",
 		"build": "pnpm --filter @bts/web build",
 		"preview": "pnpm --filter @bts/web preview",
 		"lint": "biome check",
