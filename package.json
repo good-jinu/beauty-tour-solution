@@ -17,10 +17,5 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.5"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"esbuild"
-		]
 	}
 }
