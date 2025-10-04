@@ -25,6 +25,9 @@ export default $config({
 					resources: ["*"],
 				},
 			],
+			server: {
+				timeout: "60 seconds",
+			},
 		});
 
 		return {

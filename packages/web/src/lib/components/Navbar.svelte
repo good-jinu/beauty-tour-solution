@@ -4,7 +4,6 @@ import { page } from "$app/state";
 let open = $state(false);
 const nav = [
 	{ name: "Home", href: "/" },
-	{ name: "Plan Beauty Journey", href: "/builder" },
 	{ name: "About", href: "/about" },
 	{ name: "Contact", href: "/contact" },
 ];
