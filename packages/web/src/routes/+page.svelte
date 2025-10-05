@@ -164,19 +164,30 @@ function resetForm() {
 	/>
 </svelte:head>
 
-<!-- Main Container with Optimized Layout -->
+<!-- Main Container with Mobile-First Responsive Layout -->
 <div
 	class="min-h-screen bg-gradient-to-b from-muted/20 via-background to-muted/10"
 >
 	<!-- Hero Section -->
-	<HeroSection />
+	<div class="px-4 sm:px-6 lg:px-8">
+		<HeroSection />
+	</div>
 
 	<!-- Form Section -->
-	<FormSection bind:formData {errors} {isLoading} onSubmit={handleSubmit} />
+	<div class="px-4 sm:px-6 lg:px-8">
+		<FormSection
+			bind:formData
+			{errors}
+			{isLoading}
+			onSubmit={handleSubmit}
+		/>
+	</div>
 
 	<!-- Results Section -->
 	{#if showResults && aiRecommendation}
-		<ResultsSection {aiRecommendation} onReset={resetForm} />
+		<div class="px-4 sm:px-6 lg:px-8">
+			<ResultsSection {aiRecommendation} onReset={resetForm} />
+		</div>
 	{/if}
 </div>
 

@@ -1,8 +1,6 @@
 <script lang="ts">
 import "../app.css";
 import favicon from "$lib/assets/favicon.svg";
-import Footer from "$lib/components/layout/Footer.svelte";
-import Navbar from "$lib/components/layout/Navbar.svelte";
 
 let { children } = $props();
 </script>
@@ -11,10 +9,8 @@ let { children } = $props();
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="min-h-screen flex flex-col">
-	<Navbar />
-	<main class="flex-1">
+<div class="min-h-screen">
+	<main class="w-full">
 		{@render children?.()}
 	</main>
-	<Footer />
 </div>

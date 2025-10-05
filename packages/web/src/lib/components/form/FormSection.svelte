@@ -19,34 +19,41 @@ interface Props {
 let { formData = $bindable(), errors, isLoading, onSubmit }: Props = $props();
 </script>
 
-<section id="planning-form" class="py-12 lg:py-16">
-    <div class="container mx-auto px-4 lg:px-6 max-w-5xl">
+<section id="planning-form" class="py-8 sm:py-12 lg:py-16">
+    <div class="container mx-auto max-w-4xl">
         <div
-            class="bg-card/60 backdrop-blur-sm border rounded-3xl shadow-xl overflow-hidden"
+            class="bg-card/60 backdrop-blur-sm border rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden"
         >
             <!-- Form Header -->
             <div
-                class="bg-gradient-to-r from-primary/5 to-primary/10 px-6 sm:px-8 py-8 text-center border-b"
+                class="bg-gradient-to-r from-primary/5 to-primary/10 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 text-center border-b"
             >
-                <h2 class="text-2xl sm:text-3xl font-bold mb-3">
+                <h2
+                    class="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3"
+                >
                     Let's Plan Your Journey
                 </h2>
-                <p class="text-muted-foreground max-w-2xl mx-auto">
+                <p
+                    class="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto"
+                >
                     Fill out the details below to get your personalized
                     recommendations
                 </p>
             </div>
 
             <!-- Form Content -->
-            <div class="p-6 sm:p-8 lg:p-12">
-                <form onsubmit={onSubmit} class="space-y-12 lg:space-y-16">
+            <div class="p-4 sm:p-6 lg:p-8 xl:p-12">
+                <form
+                    onsubmit={onSubmit}
+                    class="space-y-8 sm:space-y-12 lg:space-y-16"
+                >
                     <!-- Basic Information Section -->
-                    <section class="space-y-8">
+                    <section class="space-y-6 sm:space-y-8">
                         <div
-                            class="flex items-center gap-4 pb-4 border-b border-border/50"
+                            class="flex items-center gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-border/50"
                         >
                             <div
-                                class="w-10 h-10 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold shadow-lg"
+                                class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shadow-lg flex-shrink-0"
                             >
                                 1
                             </div>
@@ -82,20 +89,24 @@ let { formData = $bindable(), errors, isLoading, onSubmit }: Props = $props();
                     </section>
 
                     <!-- Budget Section -->
-                    <section class="space-y-8">
+                    <section class="space-y-6 sm:space-y-8">
                         <div
-                            class="flex items-center gap-4 pb-4 border-b border-border/50"
+                            class="flex items-center gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-border/50"
                         >
                             <div
-                                class="w-10 h-10 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold shadow-lg"
+                                class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shadow-lg flex-shrink-0"
                             >
                                 2
                             </div>
                             <div>
-                                <h3 class="text-xl sm:text-2xl font-semibold">
+                                <h3
+                                    class="text-lg sm:text-xl lg:text-2xl font-semibold"
+                                >
                                     Budget
                                 </h3>
-                                <p class="text-sm text-muted-foreground">
+                                <p
+                                    class="text-xs sm:text-sm text-muted-foreground"
+                                >
                                     Set your preferred budget range
                                 </p>
                             </div>
@@ -105,20 +116,24 @@ let { formData = $bindable(), errors, isLoading, onSubmit }: Props = $props();
                     </section>
 
                     <!-- Package Add-ons Section -->
-                    <section class="space-y-8">
+                    <section class="space-y-6 sm:space-y-8">
                         <div
-                            class="flex items-center gap-4 pb-4 border-b border-border/50"
+                            class="flex items-center gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-border/50"
                         >
                             <div
-                                class="w-10 h-10 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold shadow-lg"
+                                class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shadow-lg flex-shrink-0"
                             >
                                 3
                             </div>
                             <div>
-                                <h3 class="text-xl sm:text-2xl font-semibold">
+                                <h3
+                                    class="text-lg sm:text-xl lg:text-2xl font-semibold"
+                                >
                                     Package Inclusions
                                 </h3>
-                                <p class="text-sm text-muted-foreground">
+                                <p
+                                    class="text-xs sm:text-sm text-muted-foreground"
+                                >
                                     Choose what to include in your beauty
                                     journey
                                 </p>
