@@ -1,5 +1,7 @@
 <script lang="ts">
-import { FormSection, HeroSection, ResultsSection } from "$lib/components";
+import FormSection from "$lib/components/form/FormSection.svelte";
+import HeroSection from "$lib/components/HeroSection.svelte";
+import ResultsSection from "$lib/components/ResultsSection.svelte";
 import type { FormData, FormErrors } from "$lib/types";
 import type {
 	GenerateJourneyRequest,
@@ -155,31 +157,31 @@ function resetForm() {
 </script>
 
 <svelte:head>
-  <title>Plan Your Beauty Journey - Beauty Tour Solution</title>
-  <meta
-    name="description"
-    content="Create your perfect beauty and wellness journey with our AI-powered beauty tour builder"
-  />
+	<title>Plan Your Beauty Journey - Beauty Tour Solution</title>
+	<meta
+		name="description"
+		content="Create your perfect beauty and wellness journey with our AI-powered beauty tour builder"
+	/>
 </svelte:head>
 
 <!-- Main Container with Optimized Layout -->
 <div
-  class="min-h-screen bg-gradient-to-b from-muted/20 via-background to-muted/10"
+	class="min-h-screen bg-gradient-to-b from-muted/20 via-background to-muted/10"
 >
-  <!-- Hero Section -->
-  <HeroSection />
+	<!-- Hero Section -->
+	<HeroSection />
 
-  <!-- Form Section -->
-  <FormSection bind:formData {errors} {isLoading} onSubmit={handleSubmit} />
+	<!-- Form Section -->
+	<FormSection bind:formData {errors} {isLoading} onSubmit={handleSubmit} />
 
-  <!-- Results Section -->
-  {#if showResults && aiRecommendation}
-    <ResultsSection {aiRecommendation} onReset={resetForm} />
-  {/if}
+	<!-- Results Section -->
+	{#if showResults && aiRecommendation}
+		<ResultsSection {aiRecommendation} onReset={resetForm} />
+	{/if}
 </div>
 
 <style>
-  :global(html) {
-    scroll-behavior: smooth;
-  }
+	:global(html) {
+		scroll-behavior: smooth;
+	}
 </style>
