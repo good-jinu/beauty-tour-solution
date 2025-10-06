@@ -1,89 +1,67 @@
 <script lang="ts">
-import FormSection from "$lib/components/form/FormSection.svelte";
 import HeroSection from "$lib/components/HeroSection.svelte";
 import ResultsSection from "$lib/components/ResultsSection.svelte";
-import type { FormData, FormErrors } from "$lib/types";
+import {
+	StepperContainer,
+	StepperHeader,
+	StepperNavigation,
+} from "$lib/components/stepper";
+import ErrorRecovery from "$lib/components/stepper/ErrorRecovery.svelte";
+import {
+	BudgetSelection,
+	CountrySelection,
+	DateSelection,
+	ThemeSelection,
+} from "$lib/components/stepper/steps";
+import type { StepperFormData } from "$lib/types";
+import { StepperUtils } from "$lib/types";
 import type {
 	GenerateJourneyRequest,
 	GenerateJourneyResponse,
 } from "./api/generate-journey/$types";
 
-// Form state
-let formData = $state<FormData>({
-	selectedRegion: "",
-	startDate: "",
-	endDate: "",
-	selectedTheme: "",
-	budget: 2500,
-	includeFlights: false,
-	includeHotels: true,
-	includeActivities: true,
-	includeTransport: false,
-	travelers: 2,
-	specialRequests: "",
-});
-
+// Stepper state
 let isLoading = $state(false);
-let errors = $state<FormErrors>({});
 
 // AI Response state
 let aiRecommendation = $state("");
 let showResults = $state(false);
 
-function validateForm(): boolean {
-	const newErrors: FormErrors = {};
+// Default add-ons for legacy API compatibility
+const defaultAddOns = {
+	includeFlights: true,
+	includeHotels: true,
+	includeActivities: true,
+	includeTransport: true,
+	travelers: 1,
+	specialRequests: "",
+};
 
-	if (!formData.selectedRegion) {
-		newErrors.region = "Please select a destination";
-	}
-	if (!formData.startDate) {
-		newErrors.startDate = "Please select a start date";
-	}
-	if (!formData.endDate) {
-		newErrors.endDate = "Please select an end date";
-	}
-	if (
-		formData.startDate &&
-		formData.endDate &&
-		new Date(formData.startDate) >= new Date(formData.endDate)
-	) {
-		newErrors.endDate = "End date must be after start date";
-	}
-	if (!formData.selectedTheme) {
-		newErrors.theme = "Please select beauty services";
-	}
-	if (formData.travelers < 1) {
-		newErrors.travelers = "Number of travelers must be at least 1";
-	}
-
-	errors = newErrors;
-	return Object.keys(newErrors).length === 0;
-}
-
-async function handleSubmit(event: Event) {
-	event.preventDefault();
-	if (!validateForm()) {
-		return;
-	}
-
+async function handleStepperComplete(stepperData: StepperFormData) {
 	isLoading = true;
 	showResults = false;
 	aiRecommendation = "";
 
+	// Convert stepper data to legacy API format
+	const legacyFormData = StepperUtils.stepperToLegacyFormData(
+		stepperData,
+		defaultAddOns,
+	);
+
 	const requestData: GenerateJourneyRequest = {
-		region: formData.selectedRegion,
-		startDate: formData.startDate,
-		endDate: formData.endDate,
-		theme: formData.selectedTheme,
-		budget: formData.budget,
-		travelers: formData.travelers,
+		region: legacyFormData.selectedRegion,
+		startDate: legacyFormData.startDate,
+		endDate: legacyFormData.endDate,
+		theme: legacyFormData.selectedTheme,
+		budget: legacyFormData.budget,
+		travelers: legacyFormData.travelers,
 		addOns: {
-			flights: formData.includeFlights,
-			hotels: formData.includeHotels,
-			activities: formData.includeActivities,
-			transport: formData.includeTransport,
+			flights: legacyFormData.includeFlights,
+			hotels: legacyFormData.includeHotels,
+			activities: legacyFormData.includeActivities,
+			transport: legacyFormData.includeTransport,
 		},
-		specialRequests: formData.specialRequests,
+		specialRequests: legacyFormData.specialRequests,
 	};
 
 	try {
@@ -128,27 +106,9 @@ function resetForm() {
 	showResults = false;
 	aiRecommendation = "";
 
-	// Reset form fields
-	formData = {
-		selectedRegion: "",
-		startDate: "",
-		endDate: "",
-		selectedTheme: "",
-		budget: 2500,
-		includeFlights: false,
-		includeHotels: true,
-		includeActivities: true,
-		includeTransport: false,
-		travelers: 2,
-		specialRequests: "",
-	};
-
-	// Clear any errors
-	errors = {};
-
 	// Scroll back to the top of the form
 	setTimeout(() => {
-		document.getElementById("planning-form")?.scrollIntoView({
+		document.getElementById("stepper-form")?.scrollIntoView({
 			behavior: "smooth",
 			block: "start",
 		});
@@ -173,14 +133,104 @@ function resetForm() {
 		<HeroSection />
 	</div>
 
-	<!-- Form Section -->
-	<div class="px-4 sm:px-6 lg:px-8">
-		<FormSection
-			bind:formData
-			{errors}
-			{isLoading}
-			onSubmit={handleSubmit}
-		/>
+	<!-- Stepper Form Section -->
+	<div id="stepper-form" class="px-4 sm:px-6 lg:px-8">
+		<StepperContainer oncomplete={handleStepperComplete}>
+			{#snippet children({
+				stepperState,
+				goToStep,
+				nextStep,
+				previousStep,
+				updateFormData,
+				setLoading,
+				canGoNext,
+				canGoPrevious,
+				isLastStep,
+				currentStepErrors,
+				hasCurrentStepErrors,
+				globalWarning,
+				clearStepErrors,
+				clearAllErrors,
+				hasStepErrors,
+				getStepErrorCount,
+			}: any)}
+				<!-- Stepper Header -->
+				<StepperHeader {stepperState} onStepClick={goToStep} />
+
+				<!-- Step Content -->
+				<div class="stepper-content mt-8">
+					{#if stepperState.currentStep === 1}
+						<CountrySelection
+							selectedCountry={stepperState.formData
+								.selectedCountry}
+							errors={currentStepErrors}
+							onSelect={(country) =>
+								updateFormData({ selectedCountry: country })}
+						/>
+					{:else if stepperState.currentStep === 2}
+						<DateSelection
+							startDate={stepperState.formData.startDate}
+							endDate={stepperState.formData.endDate}
+							errors={currentStepErrors}
+							onDateChange={(field, value) =>
+								updateFormData({ [field]: value })}
+						/>
+					{:else if stepperState.currentStep === 3}
+						<ThemeSelection
+							selectedThemes={stepperState.formData
+								.selectedThemes}
+							errors={currentStepErrors}
+							onThemeToggle={(themeValue) => {
+								const currentThemes =
+									stepperState.formData.selectedThemes;
+								const newThemes = currentThemes.includes(
+									themeValue,
+								)
+									? currentThemes.filter(
+											(t: string) => t !== themeValue,
+										)
+									: [...currentThemes, themeValue];
+								updateFormData({ selectedThemes: newThemes });
+							}}
+						/>
+					{:else if stepperState.currentStep === 4}
+						<BudgetSelection
+							budget={stepperState.formData.budget}
+							errors={currentStepErrors}
+							onBudgetChange={(budget) =>
+								updateFormData({ budget })}
+						/>
+					{/if}
+				</div>
+
+				<!-- Error Recovery System -->
+				{#if hasCurrentStepErrors || globalWarning}
+					<div class="mt-6">
+						<ErrorRecovery
+							{stepperState}
+							onGoToStep={goToStep}
+							onClearErrors={clearAllErrors}
+							onRetryValidation={() => {
+								// Trigger validation by updating form data with current values
+								updateFormData({});
+							}}
+							showInline={true}
+						/>
+					</div>
+				{/if}
+
+				<!-- Stepper Navigation -->
+				<StepperNavigation
+					{canGoPrevious}
+					{canGoNext}
+					{isLastStep}
+					isLoading={isLoading || stepperState.isLoading}
+					onprevious={previousStep}
+					onnext={nextStep}
+					onsubmit={nextStep}
+				/>
+			{/snippet}
+		</StepperContainer>
 	</div>
 
 	<!-- Results Section -->
@@ -194,5 +244,18 @@ function resetForm() {
 <style>
 	:global(html) {
 		scroll-behavior: smooth;
+	}
+
+	.stepper-content {
+		min-height: 400px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	@media (max-width: 768px) {
+		.stepper-content {
+			min-height: 300px;
+		}
 	}
 </style>

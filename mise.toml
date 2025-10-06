@@ -21,3 +21,15 @@ run = "pnpm prod-deploy"
 [tasks.remove]
 description = "Remove the SST production server"
 run = "pnpm prod-remove"
+
+[tasks."pre-commit"]
+description = "Execute before commit"
+run = """
+pnpm check
+"""
+
+[hooks]
+postinstall = """
+pnpm install
+mise generate git-pre-commit --write --task=pre-commit
+"""

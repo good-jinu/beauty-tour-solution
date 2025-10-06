@@ -2,8 +2,6 @@ export interface Region {
 	value: string;
 	label: string;
 	description: string;
-	priceRange: string;
-	specialty: string;
 }
 
 export interface Theme {
@@ -14,6 +12,7 @@ export interface Theme {
 	icon: string;
 }
 
+// Legacy FormData interface - maintained for backward compatibility
 export interface FormData {
 	selectedRegion: string;
 	startDate: string;
@@ -28,6 +27,19 @@ export interface FormData {
 	specialRequests: string;
 }
 
+// Enhanced FormData interface compatible with stepper flow
+export interface EnhancedFormData extends FormData {
+	selectedThemes: string[]; // Support multiple theme selection
+	currency?: "USD" | "EUR" | "GBP";
+}
+
+// Conversion utility type for stepper to legacy form data
+export interface StepperToFormDataMapping {
+	selectedRegion: string; // maps from selectedCountry
+	selectedTheme: string; // maps from selectedThemes[0] or combined
+	selectedThemes: string[]; // new field for multiple selection
+}
+
 export interface FormErrors {
 	[key: string]: string;
 }
@@ -35,68 +47,46 @@ export interface FormErrors {
 export const REGIONS: Region[] = [
 	{
 		value: "south-korea",
-		label: "South Korea - K-Beauty & Plastic Surgery",
+		label: "South Korea",
 		description: "World leader in advanced skincare and cosmetic procedures",
-		priceRange: "$2,000 - $8,000",
-		specialty:
-			"K-Beauty treatments, plastic surgery, advanced skincare technology",
 	},
 	{
 		value: "thailand",
-		label: "Thailand - Spa & Wellness Retreats",
+		label: "Thailand",
 		description:
 			"Traditional healing combined with luxury wellness experiences",
-		priceRange: "$1,500 - $5,000",
-		specialty: "Thai massage, herbal treatments, luxury spa resorts",
 	},
 	{
 		value: "turkey",
-		label: "Turkey - Hair Transplant & Medical Tourism",
+		label: "Turkey",
 		description:
 			"Leading destination for hair restoration and cosmetic procedures",
-		priceRange: "$2,500 - $7,000",
-		specialty: "Hair transplants, dental work, cosmetic surgery",
 	},
 	{
 		value: "uae",
-		label: "UAE - Luxury Cosmetic Treatments",
+		label: "UAE",
 		description: "Premium medical facilities with world-class luxury amenities",
-		priceRange: "$3,000 - $12,000",
-		specialty:
-			"Luxury cosmetic procedures, advanced dermatology, premium recovery",
 	},
 	{
 		value: "brazil",
-		label: "Brazil - Cosmetic Surgery & Beach Recovery",
+		label: "Brazil",
 		description: "Renowned for body contouring and cosmetic surgery excellence",
-		priceRange: "$2,000 - $9,000",
-		specialty:
-			"Brazilian butt lift, liposuction, breast procedures, beach recovery",
 	},
 	{
 		value: "india",
-		label: "India - Ayurvedic Treatments & Wellness",
+		label: "India",
 		description: "Ancient healing traditions with modern medical expertise",
-		priceRange: "$800 - $3,500",
-		specialty:
-			"Ayurvedic treatments, yoga retreats, holistic wellness, affordable procedures",
 	},
 	{
 		value: "mexico",
-		label: "Mexico - Dental Tourism & Spa Treatments",
+		label: "Mexico",
 		description:
 			"High-quality dental care combined with relaxing spa experiences",
-		priceRange: "$1,200 - $4,500",
-		specialty:
-			"Dental implants, cosmetic dentistry, spa treatments, medical tourism",
 	},
 	{
 		value: "costa-rica",
-		label: "Costa Rica - Medical Tourism & Eco-Wellness",
+		label: "Costa Rica",
 		description: "Medical excellence in a natural paradise setting",
-		priceRange: "$1,800 - $6,000",
-		specialty:
-			"Eco-wellness, cosmetic surgery, dental work, nature-based recovery",
 	},
 ];
 

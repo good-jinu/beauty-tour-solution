@@ -35,17 +35,12 @@ let { selectedRegion = $bindable(), errors }: Props = $props();
                     required
                 />
 
-                <div class="flex items-start justify-between mb-3">
+                <div class="mb-3">
                     <h4
-                        class="font-semibold text-sm sm:text-base leading-tight pr-2"
+                        class="font-semibold text-sm sm:text-base leading-tight"
                     >
                         {region.label}
                     </h4>
-                    <span
-                        class="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0"
-                    >
-                        {region.priceRange}
-                    </span>
                 </div>
 
                 <p
@@ -53,11 +48,6 @@ let { selectedRegion = $bindable(), errors }: Props = $props();
                 >
                     {region.description}
                 </p>
-
-                <div class="text-xs sm:text-sm text-muted-foreground">
-                    <span class="font-medium">Specialties:</span>
-                    <span class="ml-1">{region.specialty}</span>
-                </div>
 
                 <!-- Selection indicator -->
                 {#if selectedRegion === region.value}
