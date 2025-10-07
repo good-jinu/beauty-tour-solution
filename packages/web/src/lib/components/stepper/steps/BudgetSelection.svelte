@@ -1,16 +1,55 @@
-<script lang="ts">
+<script module lang="ts">
 import type { StepperErrors } from "$lib/types/stepper.js";
 
-interface Props {
-	budget: number;
-	errors?: StepperErrors["step4"];
-	onBudgetChange: (budget: number) => void;
+export function validate(
+	budget: number,
+	selectedThemes: string[],
+	realTime = false,
+): {
+	isValid: boolean;
+	errors: StepperErrors["step4"];
+} {
+	const errors: StepperErrors["step4"] = {};
+
+	if (!budget || budget <= 0) {
+		errors.budget = realTime
+			? "Budget amount required"
+			: "Please set a budget for your beauty tour";
+	} else {
+		// Budget range validation
+		if (budget < 500) {
+			errors.range = "Minimum budget is $500 for quality treatments";
+		}
+
+		if (budget > 50000) {
+			errors.range =
+				"For budgets over $50,000, please contact us for premium packages";
+		}
+
+		// Budget vs theme compatibility
+		if (selectedThemes && selectedThemes.length > 0) {
+			const hasSurgicalThemes = selectedThemes.some((theme) =>
+				["plastic-surgery", "weight-loss", "hair-treatments"].includes(theme),
+			);
+
+			if (hasSurgicalThemes && budget < 2000) {
+				errors.range =
+					"Surgical procedures typically require a minimum budget of $2,000";
+			}
+		}
+	}
+
+	const isValid = Object.keys(errors).length === 0;
+	return { isValid, errors: isValid ? undefined : errors };
 }
+</script>
 
-let { budget = 0, errors, onBudgetChange }: Props = $props();
+<script lang="ts">
+	import { stepperState } from '$lib/stores/stepper.js';
+	import ErrorDisplay from '../ErrorDisplay.svelte';
 
-// Budget configuration
-const MIN_BUDGET = 500;
+	// Budget configuration
+	const MIN_BUDGET = 500;
 const MAX_BUDGET = 15000;
 const STEP = 250;
 
@@ -59,8 +98,11 @@ const budgetRanges = [
 
 // Get current budget range
 const currentRange = $derived(
-	budgetRanges.find((range) => budget >= range.min && budget <= range.max) ||
-		budgetRanges[0],
+	budgetRanges.find(
+		(range) =>
+			$stepperState.formData.budget >= range.min &&
+			$stepperState.formData.budget <= range.max,
+	) || budgetRanges[0],
 );
 
 // Format currency
@@ -77,33 +119,48 @@ function formatCurrency(amount: number): string {
 function handleSliderChange(event: Event) {
 	const target = event.target as HTMLInputElement;
 	const newBudget = parseInt(target.value, 10);
-	onBudgetChange(newBudget);
+	$stepperState.formData.budget = newBudget;
 }
 
 // Handle preset budget selection
 function handlePresetSelect(amount: number) {
-	onBudgetChange(amount);
+	$stepperState.formData.budget = amount;
 }
 
 // Real-time budget validation
 let budgetFeedback = $state("");
 
 $effect(() => {
-	if (budget > 0) {
-		if (budget < 500) {
+	if ($stepperState.formData.budget > 0) {
+		if ($stepperState.formData.budget < 500) {
 			budgetFeedback = "Consider increasing budget for quality treatments";
-		} else if (budget >= 500 && budget < 2000) {
+		} else if (
+			$stepperState.formData.budget >= 500 &&
+			$stepperState.formData.budget < 2000
+		) {
 			budgetFeedback = "Good for basic treatments and wellness packages";
-		} else if (budget >= 2000 && budget < 5000) {
+		} else if (
+			$stepperState.formData.budget >= 2000 &&
+			$stepperState.formData.budget < 5000
+		) {
 			budgetFeedback = "Excellent for quality treatments with good facilities";
-		} else if (budget >= 5000 && budget < 10000) {
+		} else if (
+			$stepperState.formData.budget >= 5000 &&
+			$stepperState.formData.budget < 10000
+		) {
 			budgetFeedback = "Perfect for premium treatments with luxury amenities";
-		} else if (budget >= 10000) {
+		} else if ($stepperState.formData.budget >= 10000) {
 			budgetFeedback = "Ideal for top-tier treatments with exclusive services";
 		}
 	} else {
 		budgetFeedback = "";
 	}
+});
+
+const displayErrors = $derived(() => {
+	const stepErrors = $stepperState.errors.step4;
+	if (!stepErrors) return [];
+	return Object.values(stepErrors).filter(Boolean) as string[];
 });
 
 // Quick preset amounts
@@ -125,7 +182,7 @@ const presetAmounts = [1000, 2500, 5000, 7500, 10000, 12500];
             class="inline-flex flex-col items-center gap-2 px-6 py-4 bg-primary/10 rounded-2xl"
         >
             <div class="text-3xl font-bold text-primary">
-                {formatCurrency(budget)}
+                {formatCurrency($stepperState.formData.budget)}
             </div>
             {#if currentRange}
                 <div class="flex items-center gap-2">
@@ -147,7 +204,7 @@ const presetAmounts = [1000, 2500, 5000, 7500, 10000, 12500];
                 min={MIN_BUDGET}
                 max={MAX_BUDGET}
                 step={STEP}
-                value={budget}
+                value={$stepperState.formData.budget}
                 onchange={handleSliderChange}
                 oninput={handleSliderChange}
                 class="w-full h-3 bg-muted rounded-lg appearance-none cursor-pointer slider"
@@ -156,7 +213,7 @@ const presetAmounts = [1000, 2500, 5000, 7500, 10000, 12500];
             <!-- Range markers -->
             <div
                 class="flex justify-between text-xs text-muted-foreground mt-2"
-            >
+>
                 <span>{formatCurrency(MIN_BUDGET)}</span>
                 <span>{formatCurrency(MAX_BUDGET)}</span>
             </div>
@@ -168,7 +225,7 @@ const presetAmounts = [1000, 2500, 5000, 7500, 10000, 12500];
                 <button
                     type="button"
                     onclick={() => handlePresetSelect(amount)}
-                    class="px-2 py-2 sm:px-3 text-xs sm:text-sm border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors min-h-[44px] flex items-center justify-center {budget ===
+                    class="px-2 py-2 sm:px-3 text-xs sm:text-sm border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors min-h-[44px] flex items-center justify-center {$stepperState.formData.budget ===
                     amount
                         ? 'border-primary bg-primary/5 text-primary font-medium'
                         : ''}"
@@ -296,39 +353,7 @@ const presetAmounts = [1000, 2500, 5000, 7500, 10000, 12500];
     {/if}
 
     <!-- Error Display -->
-    {#if errors?.budget}
-        <div class="text-center">
-            <p
-                class="text-sm text-destructive flex items-center justify-center gap-2"
-            >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-                {errors.budget}
-            </p>
-        </div>
-    {/if}
-
-    {#if errors?.range}
-        <div class="text-center">
-            <p
-                class="text-sm text-destructive flex items-center justify-center gap-2"
-            >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-                {errors.range}
-            </p>
-        </div>
-    {/if}
+    <ErrorDisplay errors={displayErrors()} />
 </div>
 
 <style>

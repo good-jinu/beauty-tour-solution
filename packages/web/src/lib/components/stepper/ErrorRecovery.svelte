@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { StepperErrors, StepperState } from "$lib/types/stepper";
-import { ValidationUtils } from "$lib/utils/validation";
+import { getErrorSeverity } from "$lib/utils/validation";
 import Button from "../ui/button/button.svelte";
 import ErrorDisplay from "./ErrorDisplay.svelte";
 
@@ -40,7 +40,7 @@ const errorStats = $derived(() => {
 	Object.entries(stepperState.errors).forEach(([stepKey, stepErrors]) => {
 		if (stepKey === "global") {
 			if (stepErrors) {
-				const severity = ValidationUtils.getErrorSeverity(stepErrors as string);
+				const severity = getErrorSeverity(stepErrors as string);
 				if (severity === "error") totalErrors++;
 				else if (severity === "warning") totalWarnings++;
 			}
@@ -50,7 +50,7 @@ const errorStats = $derived(() => {
 				let hasStepErrors = false;
 				Object.values(stepErrors).forEach((error) => {
 					if (error) {
-						const severity = ValidationUtils.getErrorSeverity(error.toString());
+						const severity = getErrorSeverity(error.toString());
 						if (severity === "error") {
 							totalErrors++;
 							hasStepErrors = true;

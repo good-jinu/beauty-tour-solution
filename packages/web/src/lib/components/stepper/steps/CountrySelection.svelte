@@ -1,16 +1,37 @@
-<script lang="ts">
-import { REGIONS } from "$lib/types/beauty-journey.js";
+<script module lang="ts">
 import type { StepperErrors } from "$lib/types/stepper.js";
 
-interface Props {
-	selectedCountry: string;
-	errors?: StepperErrors["step1"];
-	onSelect: (country: string) => void;
+export function validate(
+	selectedCountry: string,
+	realTime = false,
+): {
+	isValid: boolean;
+	errors: StepperErrors["step1"];
+} {
+	const errors: StepperErrors["step1"] = {};
+
+	if (!selectedCountry || selectedCountry.trim() === "") {
+		errors.country = realTime
+			? "Please select a destination country"
+			: "Please select a country for your beauty tour";
+	}
+
+	// Additional validation for country format
+	if (selectedCountry && selectedCountry.length < 2) {
+		errors.country = "Invalid country selection";
+	}
+
+	const isValid = Object.keys(errors).length === 0;
+	return { isValid, errors: isValid ? undefined : errors };
 }
+</script>
 
-let { selectedCountry = "", errors, onSelect }: Props = $props();
+<script lang="ts">
+	import { stepperState } from '$lib/stores/stepper.js';
+	import { REGIONS } from '$lib/types/beauty-journey.js';
+	import ErrorDisplay from '../ErrorDisplay.svelte';
 
-let searchQuery = $state("");
+	let searchQuery = $state('');
 
 // Filter regions based on search query
 const filteredRegions = $derived(
@@ -22,7 +43,7 @@ const filteredRegions = $derived(
 );
 
 function handleCountrySelect(countryValue: string) {
-	onSelect(countryValue);
+	$stepperState.formData.selectedCountry = countryValue;
 }
 
 // Real-time search validation
@@ -34,6 +55,12 @@ $effect(() => {
 	} else {
 		searchError = "";
 	}
+});
+
+const displayErrors = $derived(() => {
+	const stepErrors = $stepperState.errors.step1;
+	if (!stepErrors) return [];
+	return Object.values(stepErrors).filter(Boolean) as string[];
 });
 </script>
 
@@ -85,13 +112,13 @@ $effect(() => {
             <button
                 type="button"
                 onclick={() => handleCountrySelect(region.value)}
-                class="group relative flex flex-col p-4 sm:p-5 lg:p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-lg text-left min-h-[140px] sm:min-h-[160px] lg:min-h-[180px] {selectedCountry ===
+                class="group relative flex flex-col p-4 sm:p-5 lg:p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-lg text-left min-h-[140px] sm:min-h-[160px] lg:min-h-[180px] {$stepperState.formData.selectedCountry ===
                 region.value
                     ? 'border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20'
                     : 'border-border hover:bg-muted/30'}"
             >
                 <!-- Selection indicator -->
-                {#if selectedCountry === region.value}
+                {#if $stepperState.formData.selectedCountry === region.value}
                     <div
                         class="absolute top-3 right-3 sm:top-4 sm:right-4 w-5 h-5 sm:w-6 sm:h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center"
                     >
@@ -165,54 +192,5 @@ $effect(() => {
     {/if}
 
     <!-- Error Display -->
-    {#if errors?.country}
-        <div class="text-center animate-in slide-in-from-top-2 duration-300">
-            <div
-                class="inline-flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
-            >
-                <svg
-                    class="w-4 h-4 text-red-600 dark:text-red-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                >
-                    <path
-                        fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-                <span
-                    class="text-sm text-red-800 dark:text-red-200 font-medium"
-                >
-                    {errors.country}
-                </span>
-            </div>
-        </div>
-    {/if}
-
-    <!-- General Error Display -->
-    {#if errors?.general}
-        <div class="text-center animate-in slide-in-from-top-2 duration-300">
-            <div
-                class="inline-flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
-            >
-                <svg
-                    class="w-4 h-4 text-red-600 dark:text-red-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                >
-                    <path
-                        fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-                <span
-                    class="text-sm text-red-800 dark:text-red-200 font-medium"
-                >
-                    {errors.general}
-                </span>
-            </div>
-        </div>
-    {/if}
+    <ErrorDisplay errors={displayErrors()} />
 </div>
