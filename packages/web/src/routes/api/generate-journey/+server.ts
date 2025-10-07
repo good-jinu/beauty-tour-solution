@@ -6,6 +6,7 @@ import {
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
+import { REGIONS, THEMES } from "$lib/types/beauty-journey";
 import type { GenerateJourneyRequest } from "./$types";
 
 // Use the region from SvelteKit server env if available, otherwise default to us-east-1
@@ -69,29 +70,12 @@ export const POST: RequestHandler = async ({ request }) => {
 };
 
 function createPrompt(data: GenerateJourneyRequest): string {
-	const regionLabels: { [key: string]: string } = {
-		"south-korea": "South Korea (K-Beauty & Plastic Surgery)",
-		thailand: "Thailand (Spa & Wellness Retreats)",
-		turkey: "Turkey (Hair Transplant & Medical Tourism)",
-		uae: "UAE (Luxury Cosmetic Treatments)",
-		brazil: "Brazil (Cosmetic Surgery & Beach Recovery)",
-		india: "India (Ayurvedic Treatments & Wellness)",
-		mexico: "Mexico (Dental Tourism & Spa Treatments)",
-		"costa-rica": "Costa Rica (Medical Tourism & Eco-Wellness)",
-	};
-
-	const themeLabels: { [key: string]: string } = {
-		skincare: "Skincare & Anti-Aging Treatments",
-		"plastic-surgery": "Plastic Surgery & Cosmetic Procedures",
-		"wellness-spa": "Wellness & Spa Retreats",
-		"hair-treatments": "Hair Transplant & Hair Treatments",
-		"dental-tourism": "Dental Tourism & Smile Makeovers",
-		"weight-loss": "Weight Loss & Body Contouring",
-		"holistic-wellness": "Holistic Wellness & Alternative Medicine",
-		"luxury-beauty": "Luxury Beauty & Premium Treatments",
-		"recovery-vacation": "Recovery & Healing Vacation",
-		"preventive-care": "Preventive Care & Health Checkups",
-	};
+	const regionLabels = Object.fromEntries(
+		REGIONS.map((region) => [region.value, `${region.label} - ${region.city}`]),
+	);
+	const themeLabels = Object.fromEntries(
+		THEMES.map((theme) => [theme.value, theme.label]),
+	);
 
 	const duration = calculateDuration(data.startDate, data.endDate);
 	const addOns: string[] = [];

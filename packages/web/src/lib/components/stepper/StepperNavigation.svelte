@@ -1,5 +1,6 @@
 <script lang="ts">
 import { onDestroy, onMount } from "svelte";
+import { Spinner } from "../ui/spinner";
 
 interface Props {
 	canGoPrevious: boolean;
@@ -77,16 +78,7 @@ onMount(() => {
         aria-label={isLastStep ? "Submit form" : "Go to next step"}
     >
         {#if isLoading}
-            <svg
-                class="button-icon loading"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 2 A10 10 0 0 1 22 12"></path>
-            </svg>
+            <Spinner />
             {isLastStep ? "Generating..." : "Loading..."}
         {:else}
             {isLastStep ? "Get my Beauty Tour" : "Next"}

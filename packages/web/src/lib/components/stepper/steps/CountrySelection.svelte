@@ -27,41 +27,32 @@ export function validate(
 </script>
 
 <script lang="ts">
-	import { stepperState } from '$lib/stores/stepper.js';
-	import { REGIONS } from '$lib/types/beauty-journey.js';
-	import ErrorDisplay from '../ErrorDisplay.svelte';
+    import { stepperState } from "$lib/stores/stepper.js";
+    import { REGIONS } from "$lib/types/beauty-journey.js";
+    import ErrorDisplay from "../ErrorDisplay.svelte";
 
-	let searchQuery = $state('');
+    let searchQuery = $state("");
 
-// Filter regions based on search query
-const filteredRegions = $derived(
-	REGIONS.filter(
-		(region) =>
-			region.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			region.description.toLowerCase().includes(searchQuery.toLowerCase()),
-	),
-);
+    // Filter regions based on search query
+    const filteredRegions = $derived(
+        REGIONS.filter(
+            (region) =>
+                region.label
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                region.city.toLowerCase().includes(searchQuery.toLowerCase()),
+        ),
+    );
 
-function handleCountrySelect(countryValue: string) {
-	$stepperState.formData.selectedCountry = countryValue;
-}
+    function handleCountrySelect(countryValue: string) {
+        $stepperState.formData.selectedCountry = countryValue;
+    }
 
-// Real-time search validation
-let searchError = $state("");
-
-$effect(() => {
-	if (searchQuery.length > 0 && filteredRegions.length === 0) {
-		searchError = "No destinations match your search. Try different keywords.";
-	} else {
-		searchError = "";
-	}
-});
-
-const displayErrors = $derived(() => {
-	const stepErrors = $stepperState.errors.step1;
-	if (!stepErrors) return [];
-	return Object.values(stepErrors).filter(Boolean) as string[];
-});
+    const displayErrors = $derived(() => {
+        const stepErrors = $stepperState.errors.step1;
+        if (!stepErrors) return [];
+        return Object.values(stepErrors).filter(Boolean) as string[];
+    });
 </script>
 
 <div class="space-y-6">
@@ -112,8 +103,8 @@ const displayErrors = $derived(() => {
             <button
                 type="button"
                 onclick={() => handleCountrySelect(region.value)}
-                class="group relative flex flex-col p-4 sm:p-5 lg:p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-lg text-left min-h-[140px] sm:min-h-[160px] lg:min-h-[180px] {$stepperState.formData.selectedCountry ===
-                region.value
+                class="group relative flex flex-col items-center justify-center p-4 sm:p-5 lg:p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-lg text-center min-h-[120px] sm:min-h-[140px] {$stepperState
+                    .formData.selectedCountry === region.value
                     ? 'border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20'
                     : 'border-border hover:bg-muted/30'}"
             >
@@ -136,21 +127,21 @@ const displayErrors = $derived(() => {
                     </div>
                 {/if}
 
-                <!-- Header spacing -->
-                <div class="mb-3"></div>
+                <!-- Flag -->
+                <div class="text-3xl sm:text-4xl mb-2">
+                    {region.flag}
+                </div>
 
                 <!-- Country Name -->
                 <h3
-                    class="font-semibold text-base sm:text-lg mb-2 pr-6 sm:pr-8 leading-tight"
+                    class="font-semibold text-base sm:text-lg mb-1 leading-tight"
                 >
                     {region.label}
                 </h3>
 
-                <!-- Description -->
-                <p
-                    class="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 leading-relaxed line-clamp-3"
-                >
-                    {region.description}
+                <!-- City -->
+                <p class="text-xs sm:text-sm text-muted-foreground">
+                    {region.city}
                 </p>
 
                 <!-- Hover effect -->

@@ -2,6 +2,8 @@ export interface Region {
 	value: string;
 	label: string;
 	description: string;
+	flag: string;
+	city: string;
 }
 
 export interface Theme {
@@ -47,45 +49,72 @@ export const REGIONS: Region[] = [
 	{
 		value: "south-korea",
 		label: "South Korea",
-		description: "World leader in advanced skincare and cosmetic procedures",
+		description: "Seoul",
+		flag: "🇰🇷",
+		city: "Seoul",
 	},
 	{
 		value: "thailand",
 		label: "Thailand",
-		description:
-			"Traditional healing combined with luxury wellness experiences",
-	},
-	{
-		value: "turkey",
-		label: "Turkey",
-		description:
-			"Leading destination for hair restoration and cosmetic procedures",
-	},
-	{
-		value: "uae",
-		label: "UAE",
-		description: "Premium medical facilities with world-class luxury amenities",
+		description: "Bangkok",
+		flag: "🇹🇭",
+		city: "Bangkok",
 	},
 	{
 		value: "brazil",
 		label: "Brazil",
-		description: "Renowned for body contouring and cosmetic surgery excellence",
+		description: "Rio de Janeiro",
+		flag: "🇧🇷",
+		city: "Rio de Janeiro",
 	},
 	{
-		value: "india",
-		label: "India",
-		description: "Ancient healing traditions with modern medical expertise",
+		value: "japan",
+		label: "Japan",
+		description: "Tokyo",
+		flag: "🇯🇵",
+		city: "Tokyo",
+	},
+	{
+		value: "france",
+		label: "France",
+		description: "Paris",
+		flag: "🇫🇷",
+		city: "Paris",
+	},
+	{
+		value: "turkey",
+		label: "Turkey",
+		description: "Istanbul",
+		flag: "🇹🇷",
+		city: "Istanbul",
+	},
+	{
+		value: "germany",
+		label: "Germany",
+		description: "Berlin",
+		flag: "🇩🇪",
+		city: "Berlin",
 	},
 	{
 		value: "mexico",
 		label: "Mexico",
-		description:
-			"High-quality dental care combined with relaxing spa experiences",
+		description: "Mexico City",
+		flag: "🇲🇽",
+		city: "Mexico City",
 	},
 	{
-		value: "costa-rica",
-		label: "Costa Rica",
-		description: "Medical excellence in a natural paradise setting",
+		value: "usa-new-york",
+		label: "USA",
+		description: "New York",
+		flag: "🇺🇸",
+		city: "New York",
+	},
+	{
+		value: "usa-los-angeles",
+		label: "USA",
+		description: "Los Angeles",
+		flag: "🇺🇸",
+		city: "Los Angeles",
 	},
 ];
 
@@ -115,9 +144,15 @@ export const THEMES: Theme[] = [
 		icon: "🏃‍♀️",
 	},
 	{
-		value: "spa",
-		label: "SPA",
-		description: "Relaxing spa treatments and wellness experiences",
-		icon: "🧘‍♀️",
+		value: "nail",
+		label: "Nail care",
+		description: "Manicure, pedicure, and overall nail health treatments.",
+		icon: "💅",
+	},
+	{
+		value: "makeup",
+		label: "Makeup",
+		description: "Professional makeup services, and beauty consultations.",
+		icon: "💄",
 	},
 ];
