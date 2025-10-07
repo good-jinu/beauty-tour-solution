@@ -1,22 +1,81 @@
-<script lang="ts">
+<script module lang="ts">
 import type { StepperErrors } from "$lib/types/stepper.js";
 
-interface Props {
-	startDate: string;
-	endDate: string;
-	errors?: StepperErrors["step2"];
-	onDateChange: (field: "startDate" | "endDate", value: string) => void;
+export function validate(
+	startDate: string,
+	endDate: string,
+	realTime = false,
+): {
+	isValid: boolean;
+	errors: StepperErrors["step2"];
+} {
+	const errors: StepperErrors["step2"] = {};
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+
+	if (!startDate) {
+		errors.startDate = realTime
+			? "Start date required"
+			: "Please select a start date";
+	} else {
+		const startDateObj = new Date(startDate);
+		if (startDateObj < today) {
+			errors.startDate = "Start date must be in the future";
+		}
+	}
+
+	if (!endDate) {
+		errors.endDate = realTime
+			? "End date required"
+			: "Please select an end date";
+	}
+
+	// Date range validation
+	if (startDate && endDate) {
+		const startDateObj = new Date(startDate);
+		const endDateObj = new Date(endDate);
+
+		if (endDateObj <= startDateObj) {
+			errors.dateRange = "End date must be after start date";
+		} else {
+			// Check minimum stay (2 days)
+			const daysDiff = Math.ceil(
+				(endDateObj.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24),
+			);
+			if (daysDiff < 2) {
+				errors.dateRange = "Minimum stay is 2 days";
+			}
+
+			// Check maximum stay (30 days)
+			if (daysDiff > 30) {
+				errors.dateRange = "Maximum stay is 30 days";
+			}
+
+			// Check if dates are too far in the future (1 year)
+			const oneYearFromNow = new Date();
+			oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+			if (startDateObj > oneYearFromNow) {
+				errors.startDate = "Please select a date within the next year";
+			}
+		}
+	}
+
+	const isValid = Object.keys(errors).length === 0;
+	return { isValid, errors: isValid ? undefined : errors };
 }
+</script>
 
-let { startDate = "", endDate = "", errors, onDateChange }: Props = $props();
+<script lang="ts">
+	import { stepperState } from '$lib/stores/stepper.js';
+	import ErrorDisplay from '../ErrorDisplay.svelte';
 
-// Get today's date in YYYY-MM-DD format
-const today = new Date().toISOString().split("T")[0];
+	// Get today's date in YYYY-MM-DD format
+	const today = new Date().toISOString().split('T')[0];
 
 // Calculate minimum end date (start date + 1 day)
 const minEndDate = $derived(() => {
-	if (!startDate) return today;
-	const start = new Date(startDate);
+	if (!$stepperState.formData.startDate) return today;
+	const start = new Date($stepperState.formData.startDate);
 	start.setDate(start.getDate() + 1);
 	return start.toISOString().split("T")[0];
 });
@@ -30,9 +89,10 @@ const maxDate = (() => {
 
 // Calculate trip duration
 const tripDuration = $derived(() => {
-	if (!startDate || !endDate) return null;
-	const start = new Date(startDate);
-	const end = new Date(endDate);
+	if (!$stepperState.formData.startDate || !$stepperState.formData.endDate)
+		return null;
+	const start = new Date($stepperState.formData.startDate);
+	const end = new Date($stepperState.formData.endDate);
 	const diffTime = end.getTime() - start.getTime();
 	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 	return diffDays > 0 ? diffDays : null;
@@ -40,26 +100,30 @@ const tripDuration = $derived(() => {
 
 function handleStartDateChange(event: Event) {
 	const target = event.target as HTMLInputElement;
-	onDateChange("startDate", target.value);
+	$stepperState.formData.startDate = target.value;
 
 	// If end date is before new start date, clear it
-	if (endDate && target.value && new Date(endDate) <= new Date(target.value)) {
-		onDateChange("endDate", "");
+	if (
+		$stepperState.formData.endDate &&
+		target.value &&
+		new Date($stepperState.formData.endDate) <= new Date(target.value)
+	) {
+		$stepperState.formData.endDate = "";
 	}
 }
 
 function handleEndDateChange(event: Event) {
 	const target = event.target as HTMLInputElement;
-	onDateChange("endDate", target.value);
+	$stepperState.formData.endDate = target.value;
 }
 
 // Real-time validation feedback
 let dateValidationMessage = $state("");
 
 $effect(() => {
-	if (startDate && endDate) {
-		const start = new Date(startDate);
-		const end = new Date(endDate);
+	if ($stepperState.formData.startDate && $stepperState.formData.endDate) {
+		const start = new Date($stepperState.formData.startDate);
+		const end = new Date($stepperState.formData.endDate);
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 
@@ -85,6 +149,12 @@ $effect(() => {
 		dateValidationMessage = "";
 	}
 });
+
+const displayErrors = $derived(() => {
+	const stepErrors = $stepperState.errors.step2;
+	if (!stepErrors) return [];
+	return Object.values(stepErrors).filter(Boolean) as string[];
+});
 </script>
 
 <div class="space-y-6">
@@ -107,33 +177,17 @@ $effect(() => {
                 <input
                     id="start-date"
                     type="date"
-                    value={startDate}
+                    value={$stepperState.formData.startDate}
                     min={today}
                     max={maxDate}
                     onchange={handleStartDateChange}
                     autocomplete="off"
                     inputmode="none"
-                    class="w-full px-3 py-3 sm:px-4 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-base sm:text-lg min-h-[48px] {errors?.startDate
-                        ? 'border-destructive'
-                        : ''}"
+                    class="w-full px-3 py-3 sm:px-4 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-base sm:text-lg min-h-[48px] {$stepperState.errors.step2?.startDate
+						? 'border-destructive'
+						: ''}"
                 />
             </div>
-            {#if errors?.startDate}
-                <p class="text-sm text-destructive flex items-center gap-2">
-                    <svg
-                        class="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
-                    {errors.startDate}
-                </p>
-            {/if}
         </div>
 
         <!-- End Date -->
@@ -145,34 +199,18 @@ $effect(() => {
                 <input
                     id="end-date"
                     type="date"
-                    value={endDate}
+                    value={$stepperState.formData.endDate}
                     min={minEndDate()}
                     max={maxDate}
                     onchange={handleEndDateChange}
-                    disabled={!startDate}
+                    disabled={!$stepperState.formData.startDate}
                     autocomplete="off"
                     inputmode="none"
-                    class="w-full px-3 py-3 sm:px-4 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-base sm:text-lg min-h-[48px] disabled:opacity-50 disabled:cursor-not-allowed {errors?.endDate
-                        ? 'border-destructive'
-                        : ''}"
+                    class="w-full px-3 py-3 sm:px-4 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-base sm:text-lg min-h-[48px] disabled:opacity-50 disabled:cursor-not-allowed {$stepperState.errors.step2?.endDate
+						? 'border-destructive'
+						: ''}"
                 />
             </div>
-            {#if errors?.endDate}
-                <p class="text-sm text-destructive flex items-center gap-2">
-                    <svg
-                        class="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
-                    {errors.endDate}
-                </p>
-            {/if}
         </div>
     </div>
 
@@ -233,23 +271,7 @@ $effect(() => {
         </div>
     {/if}
 
-    <!-- Date Range Error -->
-    {#if errors?.dateRange}
-        <div class="text-center">
-            <p
-                class="text-sm text-destructive flex items-center justify-center gap-2"
-            >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-                {errors.dateRange}
-            </p>
-        </div>
-    {/if}
+    <ErrorDisplay errors={displayErrors()} />
 
     <!-- Guidelines -->
     <div class="bg-muted/30 rounded-lg p-4 space-y-2">

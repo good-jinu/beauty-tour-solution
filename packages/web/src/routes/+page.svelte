@@ -154,46 +154,13 @@ function resetForm() {
 				<!-- Step Content -->
 				<div class="stepper-content mt-8">
 					{#if stepperState.currentStep === 1}
-						<CountrySelection
-							selectedCountry={stepperState.formData
-								.selectedCountry}
-							errors={currentStepErrors}
-							onSelect={(country) =>
-								updateFormData({ selectedCountry: country })}
-						/>
+						<CountrySelection />
 					{:else if stepperState.currentStep === 2}
-						<DateSelection
-							startDate={stepperState.formData.startDate}
-							endDate={stepperState.formData.endDate}
-							errors={currentStepErrors}
-							onDateChange={(field, value) =>
-								updateFormData({ [field]: value })}
-						/>
+						<DateSelection />
 					{:else if stepperState.currentStep === 3}
-						<ThemeSelection
-							selectedThemes={stepperState.formData
-								.selectedThemes}
-							errors={currentStepErrors}
-							onThemeToggle={(themeValue) => {
-								const currentThemes =
-									stepperState.formData.selectedThemes;
-								const newThemes = currentThemes.includes(
-									themeValue,
-								)
-									? currentThemes.filter(
-											(t: string) => t !== themeValue,
-										)
-									: [...currentThemes, themeValue];
-								updateFormData({ selectedThemes: newThemes });
-							}}
-						/>
+						<ThemeSelection />
 					{:else if stepperState.currentStep === 4}
-						<BudgetSelection
-							budget={stepperState.formData.budget}
-							errors={currentStepErrors}
-							onBudgetChange={(budget) =>
-								updateFormData({ budget })}
-						/>
+						<BudgetSelection />
 					{/if}
 				</div>
 

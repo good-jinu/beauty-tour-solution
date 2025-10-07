@@ -1,21 +1,71 @@
-<script lang="ts">
-import { THEMES } from "$lib/types/beauty-journey.js";
+<script module lang="ts">
 import type { StepperErrors } from "$lib/types/stepper.js";
 
-interface Props {
-	selectedThemes: string[];
-	errors?: StepperErrors["step3"];
-	onThemeToggle: (themeValue: string) => void;
-}
+export function validate(
+	selectedThemes: string[],
+	realTime = false,
+): {
+	isValid: boolean;
+	errors: StepperErrors["step3"];
+} {
+	const errors: StepperErrors["step3"] = {};
 
-let { selectedThemes = [], errors, onThemeToggle }: Props = $props();
+	if (!selectedThemes || selectedThemes.length === 0) {
+		errors.themes = realTime
+			? "Select at least one theme"
+			: "Please select at least one treatment theme";
+	}
+
+	// Theme compatibility validation
+	if (selectedThemes && selectedThemes.length > 1) {
+		// Check for incompatible combinations
+		const incompatibleCombinations = [
+			{
+				themes: ["plastic-surgery", "wellness-spa"],
+				message:
+					"Surgical procedures and spa treatments may require separate visits for optimal recovery",
+			},
+			{
+				themes: ["weight-loss", "plastic-surgery"],
+				message:
+					"Weight loss and plastic surgery procedures should be carefully timed - consult with specialists",
+			},
+		];
+
+		for (const combo of incompatibleCombinations) {
+			if (combo.themes.every((theme) => selectedThemes?.includes(theme))) {
+				errors.compatibility = combo.message;
+				break;
+			}
+		}
+
+		// Check for too many themes (more than 3 might be overwhelming)
+		if (selectedThemes.length > 3) {
+			errors.selection =
+				"Consider limiting to 3 themes for a focused treatment plan";
+		}
+	}
+
+	const isValid = Object.keys(errors).length === 0;
+	return { isValid, errors: isValid ? undefined : errors };
+}
+</script>
+
+<script lang="ts">
+	import { stepperState } from '$lib/stores/stepper.js';
+	import { THEMES } from '$lib/types/beauty-journey.js';
+	import ErrorDisplay from '../ErrorDisplay.svelte';
 
 function handleThemeToggle(themeValue: string) {
-	onThemeToggle(themeValue);
+	const currentThemes = $stepperState.formData.selectedThemes;
+	const newThemes = currentThemes.includes(themeValue)
+		? currentThemes.filter((t: string) => t !== themeValue)
+		: [...currentThemes, themeValue];
+	$stepperState.formData.selectedThemes = newThemes;
 }
 
 function isThemeSelected(themeValue: string): boolean {
-	return selectedThemes.includes(themeValue);
+	return $stepperState.formData.selectedThemes.includes(themeValue);
 }
 
 // Real-time compatibility checking
@@ -24,7 +74,7 @@ let compatibilityWarnings = $state<string[]>([]);
 $effect(() => {
 	compatibilityWarnings = [];
 
-	if (selectedThemes.length > 1) {
+	if ($stepperState.formData.selectedThemes.length > 1) {
 		// Check for incompatible combinations
 		const incompatibleCombinations = [
 			{
@@ -45,18 +95,28 @@ $effect(() => {
 		];
 
 		for (const combo of incompatibleCombinations) {
-			if (combo.themes.every((theme) => selectedThemes.includes(theme))) {
+			if (
+				combo.themes.every((theme) =>
+					$stepperState.formData.selectedThemes.includes(theme),
+				)
+			) {
 				compatibilityWarnings.push(combo.message);
 			}
 		}
 
 		// Check for too many themes
-		if (selectedThemes.length > 3) {
+		if ($stepperState.formData.selectedThemes.length > 3) {
 			compatibilityWarnings.push(
 				"Consider limiting to 3 themes for a focused treatment plan",
 			);
 		}
 	}
+});
+
+const displayErrors = $derived(() => {
+	const stepErrors = $stepperState.errors.step3;
+	if (!stepErrors) return [];
+	return Object.values(stepErrors).filter(Boolean) as string[];
 });
 
 // Group themes by category for better organization
@@ -97,7 +157,7 @@ const themeCategories = $derived(() => {
     </div>
 
     <!-- Selected Count -->
-    {#if selectedThemes.length > 0}
+    {#if $stepperState.formData.selectedThemes.length > 0}
         <div class="text-center">
             <div
                 class="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full"
@@ -116,8 +176,10 @@ const themeCategories = $derived(() => {
                     />
                 </svg>
                 <span class="text-sm font-medium">
-                    {selectedThemes.length}
-                    {selectedThemes.length === 1 ? "theme" : "themes"} selected
+                    {$stepperState.formData.selectedThemes.length}
+                    {$stepperState.formData.selectedThemes.length === 1
+						? "theme"
+						: "themes"} selected
                 </span>
             </div>
         </div>
@@ -342,22 +404,7 @@ const themeCategories = $derived(() => {
     </div>
 
     <!-- Error Display -->
-    {#if errors?.themes}
-        <div class="text-center">
-            <p
-                class="text-sm text-destructive flex items-center justify-center gap-2"
-            >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-                {errors.themes}
-            </p>
-        </div>
-    {/if}
+    <ErrorDisplay errors={displayErrors()} />
 
     <!-- Real-time compatibility warnings -->
     {#each compatibilityWarnings as warning}
@@ -376,23 +423,6 @@ const themeCategories = $derived(() => {
             </p>
         </div>
     {/each}
-
-    {#if errors?.compatibility}
-        <div class="text-center">
-            <p
-                class="text-sm text-destructive flex items-center justify-center gap-2"
-            >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-                {errors.compatibility}
-            </p>
-        </div>
-    {/if}
 
     <!-- Guidelines -->
     <div class="bg-muted/30 rounded-lg p-4 space-y-2">
