@@ -26,7 +26,7 @@ export default $config({
 				},
 			],
 			server: {
-				timeout: "60 seconds",
+				timeout: "120 seconds",
 			},
 		});
 

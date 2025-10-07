@@ -35,20 +35,13 @@ let { selectedTheme = $bindable(), errors }: Props = $props();
                     required
                 />
 
-                <div class="flex items-start justify-between mb-3">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl">{theme.icon}</span>
-                        <h4
-                            class="font-semibold text-sm sm:text-base leading-tight pr-2"
-                        >
-                            {theme.label}
-                        </h4>
-                    </div>
-                    <span
-                        class="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0"
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="text-xl">{theme.icon}</span>
+                    <h4
+                        class="font-semibold text-sm sm:text-base leading-tight"
                     >
-                        {theme.recoveryTime}
-                    </span>
+                        {theme.label}
+                    </h4>
                 </div>
 
                 <p

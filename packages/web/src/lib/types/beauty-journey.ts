@@ -8,7 +8,6 @@ export interface Theme {
 	value: string;
 	label: string;
 	description: string;
-	recoveryTime: string;
 	icon: string;
 }
 
@@ -92,83 +91,33 @@ export const REGIONS: Region[] = [
 
 export const THEMES: Theme[] = [
 	{
-		value: "skincare",
-		label: "Skincare & Anti-Aging Treatments",
-		description:
-			"Advanced facial treatments, chemical peels, laser therapy, and anti-aging procedures to rejuvenate your skin",
-		recoveryTime: "1-7 days",
-		icon: "✨",
-	},
-	{
 		value: "plastic-surgery",
-		label: "Plastic Surgery & Cosmetic Procedures",
-		description:
-			"Surgical enhancements including facelifts, rhinoplasty, breast augmentation, and body contouring procedures",
-		recoveryTime: "2-8 weeks",
+		label: "Plastic Surgery",
+		description: "Cosmetic and reconstructive surgical procedures",
 		icon: "🏥",
 	},
 	{
-		value: "wellness-spa",
-		label: "Wellness & Spa Retreats",
-		description:
-			"Relaxing spa treatments, massages, detox programs, and holistic wellness experiences",
-		recoveryTime: "No downtime",
-		icon: "🧘‍♀️",
-	},
-	{
 		value: "hair-treatments",
-		label: "Hair Transplant & Hair Treatments",
-		description:
-			"Hair restoration procedures, transplants, PRP therapy, and advanced hair loss treatments",
-		recoveryTime: "1-2 weeks",
+		label: "Hair Treatments",
+		description: "Hair restoration and treatment procedures",
 		icon: "💇‍♀️",
 	},
 	{
-		value: "dental-tourism",
-		label: "Dental Tourism & Smile Makeovers",
-		description:
-			"Dental implants, veneers, teeth whitening, orthodontics, and comprehensive oral care",
-		recoveryTime: "3-14 days",
-		icon: "😁",
+		value: "skin-clinic",
+		label: "Skin Clinic",
+		description: "Advanced skincare and dermatological treatments",
+		icon: "✨",
 	},
 	{
-		value: "weight-loss",
-		label: "Weight Loss & Body Contouring",
-		description:
-			"Liposuction, tummy tucks, gastric procedures, and non-invasive body sculpting treatments",
-		recoveryTime: "2-6 weeks",
+		value: "diet-activities",
+		label: "Diet clinic & Weight loss program",
+		description: "Weight management and body contouring treatments",
 		icon: "🏃‍♀️",
 	},
 	{
-		value: "holistic-wellness",
-		label: "Holistic Wellness & Alternative Medicine",
-		description:
-			"Ayurvedic treatments, acupuncture, herbal medicine, and traditional healing practices",
-		recoveryTime: "No downtime",
-		icon: "🌿",
-	},
-	{
-		value: "luxury-beauty",
-		label: "Luxury Beauty & Premium Treatments",
-		description:
-			"High-end cosmetic procedures, premium skincare, and exclusive beauty treatments",
-		recoveryTime: "1-14 days",
-		icon: "💎",
-	},
-	{
-		value: "recovery-vacation",
-		label: "Recovery & Healing Vacation",
-		description:
-			"Post-procedure recovery programs with medical supervision and luxury amenities",
-		recoveryTime: "Varies",
-		icon: "🏖️",
-	},
-	{
-		value: "preventive-care",
-		label: "Preventive Care & Health Checkups",
-		description:
-			"Comprehensive health screenings, preventive treatments, and wellness assessments",
-		recoveryTime: "No downtime",
-		icon: "🔍",
+		value: "spa",
+		label: "SPA",
+		description: "Relaxing spa treatments and wellness experiences",
+		icon: "🧘‍♀️",
 	},
 ];
