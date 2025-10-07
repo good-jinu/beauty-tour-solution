@@ -29,11 +29,11 @@ let { children } = $props();
 						>
 							<span
 								class="text-primary-foreground font-bold text-sm"
-								>BT</span
+								>BTS</span
 							>
 						</div>
 						<span class="font-bold text-lg hidden sm:inline-block"
-							>Beauty Tour</span
+							>Beauty Tour Solution</span
 						>
 					</a>
 				</div>

@@ -1,5 +1,4 @@
 <script lang="ts">
-import HeroSection from "$lib/components/HeroSection.svelte";
 import ResultsSection from "$lib/components/ResultsSection.svelte";
 import {
 	StepperContainer,
@@ -128,11 +127,6 @@ function resetForm() {
 <div
 	class="min-h-screen bg-gradient-to-b from-muted/20 via-background to-muted/10"
 >
-	<!-- Hero Section -->
-	<div class="px-4 sm:px-6 lg:px-8">
-		<HeroSection />
-	</div>
-
 	<!-- Stepper Form Section -->
 	<div id="stepper-form" class="px-4 sm:px-6 lg:px-8">
 		<StepperContainer oncomplete={handleStepperComplete}>
