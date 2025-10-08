@@ -1,4 +1,8 @@
 <script lang="ts">
+import type {
+	GenerateJourneyRequest,
+	GenerateJourneyResponse,
+} from "@bts/core";
 import ResultsSection from "$lib/components/ResultsSection.svelte";
 import {
 	StepperContainer,
@@ -14,10 +18,6 @@ import {
 } from "$lib/components/stepper/steps";
 import type { StepperFormData } from "$lib/types";
 import { StepperUtils } from "$lib/types";
-import type {
-	GenerateJourneyRequest,
-	GenerateJourneyResponse,
-} from "./api/generate-journey/$types";
 
 // Stepper state
 let isLoading = $state(false);

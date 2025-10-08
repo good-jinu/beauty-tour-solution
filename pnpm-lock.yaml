@@ -12,11 +12,24 @@ importers:
         specifier: 2.2.5
         version: 2.2.5
 
+  packages/core:
+    dependencies:
+      '@aws-sdk/client-bedrock-runtime':
+        specifier: ^3.901.0
+        version: 3.901.0
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   packages/web:
     dependencies:
       '@aws-sdk/client-bedrock-runtime':
         specifier: ^3.901.0
         version: 3.901.0
+      '@bts/core':
+        specifier: workspace:*
+        version: link:../core
       marked:
         specifier: ^16.3.0
         version: 16.3.0

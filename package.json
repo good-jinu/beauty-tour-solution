@@ -3,7 +3,6 @@
 	"version": "1.0.0",
 	"keywords": [],
 	"author": "gooday6983@gmail.com",
-	"packageManager": "pnpm@10.18.0",
 	"scripts": {
 		"dev": "pnpm --filter @bts/web dev",
 		"sst:dev": "pnpm --filter @bts/web sst:dev",
