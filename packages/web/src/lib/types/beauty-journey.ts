@@ -6,7 +6,7 @@ export interface Region {
 	city: string;
 }
 
-export interface Theme {
+export interface BeautyTheme {
 	value: string;
 	label: string;
 	description: string;
@@ -118,7 +118,7 @@ export const REGIONS: Region[] = [
 	},
 ];
 
-export const THEMES: Theme[] = [
+export const BEAUTY_THEMES: BeautyTheme[] = [
 	{
 		value: "plastic-surgery",
 		label: "Plastic Surgery",

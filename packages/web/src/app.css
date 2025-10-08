@@ -148,16 +148,6 @@
 		font-size: 16px;
 	}
 
-	/* Ensure minimum touch target size on mobile */
-	button,
-	input[type="button"],
-	input[type="submit"],
-	input[type="reset"],
-	[role="button"] {
-		min-height: 44px;
-		min-width: 44px;
-	}
-
 	/* Improve touch targets for form elements */
 	input,
 	select,

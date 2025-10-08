@@ -1,5 +1,5 @@
 <script lang="ts">
-import { onDestroy, onMount } from "svelte";
+import { onMount } from "svelte";
 import { Spinner } from "../ui/spinner";
 
 interface Props {
@@ -169,10 +169,6 @@ onMount(() => {
         flex-shrink: 0;
     }
 
-    .button-icon.loading {
-        animation: spin 1s linear infinite;
-    }
-
     @keyframes spin {
         from {
             transform: rotate(0deg);
@@ -262,10 +258,6 @@ onMount(() => {
 
         .nav-button:hover:not(:disabled) {
             transform: none;
-        }
-
-        .button-icon.loading {
-            animation: none;
         }
     }
 </style>

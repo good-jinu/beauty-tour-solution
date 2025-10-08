@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { Snippet } from "svelte";
 import { onMount, setContext } from "svelte";
+import { resolvedTheme, theme } from "$lib/stores/theme";
 import {
 	applyTheme,
 	loadThemePreference,
@@ -18,40 +19,41 @@ interface Props {
 let { children }: Props = $props();
 
 // Theme state
-let theme = $state<Theme>("system");
-let resolvedTheme = $state<ResolvedTheme>("light");
+let currentTheme: Theme = "system";
+let currentResolvedTheme: ResolvedTheme = "light";
 
-// Update resolved theme based on current theme setting
-function updateResolvedTheme() {
-	resolvedTheme = resolveTheme(theme);
-}
+// Subscribe to theme stores
+theme.subscribe((value) => {
+	currentTheme = value;
+	currentResolvedTheme = resolveTheme(value);
+	resolvedTheme.set(currentResolvedTheme);
+	applyTheme(currentResolvedTheme);
+});
 
 // Set theme function
 function setTheme(newTheme: Theme) {
-	theme = newTheme;
+	theme.set(newTheme);
 	saveThemePreference(newTheme);
-	updateResolvedTheme();
-	applyTheme(resolvedTheme);
 }
 
 // Toggle between light and dark (skipping system for simple toggle)
 function toggleTheme() {
-	const newTheme = resolvedTheme === "light" ? "dark" : "light";
+	const newTheme = currentResolvedTheme === "light" ? "dark" : "light";
 	setTheme(newTheme);
 }
 
 // Initialize theme on mount
 onMount(() => {
 	// Load saved theme preference
-	theme = loadThemePreference();
-	updateResolvedTheme();
-	applyTheme(resolvedTheme);
+	const savedTheme = loadThemePreference();
+	theme.set(savedTheme);
 
 	// Watch for system theme changes
 	const unwatch = watchSystemTheme(() => {
-		if (theme === "system") {
-			updateResolvedTheme();
-			applyTheme(resolvedTheme);
+		if (currentTheme === "system") {
+			const newResolved = resolveTheme("system");
+			resolvedTheme.set(newResolved);
+			applyTheme(newResolved);
 		}
 	});
 
@@ -60,12 +62,8 @@ onMount(() => {
 
 // Make theme functions available through context
 setContext("theme", {
-	get theme() {
-		return theme;
-	},
-	get resolvedTheme() {
-		return resolvedTheme;
-	},
+	theme,
+	resolvedTheme,
 	setTheme,
 	toggleTheme,
 });

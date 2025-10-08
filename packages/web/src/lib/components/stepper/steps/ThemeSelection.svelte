@@ -23,7 +23,7 @@ export function validate(
 
 <script lang="ts">
     import { stepperState } from "$lib/stores/stepper.js";
-    import { THEMES } from "$lib/types/beauty-journey.js";
+    import { BEAUTY_THEMES } from "$lib/types/beauty-journey.js";
     import ErrorDisplay from "../ErrorDisplay.svelte";
 
     function handleThemeToggle(themeValue: string) {
@@ -56,7 +56,7 @@ export function validate(
 
     <!-- Theme Options -->
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {#each THEMES as theme (theme.value)}
+        {#each BEAUTY_THEMES as theme (theme.value)}
             <button
                 type="button"
                 onclick={() => handleThemeToggle(theme.value)}

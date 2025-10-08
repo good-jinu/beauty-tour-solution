@@ -6,7 +6,7 @@ import {
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
-import { REGIONS, THEMES } from "$lib/types/beauty-journey";
+import { BEAUTY_THEMES, REGIONS } from "$lib/types/beauty-journey";
 import type { GenerateJourneyRequest } from "./$types";
 
 // Use the region from SvelteKit server env if available, otherwise default to us-east-1
@@ -74,7 +74,7 @@ function createPrompt(data: GenerateJourneyRequest): string {
 		REGIONS.map((region) => [region.value, `${region.label} - ${region.city}`]),
 	);
 	const themeLabels = Object.fromEntries(
-		THEMES.map((theme) => [theme.value, theme.label]),
+		BEAUTY_THEMES.map((theme) => [theme.value, theme.label]),
 	);
 
 	const duration = calculateDuration(data.startDate, data.endDate);

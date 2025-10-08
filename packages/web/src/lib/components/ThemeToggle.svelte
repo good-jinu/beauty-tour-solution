@@ -1,55 +1,45 @@
 <script lang="ts">
+import { Moon, Sun } from "@lucide/svelte";
 import { getContext } from "svelte";
-import Button from "$lib/components/ui/button/button.svelte";
+import type { Writable } from "svelte/store";
+import { Switch } from "$lib/components/ui/switch";
+import type { ResolvedTheme, Theme } from "$lib/types/theme";
 
 interface ThemeContext {
-	theme: "light" | "dark" | "system";
-	resolvedTheme: "light" | "dark";
-	setTheme: (theme: "light" | "dark" | "system") => void;
+	theme: Writable<Theme>;
+	resolvedTheme: Writable<ResolvedTheme>;
+	setTheme: (theme: Theme) => void;
 	toggleTheme: () => void;
 }
 
-const themeContext = getContext<ThemeContext>("theme");
+const { theme, resolvedTheme, toggleTheme } = getContext<ThemeContext>("theme");
 
-if (!themeContext) {
+if (!theme || !resolvedTheme || !toggleTheme) {
 	throw new Error("ThemeToggle must be used within a ThemeProvider");
 }
 
-const { theme, resolvedTheme, setTheme, toggleTheme } = themeContext;
-
-// Icons for different states
-const icons = {
-	light: "☀️",
-	dark: "🌙",
-	system: "💻",
-};
-
-function handleToggle() {
-	toggleTheme();
-}
+let isDark = $derived($resolvedTheme === "dark");
 </script>
 
-<div class="flex items-center gap-2">
-    <!-- Simple toggle button -->
-    <Button
-        variant="outline"
-        size="sm"
-        onclick={handleToggle}
-        class="w-10 h-10 p-0"
-        aria-label="Toggle theme"
-    >
-        <span class="text-lg">
-            {resolvedTheme === "light" ? icons.light : icons.dark}
-        </span>
-    </Button>
+<div class="flex items-center gap-3">
+    <!-- Theme icons -->
+    <Sun
+        class="h-4 w-4 text-muted-foreground transition-colors {isDark
+            ? 'opacity-50'
+            : 'opacity-100'}"
+    />
 
-    <!-- System preference indicator (optional) -->
-    {#if theme === "system"}
-        <span
-            class="text-xs text-muted-foreground"
-            title="Following system preference"
-        >
-            {icons.system}
-        </span>
-    {/if}
+    <!-- Switch component -->
+    <Switch
+        checked={isDark}
+        onCheckedChange={toggleTheme}
+        aria-label="Toggle theme"
+    />
+
+    <!-- Moon icon for dark mode -->
+    <Moon
+        class="h-4 w-4 text-muted-foreground transition-colors {isDark
+            ? 'opacity-100'
+            : 'opacity-50'}"
+    />
 </div>
