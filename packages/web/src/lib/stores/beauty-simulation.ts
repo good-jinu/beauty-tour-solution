@@ -12,6 +12,8 @@ export interface BeautySimulationState {
 	// Simulation state
 	isGenerating: boolean;
 	simulationResult: string | null; // base64 image
+	simulationResultUrl: string | null; // S3 URL for display
+	originalImageUrl: string | null; // S3 URL for original image
 
 	// Error state
 	error: string | null;
@@ -33,6 +35,8 @@ const initialState: BeautySimulationState = {
 	selectedTheme: null,
 	isGenerating: false,
 	simulationResult: null,
+	simulationResultUrl: null,
+	originalImageUrl: null,
 	error: null,
 	isValid: false,
 };
@@ -154,10 +158,16 @@ export const BeautySimulationUtils = {
 	},
 
 	// Set simulation result
-	setSimulationResult: (result: string) => {
+	setSimulationResult: (
+		result: string,
+		resultUrl?: string,
+		originalUrl?: string,
+	) => {
 		beautySimulationState.update((state) => ({
 			...state,
 			simulationResult: result,
+			simulationResultUrl: resultUrl || null,
+			originalImageUrl: originalUrl || null,
 			isGenerating: false,
 			error: null,
 		}));

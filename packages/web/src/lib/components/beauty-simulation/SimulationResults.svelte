@@ -10,8 +10,8 @@ import {
 import { stepperState } from "$lib/stores/stepper";
 
 interface Props {
-	originalImage: string; // base64 image
-	simulatedImage: string; // base64 image
+	originalImage: string; // base64 image or URL
+	simulatedImage: string; // base64 image or URL
 	selectedTheme: string;
 	onPlanJourney?: () => void;
 	onTryAgain?: () => void;

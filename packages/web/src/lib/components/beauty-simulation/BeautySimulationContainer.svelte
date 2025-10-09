@@ -177,7 +177,11 @@ async function startSimulation() {
 		}
 
 		// Update state with results
-		BeautySimulationUtils.setSimulationResult(result.simulatedImage);
+		BeautySimulationUtils.setSimulationResult(
+			result.simulatedImage,
+			result.storage?.outputUrl || undefined,
+			result.storage?.inputUrl || undefined,
+		);
 
 		// Move to results step
 		goToStep("results");
@@ -185,8 +189,9 @@ async function startSimulation() {
 		// Call completion callback
 		onComplete?.({
 			theme: $beautySimulationState.selectedTheme!,
-			originalImage: $beautySimulationState.imagePreview!,
-			simulatedImage: result.simulatedImage,
+			originalImage:
+				result.storage?.inputUrl || $beautySimulationState.imagePreview!,
+			simulatedImage: result.storage?.outputUrl || result.simulatedImage,
 		});
 
 		toast.success("Beauty simulation completed successfully!");
@@ -272,8 +277,12 @@ function handlePlanJourney() {
 	if (hasResults) {
 		onComplete?.({
 			theme: $beautySimulationState.selectedTheme!,
-			originalImage: $beautySimulationState.imagePreview!,
-			simulatedImage: $beautySimulationState.simulationResult!,
+			originalImage:
+				$beautySimulationState.originalImageUrl ||
+				$beautySimulationState.imagePreview!,
+			simulatedImage:
+				$beautySimulationState.simulationResultUrl ||
+				$beautySimulationState.simulationResult!,
 		});
 	}
 }
@@ -283,6 +292,8 @@ function handleTryAgain() {
 	beautySimulationState.update((s) => ({
 		...s,
 		simulationResult: null,
+		simulationResultUrl: null,
+		originalImageUrl: null,
 		error: null,
 		isGenerating: false,
 	}));
@@ -696,8 +707,10 @@ const progressMessage = $derived.by(() => {
             <!-- Step 4: Results Display -->
             <div class="step-content">
                 <SimulationResults
-                    originalImage={$beautySimulationState.imagePreview!}
-                    simulatedImage={$beautySimulationState.simulationResult!}
+                    originalImage={$beautySimulationState.originalImageUrl ||
+                        $beautySimulationState.imagePreview!}
+                    simulatedImage={$beautySimulationState.simulationResultUrl ||
+                        $beautySimulationState.simulationResult!}
                     selectedTheme={$beautySimulationState.selectedTheme!}
                     onPlanJourney={handlePlanJourney}
                     onTryAgain={handleTryAgain}

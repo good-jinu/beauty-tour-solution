@@ -7,6 +7,8 @@ export interface BeautySimulationRequest {
 export interface StorageInfo {
 	inputKey?: string;
 	outputKey?: string | null;
+	inputUrl?: string;
+	outputUrl?: string | null;
 }
 
 export interface BeautySimulationSuccessResponse {
