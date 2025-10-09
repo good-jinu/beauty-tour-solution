@@ -3,6 +3,7 @@ import type {
 	GenerateJourneyRequest,
 	GenerateJourneyResponse,
 } from "@bts/core";
+import { BeautySimulationContainer } from "$lib/components/beauty-simulation";
 import ResultsSection from "$lib/components/ResultsSection.svelte";
 import {
 	StepperContainer,
@@ -16,8 +17,20 @@ import {
 	DateSelection,
 	ThemeSelection,
 } from "$lib/components/stepper/steps";
+import { stepperState } from "$lib/stores/stepper.js";
 import type { StepperFormData } from "$lib/types";
 import { StepperUtils } from "$lib/types";
+
+// Application flow state
+type AppFlow = "beauty-simulation" | "journey-planning" | "results";
+let currentFlow: AppFlow = $state("beauty-simulation");
+
+// Beauty simulation state
+let simulationData = $state<{
+	theme: string;
+	originalImage: string;
+	simulatedImage: string;
+} | null>(null);
 
 // Stepper state
 let isLoading = $state(false);
@@ -35,6 +48,51 @@ const defaultAddOns = {
 	travelers: 1,
 	specialRequests: "",
 };
+
+// Handle beauty simulation completion
+function handleSimulationComplete(data: {
+	theme: string;
+	originalImage: string;
+	simulatedImage: string;
+}) {
+	simulationData = data;
+
+	// If a theme was selected from simulation, pre-populate it in the stepper
+	if (data.theme) {
+		stepperState.update((state) => ({
+			...state,
+			formData: {
+				...state.formData,
+				selectedThemes: [data.theme],
+			},
+		}));
+	}
+
+	// Navigate to journey planning
+	currentFlow = "journey-planning";
+
+	// Scroll to journey planning section
+	setTimeout(() => {
+		document.getElementById("journey-planning-section")?.scrollIntoView({
+			behavior: "smooth",
+			block: "start",
+		});
+	}, 100);
+}
+
+// Handle skipping beauty simulation
+function handleSkipSimulation() {
+	simulationData = null;
+	currentFlow = "journey-planning";
+
+	// Scroll to journey planning section
+	setTimeout(() => {
+		document.getElementById("journey-planning-section")?.scrollIntoView({
+			behavior: "smooth",
+			block: "start",
+		});
+	}, 100);
+}
 
 async function handleStepperComplete(stepperData: StepperFormData) {
 	isLoading = true;
@@ -80,6 +138,7 @@ async function handleStepperComplete(stepperData: StepperFormData) {
 
 		if (data.success) {
 			aiRecommendation = data.recommendation ?? "";
+			currentFlow = "results";
 			showResults = true;
 
 			// Scroll to results
@@ -105,9 +164,13 @@ function resetForm() {
 	showResults = false;
 	aiRecommendation = "";
 
+	// Reset to beauty simulation flow
+	currentFlow = "beauty-simulation";
+	simulationData = null;
+
 	// Scroll back to the top of the form
 	setTimeout(() => {
-		document.getElementById("stepper-form")?.scrollIntoView({
+		document.getElementById("beauty-simulation-section")?.scrollIntoView({
 			behavior: "smooth",
 			block: "start",
 		});
@@ -127,76 +190,144 @@ function resetForm() {
 <div
 	class="min-h-screen bg-gradient-to-b from-muted/20 via-background to-muted/10"
 >
-	<!-- Stepper Form Section -->
-	<div id="stepper-form" class="px-4 sm:px-6 lg:px-8">
-		<StepperContainer oncomplete={handleStepperComplete}>
-			{#snippet children({
-				stepperState,
-				goToStep,
-				nextStep,
-				previousStep,
-				updateFormData,
-				setLoading,
-				canGoNext,
-				canGoPrevious,
-				isLastStep,
-				currentStepErrors,
-				hasCurrentStepErrors,
-				globalWarning,
-				clearStepErrors,
-				clearAllErrors,
-				hasStepErrors,
-				getStepErrorCount,
-			}: any)}
-				<!-- Stepper Header -->
-				<StepperHeader {stepperState} onStepClick={goToStep} />
+	<!-- Beauty Simulation Section -->
+	{#if currentFlow === "beauty-simulation"}
+		<div id="beauty-simulation-section" class="px-4 sm:px-6 lg:px-8">
+			<BeautySimulationContainer
+				onComplete={handleSimulationComplete}
+				onStepChange={(step) => {
+					// Handle step changes if needed for analytics or state management
+				}}
+				showSkipOption={true}
+				className="beauty-simulation-main"
+			/>
+		</div>
+	{/if}
 
-				<!-- Step Content -->
-				<div class="stepper-content mt-8">
-					{#if stepperState.currentStep === 1}
-						<CountrySelection />
-					{:else if stepperState.currentStep === 2}
-						<DateSelection />
-					{:else if stepperState.currentStep === 3}
-						<ThemeSelection />
-					{:else if stepperState.currentStep === 4}
-						<BudgetSelection />
-					{/if}
-				</div>
-
-				<!-- Error Recovery System -->
-				{#if hasCurrentStepErrors || globalWarning}
-					<div class="mt-6">
-						<ErrorRecovery
-							{stepperState}
-							onGoToStep={goToStep}
-							onClearErrors={clearAllErrors}
-							onRetryValidation={() => {
-								// Trigger validation by updating form data with current values
-								updateFormData({});
-							}}
-							showInline={true}
+	<!-- Journey Planning Section -->
+	{#if currentFlow === "journey-planning"}
+		<div id="journey-planning-section" class="px-4 sm:px-6 lg:px-8">
+			<!-- Navigation back to simulation -->
+			<div class="mb-6 text-center">
+				<button
+					type="button"
+					onclick={() => {
+						currentFlow = "beauty-simulation";
+						setTimeout(() => {
+							document
+								.getElementById("beauty-simulation-section")
+								?.scrollIntoView({
+									behavior: "smooth",
+									block: "start",
+								});
+						}, 100);
+					}}
+					class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+				>
+					<svg
+						class="w-4 h-4"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M15 19l-7-7 7-7"
 						/>
-					</div>
-				{/if}
+					</svg>
+					Back to Beauty Simulation
+				</button>
+			</div>
 
-				<!-- Stepper Navigation -->
-				<StepperNavigation
-					{canGoPrevious}
-					{canGoNext}
-					{isLastStep}
-					isLoading={isLoading || stepperState.isLoading}
-					onprevious={previousStep}
-					onnext={nextStep}
-					onsubmit={nextStep}
-				/>
-			{/snippet}
-		</StepperContainer>
-	</div>
+			<!-- Show simulation results summary if available -->
+			{#if simulationData && simulationData.theme}
+				<div class="mb-8 p-4 bg-muted/50 rounded-lg border">
+					<div class="flex items-center gap-3 mb-2">
+						<div class="w-2 h-2 bg-green-500 rounded-full"></div>
+						<h3 class="font-semibold text-sm">
+							Beauty Simulation Complete
+						</h3>
+					</div>
+					<p class="text-sm text-muted-foreground">
+						Selected theme: <span
+							class="font-medium text-foreground"
+							>{simulationData.theme}</span
+						>
+					</p>
+				</div>
+			{/if}
+
+			<StepperContainer oncomplete={handleStepperComplete}>
+				{#snippet children({
+					stepperState,
+					goToStep,
+					nextStep,
+					previousStep,
+					updateFormData,
+					setLoading,
+					canGoNext,
+					canGoPrevious,
+					isLastStep,
+					currentStepErrors,
+					hasCurrentStepErrors,
+					globalWarning,
+					clearStepErrors,
+					clearAllErrors,
+					hasStepErrors,
+					getStepErrorCount,
+				}: any)}
+					<!-- Stepper Header -->
+					<StepperHeader {stepperState} onStepClick={goToStep} />
+
+					<!-- Step Content -->
+					<div class="stepper-content mt-8">
+						{#if stepperState.currentStep === 1}
+							<CountrySelection />
+						{:else if stepperState.currentStep === 2}
+							<DateSelection />
+						{:else if stepperState.currentStep === 3}
+							<ThemeSelection />
+						{:else if stepperState.currentStep === 4}
+							<BudgetSelection />
+						{/if}
+					</div>
+
+					<!-- Error Recovery System -->
+					{#if hasCurrentStepErrors || globalWarning}
+						<div class="mt-6">
+							<ErrorRecovery
+								{stepperState}
+								onGoToStep={goToStep}
+								onClearErrors={clearAllErrors}
+								onRetryValidation={() => {
+									// Trigger validation by updating form data with current values
+									updateFormData({});
+								}}
+								showInline={true}
+							/>
+						</div>
+					{/if}
+
+					<!-- Stepper Navigation -->
+					<StepperNavigation
+						{canGoPrevious}
+						{canGoNext}
+						{isLastStep}
+						isLoading={isLoading || stepperState.isLoading}
+						onprevious={previousStep}
+						onnext={nextStep}
+						onsubmit={nextStep}
+					/>
+				{/snippet}
+			</StepperContainer>
+		</div>
+	{/if}
 
 	<!-- Results Section -->
-	{#if showResults && aiRecommendation}
-		<div class="px-4 sm:px-6 lg:px-8">
+	{#if currentFlow === "results" && showResults && aiRecommendation}
+		<div id="results-section" class="px-4 sm:px-6 lg:px-8">
 			<ResultsSection {aiRecommendation} onReset={resetForm} />
 		</div>
 	{/if}
