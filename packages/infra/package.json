@@ -1,0 +1,26 @@
+{
+	"name": "@bts/infra",
+	"version": "0.1.0",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"clean": "rm -rf dist"
+	},
+	"dependencies": {
+		"@aws-sdk/client-bedrock-runtime": "^3.901.0",
+		"@aws-sdk/client-s3": "^3.901.0"
+	},
+	"devDependencies": {
+		"@types/node": "^24.7.0",
+		"typescript": "^5.0.0"
+	}
+}

@@ -1,7 +1,5 @@
-import {
-	BedrockRuntimeClient,
-	InvokeModelCommand,
-} from "@aws-sdk/client-bedrock-runtime";
+import type { BedrockImageGenerationRequest } from "@bts/infra";
+import { BedrockService, S3Service } from "@bts/infra";
 import type {
 	BeautySimulationRequest,
 	BeautySimulationResponse,
@@ -12,62 +10,29 @@ export interface BeautySimulatorConfig {
 	awsRegion?: string;
 	modelId?: string;
 	maxImageSize?: number;
+	bucketName?: string;
 }
 
-// Theme-to-prompt mapping for different beauty treatments
-const THEME_PROMPTS = {
-	"plastic-surgery": {
-		text: "Enhanced facial features with natural-looking cosmetic improvements, subtle refinements, professional results",
-		negativeText:
-			"unnatural, overdone, artificial, bad quality, distorted, unrealistic",
-		maskPrompt: "face, facial features",
-	},
-	"hair-treatments": {
-		text: "Healthy, voluminous, styled hair with professional treatment results, lustrous shine, full coverage",
-		negativeText: "damaged hair, thin hair, bad quality, patchy, uneven",
-		maskPrompt: "hair, scalp",
-	},
-	"skin-clinic": {
-		text: "Clear, smooth, radiant skin with professional skincare treatment results, even tone, healthy glow",
-		negativeText: "blemishes, wrinkles, dull skin, bad quality, uneven texture",
-		maskPrompt: "face, skin, facial skin",
-	},
-	"diet-activities": {
-		text: "Toned, fit physique with healthy body contouring results, natural proportions, athletic appearance",
-		negativeText:
-			"unnatural proportions, bad quality, distorted body, unrealistic",
-		maskPrompt: "body, torso, silhouette",
-	},
-	nail: {
-		text: "Beautiful, well-manicured nails with professional nail care results, healthy cuticles, perfect shape",
-		negativeText: "damaged nails, poor quality, uneven, chipped",
-		maskPrompt: "hands, nails, fingers",
-	},
-	makeup: {
-		text: "Professional makeup application with flawless finish, enhanced natural beauty, expert technique",
-		negativeText:
-			"overdone makeup, bad quality, uneven application, unnatural colors",
-		maskPrompt: "face, makeup areas",
-	},
-} as const;
-
 export class BeautySimulator {
-	private client: BedrockRuntimeClient;
-	private modelId: string;
-	private maxImageSize: number;
+	private bedrockService: BedrockService;
+	private s3Service: S3Service;
 
 	constructor(config: BeautySimulatorConfig = {}) {
-		const awsRegion = config.awsRegion ?? "us-east-1";
-		this.client = new BedrockRuntimeClient({ region: awsRegion });
-		this.modelId = config.modelId ?? "amazon.titan-image-generator-v1";
-		this.maxImageSize = config.maxImageSize ?? 1024;
+		this.bedrockService = new BedrockService({
+			region: config.awsRegion,
+			modelId: config.modelId,
+			maxImageSize: config.maxImageSize,
+		});
+
+		this.s3Service = new S3Service({
+			region: config.awsRegion,
+			bucketName: config.bucketName,
+		});
 	}
 
 	async simulateBeauty(
 		request: BeautySimulationRequest,
 	): Promise<BeautySimulationResponse> {
-		const startTime = Date.now();
-
 		try {
 			// Validate the theme
 			if (!this.isValidTheme(request.theme)) {
@@ -78,100 +43,71 @@ export class BeautySimulator {
 				};
 			}
 
-			// Validate and process the image
-			const processedImage = this.prepareImageForBedrock(
+			// Upload input image to S3
+			const inputUploadResult = await this.s3Service.uploadImage(
 				request.image,
 				request.imageFormat,
+				"input",
 			);
-			if (!processedImage) {
+
+			if (!inputUploadResult.success) {
 				return {
 					success: false,
-					error: "Invalid image data",
-					details: "Unable to process the provided image",
+					error: "Failed to store input image",
+					details: inputUploadResult.error,
 				};
 			}
 
-			// Create the inpainting prompt based on theme
-			const prompt = this.createInpaintingPrompt(request.theme);
-
-			// Prepare the request payload for Titan Image Generator
-			const payload = {
-				taskType: "INPAINTING",
-				inPaintingParams: {
-					text: prompt.text,
-					negativeText: prompt.negativeText,
-					image: processedImage,
-					maskPrompt: prompt.maskPrompt,
-				},
-				imageGenerationConfig: {
-					numberOfImages: 1,
-					quality: "standard",
-					cfgScale: 8.0,
-					height: this.maxImageSize,
-					width: this.maxImageSize,
-					seed: Math.floor(Math.random() * 2147483647),
-				},
+			// Generate the beauty simulation using Bedrock
+			const bedrockRequest: BedrockImageGenerationRequest = {
+				image: request.image,
+				theme: request.theme,
+				imageFormat: request.imageFormat,
 			};
 
-			const command = new InvokeModelCommand({
-				modelId: this.modelId,
-				body: JSON.stringify(payload),
-				contentType: "application/json",
-				accept: "application/json",
-			});
+			const bedrockResult =
+				await this.bedrockService.generateImage(bedrockRequest);
 
-			const response = await this.client.send(command);
-
-			if (!response.body) {
+			if (!bedrockResult.success || !bedrockResult.simulatedImage) {
 				return {
 					success: false,
-					error: "No response from image generation service",
-					details: "AWS Bedrock returned empty response",
+					error: bedrockResult.error ?? "Failed to generate beauty simulation",
+					details: bedrockResult.details,
+					storage: {
+						inputKey: inputUploadResult.key,
+						outputKey: null,
+					},
 				};
 			}
 
-			// Parse the response
-			const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+			// Upload output image to S3
+			const outputUploadResult = await this.s3Service.uploadImage(
+				bedrockResult.simulatedImage,
+				request.imageFormat,
+				"output",
+			);
 
-			if (!responseBody.images || responseBody.images.length === 0) {
-				return {
-					success: false,
-					error: "No images generated",
-					details: "Image generation service did not return any images",
-				};
+			if (!outputUploadResult.success) {
+				console.error(
+					"Failed to store output image:",
+					outputUploadResult.error,
+				);
+				// Continue with response even if output storage fails
 			}
-
-			const processingTime = Date.now() - startTime;
 
 			return {
 				success: true,
 				originalImage: request.image,
-				simulatedImage: responseBody.images[0],
+				simulatedImage: bedrockResult.simulatedImage,
 				theme: request.theme,
-				processingTime,
+				processingTime: bedrockResult.processingTime ?? 0,
+				storage: {
+					inputKey: inputUploadResult.key,
+					outputKey: outputUploadResult.success ? outputUploadResult.key : null,
+				},
 			};
 		} catch (error) {
 			console.error("Beauty Simulation Error:", error);
-
-			// Handle specific AWS errors
-			if (error instanceof Error) {
-				if (error.name === "ThrottlingException") {
-					return {
-						success: false,
-						error: "Service temporarily unavailable",
-						details: "Too many requests. Please try again in a moment.",
-					};
-				}
-
-				if (error.name === "ValidationException") {
-					return {
-						success: false,
-						error: "Invalid request data",
-						details: error.message,
-					};
-				}
-			}
-
 			return {
 				success: false,
 				error: "Failed to generate beauty simulation",
@@ -185,74 +121,5 @@ export class BeautySimulator {
 	 */
 	private isValidTheme(theme: string): boolean {
 		return BEAUTY_THEMES.some((t) => t.value === theme);
-	}
-
-	/**
-	 * Prepares image for Bedrock by validating format and size
-	 */
-	private prepareImageForBedrock(
-		imageBase64: string,
-		format: string,
-	): string | null {
-		try {
-			// Validate base64 format
-			if (!this.isValidBase64(imageBase64)) {
-				return null;
-			}
-
-			// Validate image format
-			if (!["jpeg", "jpg", "png", "webp"].includes(format.toLowerCase())) {
-				return null;
-			}
-
-			// For now, return the image as-is
-			// In a production environment, you might want to:
-			// 1. Decode the base64 image
-			// 2. Resize if larger than maxImageSize
-			// 3. Convert to JPEG if needed for optimization
-			// 4. Re-encode to base64
-
-			return imageBase64;
-		} catch (error) {
-			console.error("Image processing error:", error);
-			return null;
-		}
-	}
-
-	/**
-	 * Creates inpainting prompt based on beauty theme
-	 */
-	private createInpaintingPrompt(theme: string): {
-		text: string;
-		negativeText: string;
-		maskPrompt: string;
-	} {
-		const themePrompt = THEME_PROMPTS[theme as keyof typeof THEME_PROMPTS];
-
-		if (!themePrompt) {
-			// Fallback for unknown themes
-			return {
-				text: "Enhanced appearance with professional beauty treatment results",
-				negativeText: "bad quality, unnatural, distorted",
-				maskPrompt: "face, features",
-			};
-		}
-
-		return themePrompt;
-	}
-
-	/**
-	 * Validates base64 string format
-	 */
-	private isValidBase64(str: string): boolean {
-		try {
-			// Remove data URL prefix if present
-			const base64Data = str.replace(/^data:image\/[a-z]+;base64,/, "");
-
-			// Check if it's valid base64
-			return btoa(atob(base64Data)) === base64Data;
-		} catch (_error) {
-			return false;
-		}
 	}
 }

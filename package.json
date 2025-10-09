@@ -6,7 +6,8 @@
 	"scripts": {
 		"dev": "pnpm --filter @bts/web dev",
 		"sst:dev": "pnpm --filter @bts/web sst:dev",
-		"build": "pnpm --filter @bts/web build",
+		"build": "pnpm --filter @bts/infra build && pnpm --filter @bts/web build",
+		"build:infra": "pnpm --filter @bts/infra build",
 		"preview": "pnpm --filter @bts/web preview",
 		"lint": "biome check --write",
 		"format": "biome format --write",

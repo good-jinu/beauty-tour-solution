@@ -4,9 +4,11 @@ import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 
-// Use the region from SvelteKit server env if available, otherwise default to us-east-1
-const awsRegion = env.AWS_REGION ?? "us-east-1";
-const beautySimulator = new BeautySimulator({ awsRegion });
+// Initialize BeautySimulator with environment variables
+const beautySimulator = new BeautySimulator({
+	awsRegion: env.AWS_REGION,
+	bucketName: env.STORAGE_BUCKET_NAME,
+});
 
 // Constants for validation
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
@@ -179,7 +181,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		// At this point, we have valid, sanitized data
 		const simulationRequest = validation.sanitizedData;
 
-		// Call the BeautySimulator service
+		// Call the BeautySimulator service (now handles S3 storage internally)
 		const result = await beautySimulator.simulateBeauty(simulationRequest);
 
 		// Format and return the response

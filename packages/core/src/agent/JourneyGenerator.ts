@@ -1,8 +1,5 @@
-import {
-	BedrockRuntimeClient,
-	ConversationRole,
-	ConverseCommand,
-} from "@aws-sdk/client-bedrock-runtime";
+import type { ConversationRequest } from "@bts/infra";
+import { BedrockConversationService } from "@bts/infra";
 import type { GenerateJourneyRequest, GenerateJourneyResponse } from "../types";
 import { BEAUTY_THEMES, REGIONS } from "../types";
 
@@ -12,61 +9,42 @@ export interface JourneyGeneratorConfig {
 }
 
 export class JourneyGenerator {
-	private client: BedrockRuntimeClient;
-	private modelId: string;
+	private conversationService: BedrockConversationService;
 
 	constructor(config: JourneyGeneratorConfig = {}) {
-		const awsRegion = config.awsRegion ?? "us-east-1";
-		this.client = new BedrockRuntimeClient({ region: awsRegion });
-		this.modelId = config.modelId ?? "openai.gpt-oss-120b-1:0";
+		this.conversationService = new BedrockConversationService({
+			region: config.awsRegion,
+			modelId: config.modelId,
+		});
 	}
 
 	async generateJourney(
 		formData: GenerateJourneyRequest,
 	): Promise<GenerateJourneyResponse> {
-		try {
-			const prompt = this.createPrompt(formData);
+		const prompt = this.createPrompt(formData);
 
-			// Build conversation messages in the format expected by the Converse API
-			const conversation = [
-				{
-					role: ConversationRole.USER,
-					content: [{ text: prompt }],
-				},
-			];
+		const conversationRequest: ConversationRequest = {
+			prompt,
+			maxTokens: 4096,
+			temperature: 0.7,
+			topP: 0.9,
+		};
 
-			const command = new ConverseCommand({
-				modelId: this.modelId,
-				messages: conversation,
-				// inferenceConfig maps to the CLI's --inference-config
-				inferenceConfig: {
-					maxTokens: 4096,
-					temperature: 0.7,
-					topP: 0.9,
-				},
-			});
+		const result =
+			await this.conversationService.generateResponse(conversationRequest);
 
-			const response = await this.client.send(command);
-
-			// Response structure: response.output.message.content[0].text
-			const aiResponse =
-				response?.output?.message?.content?.[0]?.text ??
-				response?.output?.message?.content?.[1]?.text ??
-				// fallback in case of different structure
-				(typeof response === "string" ? response : null);
-
+		if (result.success && result.response) {
 			return {
 				success: true,
-				recommendation: aiResponse,
+				recommendation: result.response,
 				formData,
 			};
-		} catch (error) {
-			console.error("Bedrock API Error:", error);
-
+		} else {
 			return {
 				success: false,
-				error: "Failed to generate beauty journey recommendations",
-				details: error instanceof Error ? error.message : "Unknown error",
+				error:
+					result.error ?? "Failed to generate beauty journey recommendations",
+				details: result.details,
 			};
 		}
 	}
