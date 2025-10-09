@@ -6,7 +6,7 @@ export class S3Service {
 	private bucketName: string;
 
 	constructor(config: AWSConfig = {}) {
-		const region = config.region ?? process.env.AWS_REGION ?? "us-east-1";
+		const region = config.region ?? process.env.APP_AWS_REGION ?? "us-east-1";
 		this.bucketName =
 			config.bucketName ?? process.env.STORAGE_BUCKET_NAME ?? "";
 

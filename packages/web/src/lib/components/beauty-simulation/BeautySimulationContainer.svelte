@@ -253,13 +253,7 @@ function skipSimulation() {
 // Handle image upload
 function handleImageUpload(file: File, preview: string) {
 	BeautySimulationUtils.setImage(file, preview);
-
-	// Auto-advance to theme selection if image is valid
-	if (currentStep === "upload" && canProceedFromUpload) {
-		setTimeout(() => {
-			goToStep("theme-selection");
-		}, 500);
-	}
+	// Note: Removed auto-advance - users now control navigation with Next button
 }
 
 // Handle theme selection
@@ -561,6 +555,37 @@ const progressMessage = $derived.by(() => {
                     enableCamera={true}
                 />
 
+                <div
+                    class="step-actions"
+                    role="group"
+                    aria-label="Navigation actions"
+                >
+                    <Button
+                        onclick={nextStep}
+                        disabled={!canProceedFromUpload}
+                        class="next-button"
+                        aria-label={canProceedFromUpload
+                            ? "Proceed to theme selection"
+                            : "Please upload a valid image first"}
+                    >
+                        <span>Next: Choose Treatment</span>
+                        <svg
+                            class="w-4 h-4 ml-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 5l7 7-7 7"
+                            />
+                        </svg>
+                    </Button>
+                </div>
+
                 {#if showSkipOption}
                     <div class="skip-option">
                         <Button variant="ghost" onclick={skipSimulation}>
@@ -833,6 +858,10 @@ const progressMessage = $derived.by(() => {
         min-width: 200px;
     }
 
+    .next-button {
+        min-width: 200px;
+    }
+
     .skip-option {
         text-align: center;
         margin-top: 2rem;
@@ -1014,7 +1043,8 @@ const progressMessage = $derived.by(() => {
             padding: 0 0.5rem;
         }
 
-        .generate-button {
+        .generate-button,
+        .next-button {
             min-width: unset;
             width: 100%;
             min-height: 48px;
@@ -1115,7 +1145,8 @@ const progressMessage = $derived.by(() => {
             justify-content: center;
         }
 
-        .generate-button {
+        .generate-button,
+        .next-button {
             min-width: 220px;
         }
 
@@ -1226,7 +1257,8 @@ const progressMessage = $derived.by(() => {
             transform: scale(0.95);
         }
 
-        .generate-button:active {
+        .generate-button:active,
+        .next-button:active {
             transform: scale(0.98);
         }
 
@@ -1298,6 +1330,7 @@ const progressMessage = $derived.by(() => {
 
     /* Focus Styles for Accessibility */
     .generate-button:focus-visible,
+    .next-button:focus-visible,
     .retry-button:focus-visible {
         outline: 2px solid #3b82f6;
         outline-offset: 2px;
@@ -1306,6 +1339,7 @@ const progressMessage = $derived.by(() => {
     /* Improve button accessibility on mobile */
     @media (max-width: 768px) {
         .generate-button:focus-visible,
+        .next-button:focus-visible,
         .retry-button:focus-visible {
             outline-width: 3px;
             outline-offset: 3px;

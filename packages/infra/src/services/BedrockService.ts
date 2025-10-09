@@ -56,7 +56,7 @@ export class BedrockService {
 	private maxImageSize: number;
 
 	constructor(config: BedrockConfig = {}) {
-		const region = config.region ?? process.env.AWS_REGION ?? "us-east-1";
+		const region = config.region ?? process.env.APP_AWS_REGION ?? "us-east-1";
 		this.client = new BedrockRuntimeClient({ region });
 		this.modelId = config.modelId ?? "amazon.titan-image-generator-v2:0";
 		this.maxImageSize = config.maxImageSize ?? 1024;

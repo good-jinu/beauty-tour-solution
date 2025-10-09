@@ -34,7 +34,7 @@ Manages AI image generation using AWS Bedrock.
 
 ## Environment Variables
 
-- `AWS_REGION`: AWS region (default: "us-east-1")
+- `APP_AWS_REGION`: AWS region (default: "us-east-1")
 - `STORAGE_BUCKET_NAME`: S3 bucket name for image storage
 
 ## Usage

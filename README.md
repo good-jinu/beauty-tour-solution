@@ -50,7 +50,7 @@ For more information about mise (mise-en-place), see: https://github.com/jdx/mis
 
 ## Environment variables
 
-Copy `.env.example` to `.env` and populate the variables required by the project. Typical required values include AWS credentials and region (for example `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`) and any third-party API keys used by the application.
+Copy `.env.example` to `.env` and populate the variables required by the project. Typical required values include AWS credentials and region (for example `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `APP_AWS_REGION`) and any third-party API keys used by the application.
 
 Ensure your AWS credentials have sufficient permissions to create and manage the resources required by SST/CloudFormation.
 

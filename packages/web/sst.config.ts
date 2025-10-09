@@ -24,7 +24,7 @@ export default $config({
 			},
 			environment: {
 				STORAGE_BUCKET_NAME: bucket.name,
-				AWS_REGION: process.env.AWS_REGION ?? "us-east-1",
+				APP_AWS_REGION: process.env.APP_AWS_REGION ?? "us-east-1",
 			},
 			permissions: [
 				{

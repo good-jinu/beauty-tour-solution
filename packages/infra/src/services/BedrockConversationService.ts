@@ -24,9 +24,9 @@ export class BedrockConversationService {
 	private modelId: string;
 
 	constructor(config: BedrockConfig = {}) {
-		const region = config.region ?? process.env.AWS_REGION ?? "us-east-1";
+		const region = config.region ?? process.env.APP_AWS_REGION ?? "us-east-1";
 		this.client = new BedrockRuntimeClient({ region });
-		this.modelId = config.modelId ?? "anthropic.claude-3-sonnet-20240229-v1:0";
+		this.modelId = config.modelId ?? "openai.gpt-oss-120b-1:0";
 	}
 
 	async generateResponse(

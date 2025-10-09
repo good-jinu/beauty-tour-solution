@@ -6,7 +6,7 @@ import { env } from "$env/dynamic/private";
 
 // Initialize BeautySimulator with environment variables
 const beautySimulator = new BeautySimulator({
-	awsRegion: env.AWS_REGION,
+	awsRegion: env.APP_AWS_REGION,
 	bucketName: env.STORAGE_BUCKET_NAME,
 });
 

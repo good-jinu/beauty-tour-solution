@@ -5,7 +5,7 @@ import { json } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 
 // Use the region from SvelteKit server env if available, otherwise default to us-east-1
-const awsRegion = env.AWS_REGION ?? "us-east-1";
+const awsRegion = env.APP_AWS_REGION ?? "us-east-1";
 const journeyGenerator = new JourneyGenerator({ awsRegion });
 
 export const POST: RequestHandler = async ({ request }) => {
