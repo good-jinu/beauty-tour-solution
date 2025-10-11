@@ -5,17 +5,9 @@ import type {
 } from "@bts/core";
 import ResultsSection from "$lib/components/ResultsSection.svelte";
 import {
+	AccordionStepperWrapper,
 	StepperContainer,
-	StepperHeader,
-	StepperNavigation,
 } from "$lib/components/stepper";
-import ErrorRecovery from "$lib/components/stepper/ErrorRecovery.svelte";
-import {
-	BudgetSelection,
-	CountrySelection,
-	DateSelection,
-	ThemeSelection,
-} from "$lib/components/stepper/steps";
 import type { StepperFormData } from "$lib/types";
 import { StepperUtils } from "$lib/types";
 
@@ -144,12 +136,9 @@ function resetForm() {
 					goToStep,
 					nextStep,
 					previousStep,
-					updateFormData,
-					setLoading,
 					canGoNext,
 					canGoPrevious,
 					isLastStep,
-					currentStepErrors,
 					hasCurrentStepErrors,
 					globalWarning,
 					clearStepErrors,
@@ -157,47 +146,21 @@ function resetForm() {
 					hasStepErrors,
 					getStepErrorCount,
 				}: any)}
-					<!-- Stepper Header -->
-					<StepperHeader {stepperState} onStepClick={goToStep} />
-
-					<!-- Step Content -->
-					<div class="stepper-content mt-8">
-						{#if stepperState.currentStep === 1}
-							<CountrySelection />
-						{:else if stepperState.currentStep === 2}
-							<DateSelection />
-						{:else if stepperState.currentStep === 3}
-							<ThemeSelection />
-						{:else if stepperState.currentStep === 4}
-							<BudgetSelection />
-						{/if}
-					</div>
-
-					<!-- Error Recovery System -->
-					{#if hasCurrentStepErrors || globalWarning}
-						<div class="mt-6">
-							<ErrorRecovery
-								{stepperState}
-								onGoToStep={goToStep}
-								onClearErrors={clearAllErrors}
-								onRetryValidation={() => {
-									// Trigger validation by updating form data with current values
-									updateFormData({});
-								}}
-								showInline={true}
-							/>
-						</div>
-					{/if}
-
-					<!-- Stepper Navigation -->
-					<StepperNavigation
-						{canGoPrevious}
+					<AccordionStepperWrapper
+						{stepperState}
+						{goToStep}
+						{nextStep}
+						{previousStep}
 						{canGoNext}
+						{canGoPrevious}
 						{isLastStep}
+						{hasCurrentStepErrors}
+						{globalWarning}
+						{clearStepErrors}
+						{clearAllErrors}
+						{hasStepErrors}
+						{getStepErrorCount}
 						isLoading={isLoading || stepperState.isLoading}
-						onprevious={previousStep}
-						onnext={nextStep}
-						onsubmit={nextStep}
 					/>
 				{/snippet}
 			</StepperContainer>
@@ -215,18 +178,5 @@ function resetForm() {
 <style>
 	:global(html) {
 		scroll-behavior: smooth;
-	}
-
-	.stepper-content {
-		min-height: 400px;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-	}
-
-	@media (max-width: 768px) {
-		.stepper-content {
-			min-height: 300px;
-		}
 	}
 </style>

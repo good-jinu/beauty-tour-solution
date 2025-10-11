@@ -9,10 +9,6 @@ declare module "sst" {
 			type: "sst.aws.SvelteKit";
 			url: string;
 		};
-		BeautyTourSolutionStorage: {
-			name: string;
-			type: "sst.aws.Bucket";
-		};
 	}
 }
 /// <reference path="sst-env.d.ts" />

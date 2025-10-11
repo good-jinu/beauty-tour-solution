@@ -45,126 +45,140 @@ export function validate(
 </script>
 
 <script lang="ts">
-	import { stepperState } from '$lib/stores/stepper.js';
-	import ErrorDisplay from '../ErrorDisplay.svelte';
+    import { stepperState } from "$lib/stores/stepper.js";
+    import ErrorDisplay from "../ErrorDisplay.svelte";
 
-	// Budget configuration
-	const MIN_BUDGET = 500;
-const MAX_BUDGET = 15000;
-const STEP = 250;
+    // Budget configuration
+    const MIN_BUDGET = 500;
+    const MAX_BUDGET = 15000;
+    const STEP = 250;
 
-// Budget ranges with recommendations
-const budgetRanges = [
-	{
-		min: 500,
-		max: 2000,
-		label: "Budget-Friendly",
-		description: "Basic treatments and wellness packages",
-		color:
-			"text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400",
-		treatments: ["Spa treatments", "Basic skincare", "Wellness retreats"],
-	},
-	{
-		min: 2000,
-		max: 5000,
-		label: "Standard",
-		description: "Quality treatments with good facilities",
-		color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400",
-		treatments: ["Cosmetic procedures", "Dental work", "Advanced skincare"],
-	},
-	{
-		min: 5000,
-		max: 10000,
-		label: "Premium",
-		description: "High-end treatments with luxury amenities",
-		color:
-			"text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400",
-		treatments: ["Plastic surgery", "Luxury recovery", "Premium facilities"],
-	},
-	{
-		min: 10000,
-		max: 15000,
-		label: "Luxury",
-		description: "Top-tier treatments with exclusive services",
-		color:
-			"text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400",
-		treatments: [
-			"Exclusive procedures",
-			"VIP treatment",
-			"Luxury accommodations",
-		],
-	},
-];
+    // Budget ranges with recommendations
+    const budgetRanges = [
+        {
+            min: 500,
+            max: 2000,
+            label: "Budget-Friendly",
+            description: "Basic treatments and wellness packages",
+            color: "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400",
+            treatments: [
+                "Spa treatments",
+                "Basic skincare",
+                "Wellness retreats",
+            ],
+        },
+        {
+            min: 2000,
+            max: 5000,
+            label: "Standard",
+            description: "Quality treatments with good facilities",
+            color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400",
+            treatments: [
+                "Cosmetic procedures",
+                "Dental work",
+                "Advanced skincare",
+            ],
+        },
+        {
+            min: 5000,
+            max: 10000,
+            label: "Premium",
+            description: "High-end treatments with luxury amenities",
+            color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400",
+            treatments: [
+                "Plastic surgery",
+                "Luxury recovery",
+                "Premium facilities",
+            ],
+        },
+        {
+            min: 10000,
+            max: 15000,
+            label: "Luxury",
+            description: "Top-tier treatments with exclusive services",
+            color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400",
+            treatments: [
+                "Exclusive procedures",
+                "VIP treatment",
+                "Luxury accommodations",
+            ],
+        },
+    ];
 
-// Get current budget range
-const currentRange = $derived(
-	budgetRanges.find(
-		(range) =>
-			$stepperState.formData.budget >= range.min &&
-			$stepperState.formData.budget <= range.max,
-	) || budgetRanges[0],
-);
+    // Get current budget range
+    const currentRange = $derived(
+        budgetRanges.find(
+            (range) =>
+                $stepperState.formData.budget >= range.min &&
+                $stepperState.formData.budget <= range.max,
+        ) || budgetRanges[0],
+    );
 
-// Format currency
-function formatCurrency(amount: number): string {
-	return new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 0,
-	}).format(amount);
-}
+    // Format currency
+    function formatCurrency(amount: number): string {
+        return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(amount);
+    }
 
-// Handle slider change
-function handleSliderChange(event: Event) {
-	const target = event.target as HTMLInputElement;
-	const newBudget = parseInt(target.value, 10);
-	$stepperState.formData.budget = newBudget;
-}
+    // Handle slider change
+    function handleSliderChange(event: Event) {
+        const target = event.target as HTMLInputElement;
+        const newBudget = parseInt(target.value, 10);
+        $stepperState.formData.budget = newBudget;
+    }
 
-// Handle preset budget selection
-function handlePresetSelect(amount: number) {
-	$stepperState.formData.budget = amount;
-}
+    // Handle preset budget selection
+    function handlePresetSelect(amount: number) {
+        $stepperState.formData.budget = amount;
+    }
 
-// Real-time budget validation
-let budgetFeedback = $state("");
+    // Real-time budget validation
+    let budgetFeedback = $state("");
 
-$effect(() => {
-	if ($stepperState.formData.budget > 0) {
-		if ($stepperState.formData.budget < 500) {
-			budgetFeedback = "Consider increasing budget for quality treatments";
-		} else if (
-			$stepperState.formData.budget >= 500 &&
-			$stepperState.formData.budget < 2000
-		) {
-			budgetFeedback = "Good for basic treatments and wellness packages";
-		} else if (
-			$stepperState.formData.budget >= 2000 &&
-			$stepperState.formData.budget < 5000
-		) {
-			budgetFeedback = "Excellent for quality treatments with good facilities";
-		} else if (
-			$stepperState.formData.budget >= 5000 &&
-			$stepperState.formData.budget < 10000
-		) {
-			budgetFeedback = "Perfect for premium treatments with luxury amenities";
-		} else if ($stepperState.formData.budget >= 10000) {
-			budgetFeedback = "Ideal for top-tier treatments with exclusive services";
-		}
-	} else {
-		budgetFeedback = "";
-	}
-});
+    $effect(() => {
+        if ($stepperState.formData.budget > 0) {
+            if ($stepperState.formData.budget < 500) {
+                budgetFeedback =
+                    "Consider increasing budget for quality treatments";
+            } else if (
+                $stepperState.formData.budget >= 500 &&
+                $stepperState.formData.budget < 2000
+            ) {
+                budgetFeedback =
+                    "Good for basic treatments and wellness packages";
+            } else if (
+                $stepperState.formData.budget >= 2000 &&
+                $stepperState.formData.budget < 5000
+            ) {
+                budgetFeedback =
+                    "Excellent for quality treatments with good facilities";
+            } else if (
+                $stepperState.formData.budget >= 5000 &&
+                $stepperState.formData.budget < 10000
+            ) {
+                budgetFeedback =
+                    "Perfect for premium treatments with luxury amenities";
+            } else if ($stepperState.formData.budget >= 10000) {
+                budgetFeedback =
+                    "Ideal for top-tier treatments with exclusive services";
+            }
+        } else {
+            budgetFeedback = "";
+        }
+    });
 
-const displayErrors = $derived(() => {
-	const stepErrors = $stepperState.errors.step4;
-	if (!stepErrors) return [];
-	return Object.values(stepErrors).filter(Boolean) as string[];
-});
+    const displayErrors = $derived(() => {
+        const stepErrors = $stepperState.errors.step4;
+        if (!stepErrors) return [];
+        return Object.values(stepErrors).filter(Boolean) as string[];
+    });
 
-// Quick preset amounts
-const presetAmounts = [1000, 2500, 5000, 7500, 10000, 12500];
+    // Quick preset amounts
+    const presetAmounts = [1000, 2500, 5000, 7500, 10000, 12500];
 </script>
 
 <div class="space-y-6">
@@ -213,7 +227,7 @@ const presetAmounts = [1000, 2500, 5000, 7500, 10000, 12500];
             <!-- Range markers -->
             <div
                 class="flex justify-between text-xs text-muted-foreground mt-2"
->
+            >
                 <span>{formatCurrency(MIN_BUDGET)}</span>
                 <span>{formatCurrency(MAX_BUDGET)}</span>
             </div>
@@ -225,8 +239,8 @@ const presetAmounts = [1000, 2500, 5000, 7500, 10000, 12500];
                 <button
                     type="button"
                     onclick={() => handlePresetSelect(amount)}
-                    class="px-2 py-2 sm:px-3 text-xs sm:text-sm border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors min-h-[44px] flex items-center justify-center {$stepperState.formData.budget ===
-                    amount
+                    class="px-2 py-2 sm:px-3 text-xs sm:text-sm border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors min-h-[44px] flex items-center justify-center {$stepperState
+                        .formData.budget === amount
                         ? 'border-primary bg-primary/5 text-primary font-medium'
                         : ''}"
                 >
@@ -286,53 +300,6 @@ const presetAmounts = [1000, 2500, 5000, 7500, 10000, 12500];
             </div>
         </div>
     {/if}
-
-    <!-- Budget Breakdown -->
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-muted/30 rounded-lg p-4 space-y-3">
-            <h4 class="text-sm font-medium flex items-center gap-2">
-                <svg
-                    class="w-4 h-4 text-primary"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    />
-                </svg>
-                Typical Budget Breakdown
-            </h4>
-            <div class="grid grid-cols-2 gap-4 text-sm">
-                <div class="space-y-2">
-                    <div class="flex justify-between">
-                        <span class="text-muted-foreground">Treatments:</span>
-                        <span class="font-medium">40-60%</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-muted-foreground">Accommodation:</span
-                        >
-                        <span class="font-medium">20-30%</span>
-                    </div>
-                </div>
-                <div class="space-y-2">
-                    <div class="flex justify-between">
-                        <span class="text-muted-foreground">Flights:</span>
-                        <span class="font-medium">15-25%</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-muted-foreground"
-                            >Meals & Extras:</span
-                        >
-                        <span class="font-medium">10-15%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Real-time budget feedback -->
     {#if budgetFeedback}

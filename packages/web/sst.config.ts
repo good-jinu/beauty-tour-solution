@@ -10,12 +10,6 @@ export default $config({
 		};
 	},
 	async run() {
-		const bucket = new sst.aws.Bucket(
-			process.env.STORAGE_BUCKET_NAME ?? "BeautyTourSolutionStorage",
-			{
-				access: "public",
-			},
-		);
 		// SvelteKit 앱 배포 (Bedrock 권한 포함)
 		const web = new sst.aws.SvelteKit("BeautyTourSolution", {
 			domain: {
@@ -23,7 +17,6 @@ export default $config({
 				redirects: [`www.${process.env.WEB_DOMAIN ?? ""}`],
 			},
 			environment: {
-				STORAGE_BUCKET_NAME: bucket.name,
 				APP_AWS_REGION: process.env.APP_AWS_REGION ?? "us-east-1",
 			},
 			permissions: [
@@ -40,12 +33,10 @@ export default $config({
 			server: {
 				timeout: "120 seconds",
 			},
-			link: [bucket],
 		});
 
 		return {
 			url: web.url,
-			bucket: bucket.name,
 		};
 	},
 });

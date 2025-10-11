@@ -1,5 +1,6 @@
 <script lang="ts">
 import { page } from "$app/state";
+import { Button } from "$lib/components/ui/button";
 
 let open = $state(false);
 const nav = [
@@ -28,8 +29,10 @@ const path = $derived(page.url.pathname);
           </a>
         {/each}
       </div>
-      <button
-        class="md:hidden grid place-items-center size-8 rounded-md border"
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        class="md:hidden"
         aria-label="Toggle menu"
         onclick={() => (open = !open)}
       >
@@ -47,7 +50,7 @@ const path = $derived(page.url.pathname);
           class:-rotate-45={open}
           class:-translate-y-[6px]={open}
         ></div>
-      </button>
+      </Button>
     </div>
     {#if open}
       <div class="md:hidden border-t py-2">
