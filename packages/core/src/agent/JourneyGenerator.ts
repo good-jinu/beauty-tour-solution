@@ -1,7 +1,7 @@
 import type { ConversationRequest } from "@bts/infra";
 import { BedrockConversationService } from "@bts/infra";
 import type { GenerateJourneyRequest, GenerateJourneyResponse } from "../types";
-import { BEAUTY_THEMES, REGIONS } from "../types";
+import { REGIONS } from "../types";
 
 export interface JourneyGeneratorConfig {
 	awsRegion?: string;
@@ -56,9 +56,16 @@ export class JourneyGenerator {
 				`${region.label} - ${region.city}`,
 			]),
 		);
-		const themeLabels = Object.fromEntries(
-			BEAUTY_THEMES.map((theme) => [theme.value, theme.label]),
-		);
+
+		// Simple theme mapping for journey generation
+		const themeLabels: Record<string, string> = {
+			"plastic-surgery": "Plastic Surgery",
+			"hair-treatments": "Hair Treatments",
+			"skin-clinic": "Skin Clinic",
+			"diet-activities": "Diet & Weight Loss",
+			nail: "Nail Care",
+			makeup: "Makeup Services",
+		};
 
 		const duration = this.calculateDuration(data.startDate, data.endDate);
 		const addOns: string[] = [];

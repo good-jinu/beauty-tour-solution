@@ -1,21 +1,23 @@
-import {
-	BedrockRuntimeClient,
-	InvokeModelCommand,
-} from "@aws-sdk/client-bedrock-runtime";
-import type { BedrockConfig } from "../types/index.js";
+import { GoogleGenAI } from "@google/genai";
 
 export interface ThemePrompt {
 	text: string;
 	negativeText: string;
 }
 
-export interface BedrockImageGenerationRequest {
+export interface GoogleGenAIConfig {
+	apiKey?: string;
+	modelId?: string;
+	maxImageSize?: number;
+}
+
+export interface GoogleGenAIImageGenerationRequest {
 	image: string; // base64 encoded
 	themePrompt: ThemePrompt;
 	imageFormat: string;
 }
 
-export interface BedrockImageGenerationResponse {
+export interface GoogleGenAIImageGenerationResponse {
 	success: boolean;
 	simulatedImage?: string;
 	error?: string;
@@ -23,26 +25,31 @@ export interface BedrockImageGenerationResponse {
 	processingTime?: number;
 }
 
-export class BedrockService {
-	private client: BedrockRuntimeClient;
+export class GoogleGenAIService {
+	private client: GoogleGenAI;
 	private modelId: string;
 	private maxImageSize: number;
 
-	constructor(config: BedrockConfig = {}) {
-		const region = config.region ?? process.env.APP_AWS_REGION ?? "us-east-1";
-		this.client = new BedrockRuntimeClient({ region });
-		this.modelId = config.modelId ?? "amazon.nova-canvas-v1:0";
+	constructor(config: GoogleGenAIConfig = {}) {
+		const apiKey = config.apiKey ?? process.env.GOOGLE_GENAI_API_KEY;
+		if (!apiKey) {
+			throw new Error(
+				"Google GenAI API key is required. Set GOOGLE_GENAI_API_KEY environment variable.",
+			);
+		}
+		this.client = new GoogleGenAI({ apiKey });
+		this.modelId = config.modelId ?? "gemini-2.5-flash-image";
 		this.maxImageSize = config.maxImageSize ?? 1024;
 	}
 
 	async generateImage(
-		request: BedrockImageGenerationRequest,
-	): Promise<BedrockImageGenerationResponse> {
+		request: GoogleGenAIImageGenerationRequest,
+	): Promise<GoogleGenAIImageGenerationResponse> {
 		const startTime = Date.now();
 
 		try {
 			// Validate and process the image
-			const processedImage = this.prepareImageForBedrock(
+			const processedImage = this.prepareImageForGenAI(
 				request.image,
 				request.imageFormat,
 			);
@@ -54,49 +61,53 @@ export class BedrockService {
 				};
 			}
 
-			// Use the provided theme prompt
-			const prompt = request.themePrompt;
+			// Create the prompt combining theme text and negative text
+			const promptText = `${request.themePrompt.text}. Avoid: ${request.themePrompt.negativeText}`;
 
-			// Use IMAGE_VARIATION instead of INPAINTING for better compatibility
-			const payload = {
-				taskType: "IMAGE_VARIATION",
-				imageVariationParams: {
-					text: prompt.text,
-					negativeText: prompt.negativeText,
-					images: [processedImage],
-					similarityStrength: 0.8, // Keep some similarity to original
+			// Prepare the prompt for Google GenAI
+			const prompt = [
+				{ text: promptText },
+				{
+					inlineData: {
+						mimeType: `image/${request.imageFormat}`,
+						data: processedImage,
+					},
 				},
-				imageGenerationConfig: {
-					numberOfImages: 1,
-					quality: "standard",
-					cfgScale: 8.0,
-					height: this.maxImageSize,
-					width: this.maxImageSize,
-					seed: Math.floor(Math.random() * 2147483647),
-				},
-			};
+			];
 
-			const command = new InvokeModelCommand({
-				modelId: this.modelId,
-				body: JSON.stringify(payload),
-				contentType: "application/json",
-				accept: "application/json",
+			// Generate content using Google GenAI
+			const response = await this.client.models.generateContent({
+				model: this.modelId,
+				contents: prompt,
 			});
 
-			const response = await this.client.send(command);
-
-			if (!response.body) {
+			if (!response.candidates || response.candidates.length === 0) {
 				return {
 					success: false,
 					error: "No response from image generation service",
-					details: "AWS Bedrock returned empty response",
+					details: "Google GenAI returned no candidates",
 				};
 			}
 
-			// Parse the response
-			const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+			const candidate = response.candidates[0];
+			if (!candidate.content || !candidate.content.parts) {
+				return {
+					success: false,
+					error: "No content in response",
+					details: "Google GenAI returned empty content",
+				};
+			}
 
-			if (!responseBody.images || responseBody.images.length === 0) {
+			// Find the generated image in the response parts
+			let generatedImage: string | null = null;
+			for (const part of candidate.content.parts) {
+				if (part.inlineData?.data) {
+					generatedImage = part.inlineData.data;
+					break;
+				}
+			}
+
+			if (!generatedImage) {
 				return {
 					success: false,
 					error: "No images generated",
@@ -108,23 +119,26 @@ export class BedrockService {
 
 			return {
 				success: true,
-				simulatedImage: responseBody.images[0],
+				simulatedImage: generatedImage,
 				processingTime,
 			};
 		} catch (error) {
-			console.error("Bedrock Image Generation Error:", error);
+			console.error("Google GenAI Image Generation Error:", error);
 
-			// Handle specific AWS errors
+			// Handle specific Google GenAI errors
 			if (error instanceof Error) {
-				if (error.name === "ThrottlingException") {
+				if (error.message.includes("quota") || error.message.includes("rate")) {
 					return {
 						success: false,
 						error: "Service temporarily unavailable",
-						details: "Too many requests. Please try again in a moment.",
+						details: "Rate limit exceeded. Please try again in a moment.",
 					};
 				}
 
-				if (error.name === "ValidationException") {
+				if (
+					error.message.includes("invalid") ||
+					error.message.includes("validation")
+				) {
 					return {
 						success: false,
 						error: "Invalid request data",
@@ -142,14 +156,14 @@ export class BedrockService {
 	}
 
 	/**
-	 * Prepares image for Bedrock by validating format and size
+	 * Prepares image for Google GenAI by validating format and size
 	 */
-	private prepareImageForBedrock(
+	private prepareImageForGenAI(
 		imageBase64: string,
 		format: string,
 	): string | null {
 		try {
-			// Validate image format
+			// Validate image format - Google GenAI supports these formats
 			if (!["jpeg", "jpg", "png", "webp"].includes(format.toLowerCase())) {
 				return null;
 			}

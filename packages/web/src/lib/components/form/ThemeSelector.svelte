@@ -1,5 +1,5 @@
 <script lang="ts">
-import { BEAUTY_THEMES, type FormErrors } from "$lib/types";
+import { type FormErrors, JOURNEY_THEMES } from "$lib/types";
 
 interface Props {
 	selectedTheme: string;
@@ -20,7 +20,7 @@ let { selectedTheme = $bindable(), errors }: Props = $props();
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-        {#each BEAUTY_THEMES as theme}
+        {#each JOURNEY_THEMES as theme}
             <label
                 class="group relative flex flex-col p-5 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-md {selectedTheme ===
                 theme.value

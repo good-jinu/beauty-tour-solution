@@ -6,14 +6,14 @@ export interface Region {
 	city: string;
 }
 
-export interface BeautyTheme {
+export interface JourneyTheme {
 	value: string;
 	label: string;
 	description: string;
 	icon: string;
 }
 
-// Legacy FormData interface - maintained for backward compatibility
+// Journey planning form data
 export interface FormData {
 	selectedRegion: string;
 	startDate: string;
@@ -118,7 +118,7 @@ export const REGIONS: Region[] = [
 	},
 ];
 
-export const BEAUTY_THEMES: BeautyTheme[] = [
+export const JOURNEY_THEMES: JourneyTheme[] = [
 	{
 		value: "plastic-surgery",
 		label: "Plastic Surgery",

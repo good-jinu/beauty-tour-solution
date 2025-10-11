@@ -3,7 +3,6 @@ import type {
 	GenerateJourneyRequest,
 	GenerateJourneyResponse,
 } from "@bts/core";
-import { BeautySimulationContainer } from "$lib/components/beauty-simulation";
 import ResultsSection from "$lib/components/ResultsSection.svelte";
 import {
 	StepperContainer,
@@ -17,20 +16,12 @@ import {
 	DateSelection,
 	ThemeSelection,
 } from "$lib/components/stepper/steps";
-import { stepperState } from "$lib/stores/stepper.js";
 import type { StepperFormData } from "$lib/types";
 import { StepperUtils } from "$lib/types";
 
 // Application flow state
-type AppFlow = "beauty-simulation" | "journey-planning" | "results";
-let currentFlow: AppFlow = $state("beauty-simulation");
-
-// Beauty simulation state
-let simulationData = $state<{
-	theme: string;
-	originalImage: string;
-	simulatedImage: string;
-} | null>(null);
+type AppFlow = "journey-planning" | "results";
+let currentFlow: AppFlow = $state("journey-planning");
 
 // Stepper state
 let isLoading = $state(false);
@@ -48,51 +39,6 @@ const defaultAddOns = {
 	travelers: 1,
 	specialRequests: "",
 };
-
-// Handle beauty simulation completion
-function handleSimulationComplete(data: {
-	theme: string;
-	originalImage: string;
-	simulatedImage: string;
-}) {
-	simulationData = data;
-
-	// If a theme was selected from simulation, pre-populate it in the stepper
-	if (data.theme) {
-		stepperState.update((state) => ({
-			...state,
-			formData: {
-				...state.formData,
-				selectedThemes: [data.theme],
-			},
-		}));
-	}
-
-	// Navigate to journey planning
-	currentFlow = "journey-planning";
-
-	// Scroll to journey planning section
-	setTimeout(() => {
-		document.getElementById("journey-planning-section")?.scrollIntoView({
-			behavior: "smooth",
-			block: "start",
-		});
-	}, 100);
-}
-
-// Handle skipping beauty simulation
-function handleSkipSimulation() {
-	simulationData = null;
-	currentFlow = "journey-planning";
-
-	// Scroll to journey planning section
-	setTimeout(() => {
-		document.getElementById("journey-planning-section")?.scrollIntoView({
-			behavior: "smooth",
-			block: "start",
-		});
-	}, 100);
-}
 
 async function handleStepperComplete(stepperData: StepperFormData) {
 	isLoading = true;
@@ -164,13 +110,12 @@ function resetForm() {
 	showResults = false;
 	aiRecommendation = "";
 
-	// Reset to beauty simulation flow
-	currentFlow = "beauty-simulation";
-	simulationData = null;
+	// Reset to journey planning flow
+	currentFlow = "journey-planning";
 
 	// Scroll back to the top of the form
 	setTimeout(() => {
-		document.getElementById("beauty-simulation-section")?.scrollIntoView({
+		document.getElementById("journey-planning-section")?.scrollIntoView({
 			behavior: "smooth",
 			block: "start",
 		});
@@ -182,7 +127,7 @@ function resetForm() {
 	<title>Plan Your Beauty Journey - Beauty Tour Solution</title>
 	<meta
 		name="description"
-		content="Create your perfect beauty and wellness journey with our AI-powered beauty tour builder"
+		content="Create your perfect beauty and wellness journey with our AI-powered journey planner"
 	/>
 </svelte:head>
 
@@ -190,75 +135,9 @@ function resetForm() {
 <div
 	class="min-h-screen bg-gradient-to-b from-muted/20 via-background to-muted/10"
 >
-	<!-- Beauty Simulation Section -->
-	{#if currentFlow === "beauty-simulation"}
-		<div id="beauty-simulation-section" class="px-4 sm:px-6 lg:px-8">
-			<BeautySimulationContainer
-				onComplete={handleSimulationComplete}
-				onStepChange={(step) => {
-					// Handle step changes if needed for analytics or state management
-				}}
-				showSkipOption={true}
-				className="beauty-simulation-main"
-			/>
-		</div>
-	{/if}
-
 	<!-- Journey Planning Section -->
 	{#if currentFlow === "journey-planning"}
 		<div id="journey-planning-section" class="px-4 sm:px-6 lg:px-8">
-			<!-- Navigation back to simulation -->
-			<div class="mb-6 text-center">
-				<button
-					type="button"
-					onclick={() => {
-						currentFlow = "beauty-simulation";
-						setTimeout(() => {
-							document
-								.getElementById("beauty-simulation-section")
-								?.scrollIntoView({
-									behavior: "smooth",
-									block: "start",
-								});
-						}, 100);
-					}}
-					class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-				>
-					<svg
-						class="w-4 h-4"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M15 19l-7-7 7-7"
-						/>
-					</svg>
-					Back to Beauty Simulation
-				</button>
-			</div>
-
-			<!-- Show simulation results summary if available -->
-			{#if simulationData && simulationData.theme}
-				<div class="mb-8 p-4 bg-muted/50 rounded-lg border">
-					<div class="flex items-center gap-3 mb-2">
-						<div class="w-2 h-2 bg-green-500 rounded-full"></div>
-						<h3 class="font-semibold text-sm">
-							Beauty Simulation Complete
-						</h3>
-					</div>
-					<p class="text-sm text-muted-foreground">
-						Selected theme: <span
-							class="font-medium text-foreground"
-							>{simulationData.theme}</span
-						>
-					</p>
-				</div>
-			{/if}
-
 			<StepperContainer oncomplete={handleStepperComplete}>
 				{#snippet children({
 					stepperState,

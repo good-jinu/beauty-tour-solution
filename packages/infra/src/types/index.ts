@@ -14,3 +14,9 @@ export interface BedrockConfig {
 	modelId?: string;
 	maxImageSize?: number;
 }
+
+export interface GoogleGenAIConfig {
+	apiKey?: string;
+	modelId?: string;
+	maxImageSize?: number;
+}

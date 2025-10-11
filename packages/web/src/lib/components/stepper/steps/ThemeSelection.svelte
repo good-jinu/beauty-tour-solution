@@ -23,13 +23,8 @@ export function validate(
 
 <script lang="ts">
     import { stepperState } from "$lib/stores/stepper.js";
-    import { BEAUTY_THEMES } from "$lib/types/beauty-journey.js";
+    import { JOURNEY_THEMES } from "$lib/types/beauty-journey.js";
     import ErrorDisplay from "../ErrorDisplay.svelte";
-    import { onMount } from "svelte";
-
-    // Track which themes were pre-selected from beauty simulation
-    let preSelectedThemes = $state<string[]>([]);
-    let hasPreSelectedThemes = $derived(preSelectedThemes.length > 0);
 
     function handleThemeToggle(themeValue: string) {
         const currentThemes = $stepperState.formData.selectedThemes;
@@ -43,22 +38,10 @@ export function validate(
         return $stepperState.formData.selectedThemes.includes(themeValue);
     }
 
-    function isThemePreSelected(themeValue: string): boolean {
-        return preSelectedThemes.includes(themeValue);
-    }
-
     const displayErrors = $derived(() => {
         const stepErrors = $stepperState.errors.step3;
         if (!stepErrors) return [];
         return Object.values(stepErrors).filter(Boolean) as string[];
-    });
-
-    // Check for pre-selected themes on mount
-    onMount(() => {
-        const currentThemes = $stepperState.formData.selectedThemes;
-        if (currentThemes.length > 0) {
-            preSelectedThemes = [...currentThemes];
-        }
     });
 </script>
 
@@ -69,39 +52,11 @@ export function validate(
         <p class="text-muted-foreground">
             Select one or more treatments that match your goals
         </p>
-
-        <!-- Pre-selection notice -->
-        {#if hasPreSelectedThemes}
-            <div
-                class="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-lg"
-            >
-                <div class="flex items-center justify-center gap-2 mb-1">
-                    <svg
-                        class="w-4 h-4 text-primary"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clip-rule="evenodd"
-                        />
-                    </svg>
-                    <span class="text-sm font-medium text-primary"
-                        >Beauty Simulation Complete</span
-                    >
-                </div>
-                <p class="text-xs text-muted-foreground">
-                    We've pre-selected the treatment from your beauty
-                    simulation. You can add more or modify your selection below.
-                </p>
-            </div>
-        {/if}
     </div>
 
     <!-- Theme Options -->
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {#each BEAUTY_THEMES as theme (theme.value)}
+        {#each JOURNEY_THEMES as theme (theme.value)}
             <button
                 type="button"
                 onclick={() => handleThemeToggle(theme.value)}
@@ -109,11 +64,7 @@ export function validate(
                     theme.value,
                 )
                     ? 'border-primary bg-primary/5 shadow-md'
-                    : 'border-border hover:bg-muted/30'} {isThemePreSelected(
-                    theme.value,
-                ) && isThemeSelected(theme.value)
-                    ? 'ring-2 ring-primary/30'
-                    : ''}"
+                    : 'border-border hover:bg-muted/30'}"
             >
                 <!-- Selection indicator -->
                 {#if isThemeSelected(theme.value)}
@@ -134,24 +85,8 @@ export function validate(
                     </div>
                 {/if}
 
-                <!-- Pre-selection indicator -->
-                {#if isThemePreSelected(theme.value)}
-                    <div class="absolute top-3 left-3 flex items-center gap-1">
-                        <div class="w-2 h-2 bg-primary rounded-full"></div>
-                        <span class="text-xs font-medium text-primary"
-                            >From Simulation</span
-                        >
-                    </div>
-                {/if}
-
                 <!-- Theme Content -->
-                <div
-                    class="flex items-center gap-3 mb-2 {isThemePreSelected(
-                        theme.value,
-                    )
-                        ? 'mt-6'
-                        : ''}"
-                >
+                <div class="flex items-center gap-3 mb-2">
                     <span class="text-xl">{theme.icon}</span>
                     <h4 class="font-semibold text-sm pr-6">
                         {theme.label}
