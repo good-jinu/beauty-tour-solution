@@ -9,7 +9,7 @@ import {
 	BeautySimulationUtils,
 	BeautySimulationValidation,
 	beautySimulationState,
-} from "$lib/stores/beauty-simulation.js";
+} from "$lib/stores/beauty-simulation";
 import SimulationErrorRecovery from "./SimulationErrorRecovery.svelte";
 import SimulationProgress from "./SimulationProgress.svelte";
 import SimulationResults from "./SimulationResults.svelte";
@@ -139,14 +139,19 @@ async function startSimulation() {
 			);
 		}, 500);
 
-		// Prepare request data
+		// Prepare request data - these values are guaranteed by canProceedFromTheme check
+		const imagePreview = $beautySimulationState.imagePreview;
+		const selectedTheme = $beautySimulationState.selectedTheme;
+		const uploadedImage = $beautySimulationState.uploadedImage;
+
+		if (!imagePreview || !selectedTheme || !uploadedImage) {
+			throw new Error("Missing required data for simulation");
+		}
+
 		const requestData = {
-			image: $beautySimulationState.imagePreview!, // base64 image
-			theme: $beautySimulationState.selectedTheme!,
-			imageFormat: $beautySimulationState.uploadedImage!.type.split("/")[1] as
-				| "jpeg"
-				| "png"
-				| "webp",
+			image: imagePreview,
+			theme: selectedTheme,
+			imageFormat: uploadedImage.type.split("/")[1] as "jpeg" | "png" | "webp",
 		};
 
 		// Make API call
@@ -188,9 +193,8 @@ async function startSimulation() {
 
 		// Call completion callback
 		onComplete?.({
-			theme: $beautySimulationState.selectedTheme!,
-			originalImage:
-				result.storage?.inputUrl || $beautySimulationState.imagePreview!,
+			theme: selectedTheme,
+			originalImage: result.storage?.inputUrl || imagePreview,
 			simulatedImage: result.storage?.outputUrl || result.simulatedImage,
 		});
 
@@ -275,14 +279,23 @@ function handleErrorRecovery() {
 // Handle results actions
 function handlePlanJourney() {
 	if (hasResults) {
+		const selectedTheme = $beautySimulationState.selectedTheme;
+		const originalImage =
+			$beautySimulationState.originalImageUrl ||
+			$beautySimulationState.imagePreview;
+		const simulatedImage =
+			$beautySimulationState.simulationResultUrl ||
+			$beautySimulationState.simulationResult;
+
+		if (!selectedTheme || !originalImage || !simulatedImage) {
+			toast.error("Missing simulation data. Please try the simulation again.");
+			return;
+		}
+
 		onComplete?.({
-			theme: $beautySimulationState.selectedTheme!,
-			originalImage:
-				$beautySimulationState.originalImageUrl ||
-				$beautySimulationState.imagePreview!,
-			simulatedImage:
-				$beautySimulationState.simulationResultUrl ||
-				$beautySimulationState.simulationResult!,
+			theme: selectedTheme,
+			originalImage,
+			simulatedImage,
 		});
 	}
 }

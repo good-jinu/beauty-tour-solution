@@ -187,7 +187,7 @@ function toggleComparisonMode() {
 
 function handleOverlaySlider(event: Event) {
 	const target = event.target as HTMLInputElement;
-	overlayOpacity = parseInt(target.value);
+	overlayOpacity = parseInt(target.value, 10);
 }
 </script>
 

@@ -80,19 +80,30 @@ function validateTheme(theme: string): boolean {
 }
 
 /**
+ * Raw request data structure for validation
+ */
+interface RawRequestData {
+	image?: unknown;
+	theme?: unknown;
+	imageFormat?: unknown;
+	[key: string]: unknown;
+}
+
+/**
  * Sanitizes and validates the request data
  */
-function validateRequest(data: any): {
+function validateRequest(data: unknown): {
 	isValid: boolean;
 	error?: string;
 	sanitizedData?: BeautySimulationRequest;
 } {
 	// Check required fields
-	if (!data || typeof data !== "object") {
+	if (!data || typeof data !== "object" || data === null) {
 		return { isValid: false, error: "Invalid request body" };
 	}
 
-	const { image, theme, imageFormat } = data;
+	const requestData = data as RawRequestData;
+	const { image, theme, imageFormat } = requestData;
 
 	// Validate required fields presence
 	if (!image || typeof image !== "string") {
@@ -151,7 +162,7 @@ function validateRequest(data: any): {
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		// Parse request body
-		let requestData: any;
+		let requestData: unknown;
 		try {
 			requestData = await request.json();
 		} catch (_error) {

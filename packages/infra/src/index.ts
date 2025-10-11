@@ -8,6 +8,7 @@ export { BedrockConversationService } from "./services/BedrockConversationServic
 export type {
 	BedrockImageGenerationRequest,
 	BedrockImageGenerationResponse,
+	ThemePrompt,
 } from "./services/BedrockService.js";
 export { BedrockService } from "./services/BedrockService.js";
 // Export services

@@ -3,8 +3,9 @@ import { BedrockService, S3Service } from "@bts/infra";
 import type {
 	BeautySimulationRequest,
 	BeautySimulationResponse,
+	ThemePromptKey,
 } from "../types";
-import { BEAUTY_THEMES } from "../types";
+import { BEAUTY_THEMES, THEME_PROMPTS } from "../types";
 
 export interface BeautySimulatorConfig {
 	awsRegion?: string;
@@ -58,10 +59,16 @@ export class BeautySimulator {
 				};
 			}
 
+			// Get the theme prompt for the requested theme
+			const themePrompt = THEME_PROMPTS[request.theme as ThemePromptKey] || {
+				text: "Enhanced appearance with professional beauty treatment results, improved features",
+				negativeText: "bad quality, unnatural, distorted, deformed",
+			};
+
 			// Generate the beauty simulation using Bedrock
 			const bedrockRequest: BedrockImageGenerationRequest = {
 				image: request.image,
-				theme: request.theme,
+				themePrompt: themePrompt,
 				imageFormat: request.imageFormat,
 			};
 

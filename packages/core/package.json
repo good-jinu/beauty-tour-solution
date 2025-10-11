@@ -10,10 +10,14 @@
 			"import": "./src/index.ts"
 		}
 	},
+	"scripts": {
+		"test": "vitest run"
+	},
 	"dependencies": {
 		"@bts/infra": "workspace:*"
 	},
 	"devDependencies": {
-		"typescript": "^5.0.0"
+		"typescript": "^5.0.0",
+		"vitest": "^1.0.0"
 	}
 }

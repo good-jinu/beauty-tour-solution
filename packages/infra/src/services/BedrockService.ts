@@ -4,9 +4,14 @@ import {
 } from "@aws-sdk/client-bedrock-runtime";
 import type { BedrockConfig } from "../types/index.js";
 
+export interface ThemePrompt {
+	text: string;
+	negativeText: string;
+}
+
 export interface BedrockImageGenerationRequest {
 	image: string; // base64 encoded
-	theme: string;
+	themePrompt: ThemePrompt;
 	imageFormat: string;
 }
 
@@ -18,38 +23,6 @@ export interface BedrockImageGenerationResponse {
 	processingTime?: number;
 }
 
-// Theme-to-prompt mapping for different beauty treatments
-const THEME_PROMPTS = {
-	"plastic-surgery": {
-		text: "Enhanced facial features with natural-looking cosmetic improvements, subtle refinements, professional results, beautiful face",
-		negativeText:
-			"unnatural, overdone, artificial, bad quality, distorted, unrealistic, deformed",
-	},
-	"hair-treatments": {
-		text: "Healthy, voluminous, styled hair with professional treatment results, lustrous shine, full coverage, beautiful hair",
-		negativeText: "damaged hair, thin hair, bad quality, patchy, uneven, bald",
-	},
-	"skin-clinic": {
-		text: "Clear, smooth, radiant skin with professional skincare treatment results, even tone, healthy glow, flawless skin",
-		negativeText:
-			"blemishes, wrinkles, dull skin, bad quality, uneven texture, acne",
-	},
-	"diet-activities": {
-		text: "Toned, fit physique with healthy body contouring results, natural proportions, athletic appearance, fit body",
-		negativeText:
-			"unnatural proportions, bad quality, distorted body, unrealistic, overweight",
-	},
-	nail: {
-		text: "Beautiful, well-manicured nails with professional nail care results, healthy cuticles, perfect shape, elegant nails",
-		negativeText: "damaged nails, poor quality, uneven, chipped, dirty nails",
-	},
-	makeup: {
-		text: "Professional makeup application with flawless finish, enhanced natural beauty, expert technique, glamorous makeup",
-		negativeText:
-			"overdone makeup, bad quality, uneven application, unnatural colors, smudged makeup",
-	},
-} as const;
-
 export class BedrockService {
 	private client: BedrockRuntimeClient;
 	private modelId: string;
@@ -58,7 +31,7 @@ export class BedrockService {
 	constructor(config: BedrockConfig = {}) {
 		const region = config.region ?? process.env.APP_AWS_REGION ?? "us-east-1";
 		this.client = new BedrockRuntimeClient({ region });
-		this.modelId = config.modelId ?? "amazon.titan-image-generator-v2:0";
+		this.modelId = config.modelId ?? "amazon.nova-canvas-v1:0";
 		this.maxImageSize = config.maxImageSize ?? 1024;
 	}
 
@@ -81,8 +54,8 @@ export class BedrockService {
 				};
 			}
 
-			// Create the prompt based on theme
-			const prompt = this.createPrompt(request.theme);
+			// Use the provided theme prompt
+			const prompt = request.themePrompt;
 
 			// Use IMAGE_VARIATION instead of INPAINTING for better compatibility
 			const payload = {
@@ -91,7 +64,7 @@ export class BedrockService {
 					text: prompt.text,
 					negativeText: prompt.negativeText,
 					images: [processedImage],
-					similarityStrength: 0.7, // Keep some similarity to original
+					similarityStrength: 0.8, // Keep some similarity to original
 				},
 				imageGenerationConfig: {
 					numberOfImages: 1,
@@ -197,26 +170,6 @@ export class BedrockService {
 			console.error("Image processing error:", error);
 			return null;
 		}
-	}
-
-	/**
-	 * Creates prompt based on beauty theme
-	 */
-	private createPrompt(theme: string): {
-		text: string;
-		negativeText: string;
-	} {
-		const themePrompt = THEME_PROMPTS[theme as keyof typeof THEME_PROMPTS];
-
-		if (!themePrompt) {
-			// Fallback for unknown themes
-			return {
-				text: "Enhanced appearance with professional beauty treatment results, improved features",
-				negativeText: "bad quality, unnatural, distorted, deformed",
-			};
-		}
-
-		return themePrompt;
 	}
 
 	/**

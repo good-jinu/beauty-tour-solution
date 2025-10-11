@@ -8,6 +8,8 @@
 		"sst:dev": "pnpm --filter @bts/web sst:dev",
 		"build": "pnpm --filter @bts/infra build && pnpm --filter @bts/web build",
 		"build:infra": "pnpm --filter @bts/infra build",
+		"test": "vitest run",
+		"test:core": "pnpm --filter @bts/core test",
 		"preview": "pnpm --filter @bts/web preview",
 		"lint": "biome check --write",
 		"format": "biome format --write",
@@ -17,6 +19,7 @@
 		"prod-remove": "pnpm --filter @bts/web prod-remove"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.2.5"
+		"@biomejs/biome": "2.2.5",
+		"vitest": "^3.2.4"
 	}
 }
