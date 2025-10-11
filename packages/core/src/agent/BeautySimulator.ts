@@ -112,11 +112,11 @@ export class BeautySimulator {
 					inputKey: inputUploadResult.key,
 					outputKey: outputUploadResult.success ? outputUploadResult.key : null,
 					inputUrl: inputUploadResult.key
-						? this.s3Service.getPublicUrl(inputUploadResult.key)
+						? await this.s3Service.getPublicUrl(inputUploadResult.key)
 						: undefined,
 					outputUrl:
 						outputUploadResult.success && outputUploadResult.key
-							? this.s3Service.getPublicUrl(outputUploadResult.key)
+							? await this.s3Service.getPublicUrl(outputUploadResult.key)
 							: null,
 				},
 			};

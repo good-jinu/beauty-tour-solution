@@ -88,9 +88,11 @@ export class S3Service {
 	/**
 	 * Get the public URL for an S3 object
 	 */
-	getPublicUrl(key: string): string {
+	async getPublicUrl(key: string): Promise<string> {
 		const region =
-			this.client.config.region || process.env.APP_AWS_REGION || "us-east-1";
+			(await this.client.config.region()) ||
+			process.env.APP_AWS_REGION ||
+			"us-east-1";
 		return `https://${this.bucketName}.s3.${region}.amazonaws.com/${key}`;
 	}
 }
