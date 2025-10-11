@@ -66,95 +66,76 @@ export function validate(
 </script>
 
 <script lang="ts">
-	import { stepperState } from '$lib/stores/stepper.js';
-	import ErrorDisplay from '../ErrorDisplay.svelte';
+    import { stepperState } from "$lib/stores/stepper.js";
+    import ErrorDisplay from "../ErrorDisplay.svelte";
+    import DateSelector from "$lib/components/form/DateSelector.svelte";
 
-	// Get today's date in YYYY-MM-DD format
-	const today = new Date().toISOString().split('T')[0];
+    // Calculate trip duration
+    const tripDuration = $derived(() => {
+        if (
+            !$stepperState.formData.startDate ||
+            !$stepperState.formData.endDate
+        )
+            return null;
+        const start = new Date($stepperState.formData.startDate);
+        const end = new Date($stepperState.formData.endDate);
+        const diffTime = end.getTime() - start.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays > 0 ? diffDays : null;
+    });
 
-// Calculate minimum end date (start date + 1 day)
-const minEndDate = $derived(() => {
-	if (!$stepperState.formData.startDate) return today;
-	const start = new Date($stepperState.formData.startDate);
-	start.setDate(start.getDate() + 1);
-	return start.toISOString().split("T")[0];
-});
+    // Real-time validation feedback
+    let dateValidationMessage = $state("");
 
-// Calculate maximum date (1 year from today)
-const maxDate = (() => {
-	const max = new Date();
-	max.setFullYear(max.getFullYear() + 1);
-	return max.toISOString().split("T")[0];
-})();
+    $effect(() => {
+        if (
+            $stepperState.formData.startDate &&
+            $stepperState.formData.endDate
+        ) {
+            const start = new Date($stepperState.formData.startDate);
+            const end = new Date($stepperState.formData.endDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-// Calculate trip duration
-const tripDuration = $derived(() => {
-	if (!$stepperState.formData.startDate || !$stepperState.formData.endDate)
-		return null;
-	const start = new Date($stepperState.formData.startDate);
-	const end = new Date($stepperState.formData.endDate);
-	const diffTime = end.getTime() - start.getTime();
-	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-	return diffDays > 0 ? diffDays : null;
-});
+            if (start < today) {
+                dateValidationMessage = "Start date should be in the future";
+            } else if (end <= start) {
+                dateValidationMessage = "End date must be after start date";
+            } else {
+                const daysDiff = Math.ceil(
+                    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+                );
+                if (daysDiff < 2) {
+                    dateValidationMessage = "Minimum stay is 2 days";
+                } else if (daysDiff > 30) {
+                    dateValidationMessage = "Maximum stay is 30 days";
+                } else if (daysDiff >= 7) {
+                    dateValidationMessage = `Great! ${daysDiff} days allows for comprehensive treatments`;
+                } else {
+                    dateValidationMessage = "";
+                }
+            }
+        } else {
+            dateValidationMessage = "";
+        }
+    });
 
-function handleStartDateChange(event: Event) {
-	const target = event.target as HTMLInputElement;
-	$stepperState.formData.startDate = target.value;
+    // Convert stepper errors to DateSelector format
+    const dateErrors = $derived(() => {
+        const stepErrors = $stepperState.errors.step2;
+        if (!stepErrors) return {};
+        const errors: { [key: string]: string } = {};
+        if (stepErrors.startDate) errors.startDate = stepErrors.startDate;
+        if (stepErrors.endDate) errors.endDate = stepErrors.endDate;
+        return errors;
+    });
 
-	// If end date is before new start date, clear it
-	if (
-		$stepperState.formData.endDate &&
-		target.value &&
-		new Date($stepperState.formData.endDate) <= new Date(target.value)
-	) {
-		$stepperState.formData.endDate = "";
-	}
-}
-
-function handleEndDateChange(event: Event) {
-	const target = event.target as HTMLInputElement;
-	$stepperState.formData.endDate = target.value;
-}
-
-// Real-time validation feedback
-let dateValidationMessage = $state("");
-
-$effect(() => {
-	if ($stepperState.formData.startDate && $stepperState.formData.endDate) {
-		const start = new Date($stepperState.formData.startDate);
-		const end = new Date($stepperState.formData.endDate);
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
-
-		if (start < today) {
-			dateValidationMessage = "Start date should be in the future";
-		} else if (end <= start) {
-			dateValidationMessage = "End date must be after start date";
-		} else {
-			const daysDiff = Math.ceil(
-				(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-			);
-			if (daysDiff < 2) {
-				dateValidationMessage = "Minimum stay is 2 days";
-			} else if (daysDiff > 30) {
-				dateValidationMessage = "Maximum stay is 30 days";
-			} else if (daysDiff >= 7) {
-				dateValidationMessage = `Great! ${daysDiff} days allows for comprehensive treatments`;
-			} else {
-				dateValidationMessage = "";
-			}
-		}
-	} else {
-		dateValidationMessage = "";
-	}
-});
-
-const displayErrors = $derived(() => {
-	const stepErrors = $stepperState.errors.step2;
-	if (!stepErrors) return [];
-	return Object.values(stepErrors).filter(Boolean) as string[];
-});
+    const displayErrors = $derived(() => {
+        const stepErrors = $stepperState.errors.step2;
+        if (!stepErrors) return [];
+        // Only show dateRange error in the general error display
+        return stepErrors.dateRange ? [stepErrors.dateRange] : [];
+    });
 </script>
 
 <div class="space-y-6">
@@ -166,52 +147,13 @@ const displayErrors = $derived(() => {
         </p>
     </div>
 
-    <!-- Date Selection Cards -->
-    <div class="grid gap-4 sm:gap-6 sm:grid-cols-2 max-w-2xl mx-auto">
-        <!-- Start Date -->
-        <div class="space-y-3">
-            <label for="start-date" class="block text-sm font-medium">
-                Departure Date
-            </label>
-            <div class="relative">
-                <input
-                    id="start-date"
-                    type="date"
-                    value={$stepperState.formData.startDate}
-                    min={today}
-                    max={maxDate}
-                    onchange={handleStartDateChange}
-                    autocomplete="off"
-                    inputmode="none"
-                    class="w-full px-3 py-3 sm:px-4 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-base sm:text-lg min-h-[48px] {$stepperState.errors.step2?.startDate
-						? 'border-destructive'
-						: ''}"
-                />
-            </div>
-        </div>
-
-        <!-- End Date -->
-        <div class="space-y-3">
-            <label for="end-date" class="block text-sm font-medium">
-                Return Date
-            </label>
-            <div class="relative">
-                <input
-                    id="end-date"
-                    type="date"
-                    value={$stepperState.formData.endDate}
-                    min={minEndDate()}
-                    max={maxDate}
-                    onchange={handleEndDateChange}
-                    disabled={!$stepperState.formData.startDate}
-                    autocomplete="off"
-                    inputmode="none"
-                    class="w-full px-3 py-3 sm:px-4 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-base sm:text-lg min-h-[48px] disabled:opacity-50 disabled:cursor-not-allowed {$stepperState.errors.step2?.endDate
-						? 'border-destructive'
-						: ''}"
-                />
-            </div>
-        </div>
+    <!-- Date Selection -->
+    <div class="max-w-2xl mx-auto">
+        <DateSelector
+            bind:startDate={$stepperState.formData.startDate}
+            bind:endDate={$stepperState.formData.endDate}
+            errors={dateErrors()}
+        />
     </div>
 
     <!-- Trip Duration Display -->
