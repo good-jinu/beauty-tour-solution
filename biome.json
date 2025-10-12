@@ -14,7 +14,9 @@
 			"!**/build",
 			"!**/coverage",
 			"!**/.sst",
-			"!**/.svelte-kit"
+			"!**/.svelte-kit",
+			"!**/.venv",
+			"!**/.ruff_cache"
 		]
 	},
 	"formatter": {

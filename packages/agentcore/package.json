@@ -1,0 +1,9 @@
+{
+	"name": "@bts/agentcore",
+	"scripts": {
+		"preinstall": "uv sync",
+		"format": "uv run ruff format",
+		"lint": "uv run ruff check --fix",
+		"check": "uv run ruff check"
+	}
+}

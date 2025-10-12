@@ -2,9 +2,10 @@
 _.file = '.env'
 
 [tools]
-aws = "2.31.8"
+aws = "2.31.13"
 node = "22.20.0"
-pnpm = "10.18.1"
+pnpm = "10.18.2"
+uv = "0.9.2"
 
 [tasks.dev]
 description = "Start the SST development server"
