@@ -24,3 +24,4 @@ vite.config.ts.timestamp-*
 
 # sst
 .sst
+sst-env.d.ts

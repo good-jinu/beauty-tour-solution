@@ -1,5 +1,6 @@
 // Export types
 
+export { BedrockAgentCoreService } from "./services/BedrockAgentCoreService.js";
 export type {
 	ConversationRequest,
 	ConversationResponse,

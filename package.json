@@ -5,18 +5,15 @@
 	"author": "gooday6983@gmail.com",
 	"scripts": {
 		"dev": "pnpm --filter @bts/web dev",
-		"sst:dev": "pnpm --filter @bts/web sst:dev",
-		"build": "pnpm --filter @bts/infra build && pnpm --filter @bts/web build",
-		"build:infra": "pnpm --filter @bts/infra build",
+		"build": "pnpm --filter @bts/web build",
 		"test": "vitest run",
 		"test:core": "pnpm --filter @bts/core test",
-		"preview": "pnpm --filter @bts/web preview",
 		"lint": "biome check --write && pnpm run -r lint",
 		"format": "biome format --write && pnpm run -r format",
 		"check": "biome check && pnpm run -r check",
-		"dev-remove": "pnpm --filter @bts/web dev-remove",
-		"prod-deploy": "pnpm --filter @bts/web prod-deploy",
-		"prod-remove": "pnpm --filter @bts/web prod-remove"
+		"deploy-agentcore": "./scripts/deploy-agentcore.sh",
+		"prod-deploy": "pnpm --filter @bts/agentcore prod-deploy && pnpm --filter @bts/web prod-deploy",
+		"prod-remove": "pnpm --filter @bts/agentcore prod-remove && pnpm --filter @bts/web prod-remove"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.5",

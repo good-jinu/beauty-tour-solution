@@ -1,21 +1,12 @@
-import type { ConversationRequest } from "@bts/infra";
-import { BedrockConversationService } from "@bts/infra";
+import { BedrockAgentCoreService } from "@bts/infra";
 import type { GenerateJourneyRequest, GenerateJourneyResponse } from "../types";
 import { REGIONS } from "../types";
 
-export interface JourneyGeneratorConfig {
-	awsRegion?: string;
-	modelId?: string;
-}
-
 export class JourneyGenerator {
-	private conversationService: BedrockConversationService;
+	private agentService: BedrockAgentCoreService;
 
-	constructor(config: JourneyGeneratorConfig = {}) {
-		this.conversationService = new BedrockConversationService({
-			region: config.awsRegion,
-			modelId: config.modelId,
-		});
+	constructor() {
+		this.agentService = new BedrockAgentCoreService();
 	}
 
 	async generateJourney(
@@ -23,28 +14,22 @@ export class JourneyGenerator {
 	): Promise<GenerateJourneyResponse> {
 		const prompt = this.createPrompt(formData);
 
-		const conversationRequest: ConversationRequest = {
-			prompt,
-			maxTokens: 4096,
-			temperature: 0.7,
-			topP: 0.9,
-		};
+		try {
+			const result = await this.agentService.queryAgent(prompt);
 
-		const result =
-			await this.conversationService.generateResponse(conversationRequest);
-
-		if (result.success && result.response) {
 			return {
 				success: true,
-				recommendation: result.response,
+				recommendation: result,
 				formData,
 			};
-		} else {
+		} catch (error) {
 			return {
 				success: false,
 				error:
-					result.error ?? "Failed to generate beauty journey recommendations",
-				details: result.details,
+					error instanceof Error
+						? error.message
+						: "Failed to generate beauty journey recommendations",
+				details: error instanceof Error ? error.stack : undefined,
 			};
 		}
 	}

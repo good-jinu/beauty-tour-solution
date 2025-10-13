@@ -24,6 +24,7 @@ export default $config({
 					actions: [
 						"bedrock:InvokeModel",
 						"bedrock:InvokeModelWithResponseStream",
+						"bedrock-agentcore:*",
 						"s3:PutObject",
 						"s3:GetObject",
 					],

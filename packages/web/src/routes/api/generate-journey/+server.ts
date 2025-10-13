@@ -2,11 +2,8 @@ import type { GenerateJourneyRequest } from "@bts/core";
 import { JourneyGenerator } from "@bts/core";
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
-import { env } from "$env/dynamic/private";
 
-// Use the region from SvelteKit server env if available, otherwise default to us-east-1
-const awsRegion = env.APP_AWS_REGION ?? "us-east-1";
-const journeyGenerator = new JourneyGenerator({ awsRegion });
+const journeyGenerator = new JourneyGenerator();
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {

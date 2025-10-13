@@ -4,6 +4,9 @@
 		"preinstall": "uv sync",
 		"format": "uv run ruff format",
 		"lint": "uv run ruff check --fix",
-		"check": "uv run ruff check"
+		"check": "uv run ruff check",
+		"prod-deploy": "uv run agentcore configure -e main.py -r \"$APP_AWS_REGION\" -n main && uv run agentcore launch && node get-deployment-info.js",
+		"prod-remove": "uv run agentcore destroy",
+		"get-info": "node get-deployment-info.js"
 	}
 }
