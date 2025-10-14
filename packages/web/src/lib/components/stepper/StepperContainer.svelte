@@ -4,7 +4,7 @@ import { toast } from "svelte-sonner";
 import { stepperState } from "$lib/stores/stepper";
 import type { StepperErrors, StepperFormData, StepperState } from "$lib/types";
 import { TOTAL_STEPS } from "$lib/types";
-import { swipe } from "$lib/utils/swipe";
+
 import { validate as validateStep4 } from "./steps/BudgetSelection.svelte";
 import { validate as validateStep1 } from "./steps/CountrySelection.svelte";
 import { validate as validateStep2 } from "./steps/DateSelection.svelte";
@@ -366,28 +366,6 @@ let currentStepErrors = $derived(
 );
 let hasCurrentStepErrors = $derived(hasStepErrors($stepperState.currentStep));
 let globalWarning = $derived($stepperState.errors.global);
-
-// Swipe gesture handlers
-function handleSwipeLeft() {
-	// Swipe left = next step (on mobile)
-	if (canGoNext && !$stepperState.isLoading) {
-		nextStep();
-	}
-}
-
-function handleSwipeRight() {
-	// Swipe right = previous step (on mobile)
-	if (canGoPrevious && !$stepperState.isLoading) {
-		previousStep();
-	}
-}
-
-// Mobile detection
-let isMobile = false;
-onMount(() => {
-	// Simple mobile detection based on screen width and touch capability
-	isMobile = window.innerWidth <= 768 && "ontouchstart" in window;
-});
 </script>
 
 <div
@@ -396,17 +374,6 @@ onMount(() => {
 	aria-label="Beauty Journey Planner"
 	aria-live="polite"
 	aria-atomic="true"
-	use:swipe={{
-		handlers: {
-			onSwipeLeft: handleSwipeLeft,
-			onSwipeRight: handleSwipeRight,
-		},
-		config: {
-			threshold: 75,
-			restraint: 100,
-			allowedTime: 300,
-		},
-	}}
 >
 	{@render children({
 		stepperState: $stepperState,
