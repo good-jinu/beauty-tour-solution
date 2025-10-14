@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { StepperState } from "$lib/types";
-import { STEP_LABELS, TOTAL_STEPS } from "$lib/types";
+import { getStepLabels, getTotalSteps } from "$lib/types/stepper";
 
 export let stepperState: StepperState;
 export let onStepClick: (step: number) => void;
@@ -75,11 +75,11 @@ function isStepClickable(step: number): boolean {
         <div class="progress-track">
             <div
                 class="progress-fill"
-                style="width: {(stepperState.currentStep / TOTAL_STEPS) * 100}%"
+                style="width: {(stepperState.currentStep / getTotalSteps(stepperState.enabledSteps)) * 100}%"
             ></div>
         </div>
         <div class="progress-text">
-            Step {stepperState.currentStep} of {TOTAL_STEPS}
+            Step {stepperState.currentStep} of {getTotalSteps(stepperState.enabledSteps)}
         </div>
     </div>
 
@@ -117,7 +117,7 @@ function isStepClickable(step: number): boolean {
     </div>
 
     <div class="stepper-progress">
-        {#each Array(TOTAL_STEPS) as _, index}
+        {#each stepperState.enabledSteps as stepId, index}
             {@const step = index + 1}
             {@const status = getStepStatus(step)}
             {@const isClickable = isStepClickable(step)}
@@ -128,12 +128,12 @@ function isStepClickable(step: number): boolean {
                     class:clickable={isClickable}
                     disabled={!isClickable}
                     on:click={() => handleStepClick(step)}
-                    aria-label="Step {step}: {STEP_LABELS[
+                    aria-label="Step {step}: {getStepLabels(stepperState.enabledSteps)[
                         index
                     ]}{getStepErrorCount(step) > 0
                         ? ` (${getStepErrorCount(step)} error${getStepErrorCount(step) > 1 ? 's' : ''})`
                         : ''}"
-                    title="{STEP_LABELS[index]}{getStepErrorMessage(step)
+                    title="{getStepLabels(stepperState.enabledSteps)[index]}{getStepErrorMessage(step)
                         ? `: ${getStepErrorMessage(step)}`
                         : ''}"
                 >
@@ -172,10 +172,10 @@ function isStepClickable(step: number): boolean {
                 </button>
 
                 <div class="step-label">
-                    <span class="step-title">{STEP_LABELS[index]}</span>
+                    <span class="step-title">{getStepLabels(stepperState.enabledSteps)[index]}</span>
                 </div>
 
-                {#if step < TOTAL_STEPS}
+                {#if step < getTotalSteps(stepperState.enabledSteps)}
                     <div
                         class="step-connector"
                         class:completed={stepperState.completedSteps.has(step)}

@@ -1,15 +1,15 @@
 export interface StepperFormData {
-	// Step 1 - Country Selection
-	selectedCountry: string;
+	// Optional - Country Selection (only when country step is enabled)
+	selectedCountry?: string;
 
-	// Step 2 - Date Selection
+	// Required - Date Selection
 	startDate: string;
 	endDate: string;
 
-	// Step 3 - Theme Selection (multiple selection)
+	// Required - Theme Selection (multiple selection)
 	selectedThemes: string[]; // Updated to support multiple selection as required
 
-	// Step 4 - Budget Selection
+	// Required - Budget Selection
 	budget: number;
 	currency?: "USD" | "EUR" | "GBP"; // Optional currency selection
 }
@@ -25,40 +25,59 @@ export interface PartialStepperFormData {
 }
 
 // Step-specific error interfaces
-export interface Step1Errors {
+export interface CountryStepErrors {
 	country?: string;
 	general?: string;
 }
 
-export interface Step2Errors {
+export interface DateStepErrors {
 	startDate?: string;
 	endDate?: string;
 	dateRange?: string;
 	general?: string;
 }
 
-export interface Step3Errors {
+export interface ThemeStepErrors {
 	themes?: string;
 	compatibility?: string;
 	selection?: string;
 	general?: string;
 }
 
-export interface Step4Errors {
+export interface BudgetStepErrors {
 	budget?: string;
 	currency?: string;
 	range?: string;
 	general?: string;
 }
 
+// Union type for all step errors
+export type AnyStepErrors =
+	| CountryStepErrors
+	| DateStepErrors
+	| ThemeStepErrors
+	| BudgetStepErrors;
+
 // Main stepper errors interface
 export interface StepperErrors {
-	step1?: Step1Errors;
-	step2?: Step2Errors;
-	step3?: Step3Errors;
-	step4?: Step4Errors;
+	step1?: AnyStepErrors;
+	step2?: AnyStepErrors;
+	step3?: AnyStepErrors;
+	step4?: AnyStepErrors;
+	step5?: AnyStepErrors; // Support for more steps if needed
 	global?: string; // For cross-step validation errors
 }
+
+// Helper type to get the correct error type for a step ID
+export type StepErrorType<T extends string> = T extends "country"
+	? CountryStepErrors
+	: T extends "dates"
+		? DateStepErrors
+		: T extends "themes"
+			? ThemeStepErrors
+			: T extends "budget"
+				? BudgetStepErrors
+				: never;
 
 export interface StepperState {
 	currentStep: number;
@@ -66,22 +85,81 @@ export interface StepperState {
 	formData: StepperFormData;
 	errors: StepperErrors;
 	isLoading: boolean;
+	enabledSteps: string[]; // Dynamic list of enabled steps
+	stepMapping: Record<number, string>; // Maps step numbers to step IDs
 }
 
-export const TOTAL_STEPS = 4;
+// Dynamic step configuration - steps can be optional
+export interface StepConfig {
+	id: string;
+	label: string;
+	component: string;
+	optional: boolean;
+	defaultOrder: number;
+}
 
+export const AVAILABLE_STEPS: Record<string, StepConfig> = {
+	country: {
+		id: "country",
+		label: "Select Country",
+		component: "CountrySelection",
+		optional: true, // Now optional by default
+		defaultOrder: 1,
+	},
+	dates: {
+		id: "dates",
+		label: "Choose Dates",
+		component: "DateSelection",
+		optional: false,
+		defaultOrder: 2,
+	},
+	themes: {
+		id: "themes",
+		label: "Pick Themes",
+		component: "ThemeSelection",
+		optional: false,
+		defaultOrder: 3,
+	},
+	budget: {
+		id: "budget",
+		label: "Set Budget",
+		component: "BudgetSelection",
+		optional: false,
+		defaultOrder: 4,
+	},
+};
+
+// Default steps (without optional country selection)
+export const DEFAULT_STEP_ORDER = ["dates", "themes", "budget"];
+
+// Helper function to get total steps based on enabled steps
+export function getTotalSteps(enabledSteps: string[]): number {
+	return enabledSteps.length;
+}
+
+// Helper function to get step labels based on enabled steps
+export function getStepLabels(enabledSteps: string[]): string[] {
+	return enabledSteps.map(
+		(stepId) => AVAILABLE_STEPS[stepId]?.label || "Unknown Step",
+	);
+}
+
+// Backward compatibility exports
+export const TOTAL_STEPS = 4; // Keep for backward compatibility
 export const STEP_LABELS = [
 	"Select Country",
 	"Choose Dates",
 	"Pick Themes",
 	"Set Budget",
-];
+]; // Keep for backward compatibility
 
 // Validation helper functions for each step
 export const StepValidation = {
-	// Step 1: Country Selection validation
-	validateStep1: (data: PartialStepperFormData): Step1Errors | null => {
-		const errors: Step1Errors = {};
+	// Country Selection validation (when enabled)
+	validateCountryStep: (
+		data: PartialStepperFormData,
+	): CountryStepErrors | null => {
+		const errors: CountryStepErrors = {};
 
 		if (!data.selectedCountry || data.selectedCountry.trim() === "") {
 			errors.country = "Please select a country for your beauty tour";
@@ -90,9 +168,9 @@ export const StepValidation = {
 		return Object.keys(errors).length > 0 ? errors : null;
 	},
 
-	// Step 2: Date Selection validation
-	validateStep2: (data: PartialStepperFormData): Step2Errors | null => {
-		const errors: Step2Errors = {};
+	// Date Selection validation
+	validateDatesStep: (data: PartialStepperFormData): DateStepErrors | null => {
+		const errors: DateStepErrors = {};
 
 		if (!data.startDate) {
 			errors.startDate = "Please select a start date";
@@ -133,9 +211,11 @@ export const StepValidation = {
 		return Object.keys(errors).length > 0 ? errors : null;
 	},
 
-	// Step 3: Theme Selection validation
-	validateStep3: (data: PartialStepperFormData): Step3Errors | null => {
-		const errors: Step3Errors = {};
+	// Theme Selection validation
+	validateThemesStep: (
+		data: PartialStepperFormData,
+	): ThemeStepErrors | null => {
+		const errors: ThemeStepErrors = {};
 
 		if (!data.selectedThemes || data.selectedThemes.length === 0) {
 			errors.themes = "Please select at least one treatment theme";
@@ -160,9 +240,11 @@ export const StepValidation = {
 		return Object.keys(errors).length > 0 ? errors : null;
 	},
 
-	// Step 4: Budget Selection validation
-	validateStep4: (data: PartialStepperFormData): Step4Errors | null => {
-		const errors: Step4Errors = {};
+	// Budget Selection validation
+	validateBudgetStep: (
+		data: PartialStepperFormData,
+	): BudgetStepErrors | null => {
+		const errors: BudgetStepErrors = {};
 
 		if (!data.budget || data.budget <= 0) {
 			errors.budget = "Please set a budget for your beauty tour";
@@ -180,19 +262,43 @@ export const StepValidation = {
 		return Object.keys(errors).length > 0 ? errors : null;
 	},
 
-	// Validate all steps
-	validateAllSteps: (data: PartialStepperFormData): StepperErrors | null => {
+	// Validate step by step ID
+	validateStepById: (
+		stepId: string,
+		data: PartialStepperFormData,
+	): AnyStepErrors | null => {
+		switch (stepId) {
+			case "country":
+				return StepValidation.validateCountryStep(data);
+			case "dates":
+				return StepValidation.validateDatesStep(data);
+			case "themes":
+				return StepValidation.validateThemesStep(data);
+			case "budget":
+				return StepValidation.validateBudgetStep(data);
+			default:
+				return null;
+		}
+	},
+
+	// Validate all enabled steps
+	validateAllSteps: (
+		data: PartialStepperFormData,
+		enabledSteps: string[],
+	): StepperErrors | null => {
 		const errors: StepperErrors = {};
 
-		const step1Errors = StepValidation.validateStep1(data);
-		const step2Errors = StepValidation.validateStep2(data);
-		const step3Errors = StepValidation.validateStep3(data);
-		const step4Errors = StepValidation.validateStep4(data);
+		enabledSteps.forEach((stepId, index) => {
+			const stepNumber = index + 1;
+			const stepErrors = StepValidation.validateStepById(stepId, data);
 
-		if (step1Errors) errors.step1 = step1Errors;
-		if (step2Errors) errors.step2 = step2Errors;
-		if (step3Errors) errors.step3 = step3Errors;
-		if (step4Errors) errors.step4 = step4Errors;
+			if (stepErrors) {
+				// Use type assertion to safely assign to dynamic keys
+				(errors as Record<string, AnyStepErrors | undefined>)[
+					`step${stepNumber}`
+				] = stepErrors;
+			}
+		});
 
 		return Object.keys(errors).length > 0 ? errors : null;
 	},
@@ -200,18 +306,16 @@ export const StepValidation = {
 
 // Type guards for step data validation
 export const StepTypeGuards = {
-	// Check if data is valid for step 1
-	isValidStep1Data: (data: PartialStepperFormData): boolean => {
+	// Check if country data is valid (when country step is enabled)
+	isValidCountryData: (data: PartialStepperFormData): boolean => {
 		return (
 			typeof data.selectedCountry === "string" &&
 			data.selectedCountry.trim() !== ""
 		);
 	},
 
-	// Check if data is valid for step 2
-	isValidStep2Data: (data: PartialStepperFormData): boolean => {
-		if (!StepTypeGuards.isValidStep1Data(data)) return false;
-
+	// Check if date data is valid
+	isValidDatesData: (data: PartialStepperFormData): boolean => {
 		if (typeof data.startDate !== "string" || typeof data.endDate !== "string")
 			return false;
 
@@ -225,32 +329,54 @@ export const StepTypeGuards = {
 		);
 	},
 
-	// Check if data is valid for step 3
-	isValidStep3Data: (data: PartialStepperFormData): boolean => {
-		if (!StepTypeGuards.isValidStep2Data(data)) return false;
-
+	// Check if theme data is valid
+	isValidThemesData: (data: PartialStepperFormData): boolean => {
 		return Array.isArray(data.selectedThemes) && data.selectedThemes.length > 0;
 	},
 
-	// Check if data is valid for step 4 (complete form)
-	isValidStep4Data: (data: PartialStepperFormData): boolean => {
-		if (!StepTypeGuards.isValidStep3Data(data)) return false;
-
+	// Check if budget data is valid
+	isValidBudgetData: (data: PartialStepperFormData): boolean => {
 		return typeof data.budget === "number" && data.budget > 0;
 	},
 
-	// Check if data is complete stepper form data
+	// Check if data is valid for a specific step ID
+	isValidStepData: (stepId: string, data: PartialStepperFormData): boolean => {
+		switch (stepId) {
+			case "country":
+				return StepTypeGuards.isValidCountryData(data);
+			case "dates":
+				return StepTypeGuards.isValidDatesData(data);
+			case "themes":
+				return StepTypeGuards.isValidThemesData(data);
+			case "budget":
+				return StepTypeGuards.isValidBudgetData(data);
+			default:
+				return false;
+		}
+	},
+
+	// Check if data is complete for enabled steps
 	isCompleteStepperFormData: (
 		data: PartialStepperFormData,
+		enabledSteps: string[],
 	): data is StepperFormData => {
-		return (
-			StepTypeGuards.isValidStep4Data(data) &&
-			data.selectedCountry !== undefined &&
+		// Check all enabled steps are valid
+		const allStepsValid = enabledSteps.every((stepId) =>
+			StepTypeGuards.isValidStepData(stepId, data),
+		);
+
+		// Check required fields are present
+		const hasRequiredFields =
 			data.startDate !== undefined &&
 			data.endDate !== undefined &&
 			data.selectedThemes !== undefined &&
-			data.budget !== undefined
-		);
+			data.budget !== undefined;
+
+		// If country step is enabled, check country is present
+		const hasCountryIfRequired =
+			!enabledSteps.includes("country") || data.selectedCountry !== undefined;
+
+		return allStepsValid && hasRequiredFields && hasCountryIfRequired;
 	},
 };
 
@@ -265,7 +391,7 @@ export const StepperUtils = {
 		additionalData: Partial<FormData> = {},
 	): FormData => {
 		return {
-			selectedRegion: stepperData.selectedCountry,
+			selectedRegion: stepperData.selectedCountry || "", // Handle optional country
 			startDate: stepperData.startDate,
 			endDate: stepperData.endDate,
 			selectedTheme: stepperData.selectedThemes[0] || "", // Use first theme for legacy compatibility
@@ -293,30 +419,47 @@ export const StepperUtils = {
 		};
 	},
 
-	// Get step number for current data state
-	getCurrentStep: (data: PartialStepperFormData): number => {
-		if (!StepTypeGuards.isValidStep1Data(data)) return 1;
-		if (!StepTypeGuards.isValidStep2Data(data)) return 2;
-		if (!StepTypeGuards.isValidStep3Data(data)) return 3;
-		if (!StepTypeGuards.isValidStep4Data(data)) return 4;
-		return 4; // Complete
+	// Get current step number for enabled steps
+	getCurrentStep: (
+		data: PartialStepperFormData,
+		enabledSteps: string[],
+	): number => {
+		for (let i = 0; i < enabledSteps.length; i++) {
+			const stepId = enabledSteps[i];
+			if (!StepTypeGuards.isValidStepData(stepId, data)) {
+				return i + 1; // Return 1-based step number
+			}
+		}
+		return enabledSteps.length; // All steps complete
 	},
 
-	// Get completed steps
-	getCompletedSteps: (data: PartialStepperFormData): Set<number> => {
+	// Get completed steps for enabled steps
+	getCompletedSteps: (
+		data: PartialStepperFormData,
+		enabledSteps: string[],
+	): Set<number> => {
 		const completed = new Set<number>();
 
-		if (StepTypeGuards.isValidStep1Data(data)) completed.add(1);
-		if (StepTypeGuards.isValidStep2Data(data)) completed.add(2);
-		if (StepTypeGuards.isValidStep3Data(data)) completed.add(3);
-		if (StepTypeGuards.isValidStep4Data(data)) completed.add(4);
+		enabledSteps.forEach((stepId, index) => {
+			if (StepTypeGuards.isValidStepData(stepId, data)) {
+				completed.add(index + 1); // 1-based step numbers
+			}
+		});
 
 		return completed;
 	},
 
+	// Create step mapping from step numbers to step IDs
+	createStepMapping: (enabledSteps: string[]): Record<number, string> => {
+		const mapping: Record<number, string> = {};
+		enabledSteps.forEach((stepId, index) => {
+			mapping[index + 1] = stepId;
+		});
+		return mapping;
+	},
+
 	// Create empty stepper form data
 	createEmptyStepperFormData: (): PartialStepperFormData => ({
-		selectedCountry: "",
 		startDate: "",
 		endDate: "",
 		selectedThemes: [],

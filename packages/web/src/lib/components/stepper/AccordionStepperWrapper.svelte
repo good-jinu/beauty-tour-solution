@@ -51,13 +51,13 @@ function handleStepClick(step: number) {
     <AccordionStepper {stepperState} onStepClick={handleStepClick}>
         {#snippet children({ step })}
             <div class="step-content-wrapper">
-                {#if step === 1}
+                {#if stepperState.stepMapping[step] === "country"}
                     <CountrySelection />
-                {:else if step === 2}
+                {:else if stepperState.stepMapping[step] === "dates"}
                     <DateSelection />
-                {:else if step === 3}
+                {:else if stepperState.stepMapping[step] === "themes"}
                     <ThemeSelection />
-                {:else if step === 4}
+                {:else if stepperState.stepMapping[step] === "budget"}
                     <BudgetSelection />
                 {/if}
 

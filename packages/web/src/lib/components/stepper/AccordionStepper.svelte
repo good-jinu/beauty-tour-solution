@@ -8,7 +8,7 @@ import {
 } from "$lib/components/ui/accordion";
 import { Badge } from "$lib/components/ui/badge";
 import type { StepperState } from "$lib/types";
-import { STEP_LABELS, TOTAL_STEPS } from "$lib/types";
+import { getStepLabels, getTotalSteps } from "$lib/types/stepper";
 
 interface Props {
 	stepperState: StepperState;
@@ -89,11 +89,11 @@ function isStepAccessible(step: number): boolean {
         <div class="progress-bar">
             <div
                 class="progress-fill"
-                style="width: {(stepperState.currentStep / TOTAL_STEPS) * 100}%"
+                style="width: {(stepperState.currentStep / getTotalSteps(stepperState.enabledSteps)) * 100}%"
             ></div>
         </div>
         <div class="progress-text">
-            Step {stepperState.currentStep} of {TOTAL_STEPS}
+            Step {stepperState.currentStep} of {getTotalSteps(stepperState.enabledSteps)}
         </div>
     </div>
 
@@ -103,7 +103,7 @@ function isStepAccessible(step: number): boolean {
         class="stepper-accordion"
         type="single"
     >
-        {#each Array(TOTAL_STEPS) as _, index}
+        {#each stepperState.enabledSteps as stepId, index}
             {@const step = index + 1}
             {@const status = getStepStatus(step)}
             {@const isAccessible = isStepAccessible(step)}
@@ -136,7 +136,7 @@ function isStepAccessible(step: number): boolean {
                             {/if}
                         </div>
                         <div class="step-info">
-                            <h3 class="step-title">{STEP_LABELS[index]}</h3>
+                            <h3 class="step-title">{getStepLabels(stepperState.enabledSteps)[index]}</h3>
                             {#if status === "completed"}
                                 <Badge variant="default">Completed</Badge>
                             {:else if status === "error"}

@@ -1,14 +1,14 @@
 <script module lang="ts">
-import type { StepperErrors } from "$lib/types/stepper.js";
+import type { StepperErrors, ThemeStepErrors } from "$lib/types/stepper.js";
 
 export function validate(
 	selectedThemes: string[],
 	realTime = false,
 ): {
 	isValid: boolean;
-	errors: StepperErrors["step3"];
+	errors: ThemeStepErrors | undefined;
 } {
-	const errors: StepperErrors["step3"] = {};
+	const errors: ThemeStepErrors = {};
 
 	if (!selectedThemes || selectedThemes.length === 0) {
 		errors.themes = realTime

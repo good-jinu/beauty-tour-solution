@@ -1,5 +1,5 @@
 <script module lang="ts">
-import type { StepperErrors } from "$lib/types/stepper.js";
+import type { DateStepErrors, StepperErrors } from "$lib/types/stepper.js";
 
 export function validate(
 	startDate: string,
@@ -7,9 +7,9 @@ export function validate(
 	realTime = false,
 ): {
 	isValid: boolean;
-	errors: StepperErrors["step2"];
+	errors: DateStepErrors | undefined;
 } {
-	const errors: StepperErrors["step2"] = {};
+	const errors: DateStepErrors = {};
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);
 
@@ -120,10 +120,22 @@ export function validate(
         }
     });
 
+    // Find which step number corresponds to the dates step
+    const dateStepNumber = $derived(() => {
+        return Object.keys($stepperState.stepMapping).find(
+            (key) => $stepperState.stepMapping[parseInt(key)] === "dates",
+        );
+    });
+
     // Convert stepper errors to DateSelector format
     const dateErrors = $derived(() => {
-        const stepErrors = $stepperState.errors.step2;
+        if (!dateStepNumber()) return {};
+        const stepKey = `step${dateStepNumber()}` as keyof StepperErrors;
+        const stepErrors = $stepperState.errors[stepKey] as
+            | DateStepErrors
+            | undefined;
         if (!stepErrors) return {};
+
         const errors: { [key: string]: string } = {};
         if (stepErrors.startDate) errors.startDate = stepErrors.startDate;
         if (stepErrors.endDate) errors.endDate = stepErrors.endDate;
@@ -131,7 +143,11 @@ export function validate(
     });
 
     const displayErrors = $derived(() => {
-        const stepErrors = $stepperState.errors.step2;
+        if (!dateStepNumber()) return [];
+        const stepKey = `step${dateStepNumber()}` as keyof StepperErrors;
+        const stepErrors = $stepperState.errors[stepKey] as
+            | DateStepErrors
+            | undefined;
         if (!stepErrors) return [];
         // Only show dateRange error in the general error display
         return stepErrors.dateRange ? [stepErrors.dateRange] : [];

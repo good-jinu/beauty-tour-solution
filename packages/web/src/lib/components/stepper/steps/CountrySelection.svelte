@@ -1,14 +1,14 @@
 <script module lang="ts">
-import type { StepperErrors } from "$lib/types/stepper.js";
+import type { CountryStepErrors, StepperErrors } from "$lib/types/stepper.js";
 
 export function validate(
 	selectedCountry: string,
 	realTime = false,
 ): {
 	isValid: boolean;
-	errors: StepperErrors["step1"];
+	errors: CountryStepErrors | undefined;
 } {
-	const errors: StepperErrors["step1"] = {};
+	const errors: CountryStepErrors = {};
 
 	if (!selectedCountry || selectedCountry.trim() === "") {
 		errors.country = realTime
@@ -49,7 +49,17 @@ export function validate(
     }
 
     const displayErrors = $derived(() => {
-        const stepErrors = $stepperState.errors.step1;
+        // Find which step number corresponds to the country step
+        const countryStepNumber = Object.keys($stepperState.stepMapping).find(
+            (key) => $stepperState.stepMapping[parseInt(key)] === "country",
+        );
+
+        if (!countryStepNumber) return [];
+        const stepKey =
+            `step${countryStepNumber}` as keyof import("$lib/types/stepper.js").StepperErrors;
+        const stepErrors = $stepperState.errors[stepKey] as
+            | CountryStepErrors
+            | undefined;
         if (!stepErrors) return [];
         return Object.values(stepErrors).filter(Boolean) as string[];
     });

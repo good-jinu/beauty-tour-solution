@@ -1,5 +1,5 @@
 <script module lang="ts">
-import type { StepperErrors } from "$lib/types/stepper.js";
+import type { BudgetStepErrors } from "$lib/types/stepper.js";
 
 export function validate(
 	budget: number,
@@ -7,9 +7,9 @@ export function validate(
 	realTime = false,
 ): {
 	isValid: boolean;
-	errors: StepperErrors["step4"];
+	errors: BudgetStepErrors | undefined;
 } {
-	const errors: StepperErrors["step4"] = {};
+	const errors: BudgetStepErrors = {};
 
 	if (!budget || budget <= 0) {
 		errors.budget = realTime

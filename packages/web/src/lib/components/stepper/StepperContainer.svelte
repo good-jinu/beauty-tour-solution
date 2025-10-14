@@ -1,19 +1,21 @@
 <script lang="ts">
-import { onMount } from "svelte";
 import { toast } from "svelte-sonner";
-import { stepperState } from "$lib/stores/stepper";
+import { initializeStepper, stepperState } from "$lib/stores/stepper";
 import type { StepperErrors, StepperFormData, StepperState } from "$lib/types";
-import { TOTAL_STEPS } from "$lib/types";
+import type { AnyStepErrors } from "$lib/types/stepper";
+import { getTotalSteps, StepValidation } from "$lib/types/stepper";
 
-import { validate as validateStep4 } from "./steps/BudgetSelection.svelte";
-import { validate as validateStep1 } from "./steps/CountrySelection.svelte";
-import { validate as validateStep2 } from "./steps/DateSelection.svelte";
-import { validate as validateStep3 } from "./steps/ThemeSelection.svelte";
+import { validate as validateBudget } from "./steps/BudgetSelection.svelte";
+import { validate as validateCountry } from "./steps/CountrySelection.svelte";
+import { validate as validateDates } from "./steps/DateSelection.svelte";
+import { validate as validateThemes } from "./steps/ThemeSelection.svelte";
 
 // Props
 interface Props {
 	oncomplete?: (data: StepperFormData) => void;
 	onstepchange?: (event: { step: number; data: StepperFormData }) => void;
+	enabledSteps?: string[]; // Optional: specify which steps to enable
+	includeCountryStep?: boolean; // Optional: shorthand to include country step
 	children: import("svelte").Snippet<
 		[
 			{
@@ -38,61 +40,102 @@ interface Props {
 	>;
 }
 
-let { oncomplete, onstepchange, children }: Props = $props();
+let {
+	oncomplete,
+	onstepchange,
+	enabledSteps,
+	includeCountryStep = false,
+	children,
+}: Props = $props();
 
-// Helper function that updates state and returns validation result
-function validateStep1WithStateUpdate(realTime = false): boolean {
-	const result = validateStep1(
-		$stepperState.formData.selectedCountry,
-		realTime,
-	);
-	$stepperState.errors.step1 = result.errors;
-	return result.isValid;
-}
+// Initialize stepper with configured steps
+$effect(() => {
+	let steps = enabledSteps;
 
-function validateStep2WithStateUpdate(realTime = false): boolean {
-	const result = validateStep2(
-		$stepperState.formData.startDate,
-		$stepperState.formData.endDate,
-		realTime,
-	);
-	$stepperState.errors.step2 = result.errors;
-	return result.isValid;
-}
+	// If no explicit steps provided, use default behavior
+	if (!steps) {
+		if (includeCountryStep) {
+			steps = ["country", "dates", "themes", "budget"];
+		} else {
+			steps = ["dates", "themes", "budget"];
+		}
+	}
 
-function validateStep3WithStateUpdate(realTime = false): boolean {
-	const result = validateStep3($stepperState.formData.selectedThemes, realTime);
-	$stepperState.errors.step3 = result.errors;
-	return result.isValid;
-}
+	initializeStepper(steps);
+});
 
-function validateStep4WithStateUpdate(realTime = false): boolean {
-	const result = validateStep4(
-		$stepperState.formData.budget,
-		$stepperState.formData.selectedThemes,
-		realTime,
-	);
-	$stepperState.errors.step4 = result.errors;
-	return result.isValid;
+// Helper function that validates a step by ID and updates state
+function validateStepWithStateUpdate(
+	stepId: string,
+	stepNumber: number,
+	realTime = false,
+): boolean {
+	let result: {
+		isValid: boolean;
+		errors: AnyStepErrors | undefined;
+	} | null = null;
+
+	switch (stepId) {
+		case "country":
+			result = validateCountry(
+				$stepperState.formData.selectedCountry || "",
+				realTime,
+			);
+			break;
+		case "dates":
+			result = validateDates(
+				$stepperState.formData.startDate,
+				$stepperState.formData.endDate,
+				realTime,
+			);
+			break;
+		case "themes":
+			result = validateThemes($stepperState.formData.selectedThemes, realTime);
+			break;
+		case "budget":
+			result = validateBudget(
+				$stepperState.formData.budget,
+				$stepperState.formData.selectedThemes,
+				realTime,
+			);
+			break;
+		default:
+			return false;
+	}
+
+	if (result) {
+		// Use type assertion to safely assign to dynamic keys
+		($stepperState.errors as Record<string, AnyStepErrors | undefined>)[
+			`step${stepNumber}`
+		] = result.errors;
+		return result.isValid;
+	}
+
+	return false;
 }
 
 // Pure validation function for use in derived values (doesn't mutate state)
 function validateCurrentStep(realTime = false): boolean {
-	switch ($stepperState.currentStep) {
-		case 1:
-			return validateStep1($stepperState.formData.selectedCountry, realTime)
-				.isValid;
-		case 2:
-			return validateStep2(
+	const currentStepId = $stepperState.stepMapping[$stepperState.currentStep];
+	if (!currentStepId) return false;
+
+	switch (currentStepId) {
+		case "country":
+			return validateCountry(
+				$stepperState.formData.selectedCountry || "",
+				realTime,
+			).isValid;
+		case "dates":
+			return validateDates(
 				$stepperState.formData.startDate,
 				$stepperState.formData.endDate,
 				realTime,
 			).isValid;
-		case 3:
-			return validateStep3($stepperState.formData.selectedThemes, realTime)
+		case "themes":
+			return validateThemes($stepperState.formData.selectedThemes, realTime)
 				.isValid;
-		case 4:
-			return validateStep4(
+		case "budget":
+			return validateBudget(
 				$stepperState.formData.budget,
 				$stepperState.formData.selectedThemes,
 				realTime,
@@ -104,18 +147,14 @@ function validateCurrentStep(realTime = false): boolean {
 
 // Function that validates and updates state
 function validateCurrentStepWithStateUpdate(realTime = false): boolean {
-	switch ($stepperState.currentStep) {
-		case 1:
-			return validateStep1WithStateUpdate(realTime);
-		case 2:
-			return validateStep2WithStateUpdate(realTime);
-		case 3:
-			return validateStep3WithStateUpdate(realTime);
-		case 4:
-			return validateStep4WithStateUpdate(realTime);
-		default:
-			return false;
-	}
+	const currentStepId = $stepperState.stepMapping[$stepperState.currentStep];
+	if (!currentStepId) return false;
+
+	return validateStepWithStateUpdate(
+		currentStepId,
+		$stepperState.currentStep,
+		realTime,
+	);
 }
 
 // Cross-step validation for data consistency
@@ -187,8 +226,18 @@ function validateCrossStepConsistency(): string[] {
 function triggerRealTimeValidation() {
 	validateCurrentStepWithStateUpdate(true);
 
-	// Also validate cross-step consistency if we're past step 2
-	if ($stepperState.currentStep > 2) {
+	// Also validate cross-step consistency if we have enough data
+	// (at least dates and themes should be available)
+	const hasDateStep = $stepperState.enabledSteps.includes("dates");
+	const hasThemeStep = $stepperState.enabledSteps.includes("themes");
+	const dateStepCompleted =
+		hasDateStep &&
+		$stepperState.formData.startDate &&
+		$stepperState.formData.endDate;
+	const themeStepCompleted =
+		hasThemeStep && $stepperState.formData.selectedThemes.length > 0;
+
+	if (dateStepCompleted && themeStepCompleted) {
 		const warnings = validateCrossStepConsistency();
 		if (warnings.length > 0) {
 			// Store warnings in global errors for display
@@ -201,7 +250,8 @@ function triggerRealTimeValidation() {
 
 // Navigation functions
 export function goToStep(step: number) {
-	if (step < 1 || step > TOTAL_STEPS) return;
+	const totalSteps = getTotalSteps($stepperState.enabledSteps);
+	if (step < 1 || step > totalSteps) return;
 
 	// Can only navigate to completed steps or the next step
 	if (step <= Math.max(...$stepperState.completedSteps, 0) + 1) {
@@ -215,7 +265,8 @@ export function nextStep() {
 		// Mark current step as completed
 		$stepperState.completedSteps.add($stepperState.currentStep);
 
-		if ($stepperState.currentStep < TOTAL_STEPS) {
+		const totalSteps = getTotalSteps($stepperState.enabledSteps);
+		if ($stepperState.currentStep < totalSteps) {
 			$stepperState.currentStep += 1;
 			onstepchange?.({
 				step: $stepperState.currentStep,
@@ -257,53 +308,48 @@ export function previousStep() {
 export function updateFormData(updates: Partial<StepperFormData>) {
 	$stepperState.formData = { ...$stepperState.formData, ...updates };
 
-	// Clear specific errors for updated fields first
-	if (updates.selectedCountry !== undefined) {
-		if ($stepperState.errors.step1) {
-			$stepperState.errors.step1.country = undefined;
-			if (Object.values($stepperState.errors.step1).every((v) => !v)) {
-				$stepperState.errors.step1 = undefined;
+	// Clear specific errors for updated fields based on step mapping
+	function clearErrorsForStepId(stepId: string, fieldsToClear: string[]) {
+		// Find which step number corresponds to this step ID
+		const stepNumber = Object.keys($stepperState.stepMapping).find(
+			(key) => $stepperState.stepMapping[parseInt(key, 10)] === stepId,
+		);
+
+		if (stepNumber) {
+			const stepKey = `step${stepNumber}` as keyof StepperErrors;
+			const stepErrors = $stepperState.errors[stepKey];
+
+			if (stepErrors && typeof stepErrors === "object") {
+				// Clear specific fields
+				fieldsToClear.forEach((field) => {
+					(stepErrors as Record<string, string | undefined>)[field] = undefined;
+				});
+
+				// If all errors are cleared, remove the step errors entirely
+				if (Object.values(stepErrors).every((v) => !v)) {
+					$stepperState.errors[stepKey] = undefined;
+				}
 			}
 		}
+	}
+
+	if (updates.selectedCountry !== undefined) {
+		clearErrorsForStepId("country", ["country"]);
 	}
 
 	if (updates.startDate !== undefined || updates.endDate !== undefined) {
-		if ($stepperState.errors.step2) {
-			if (updates.startDate !== undefined) {
-				$stepperState.errors.step2.startDate = undefined;
-			}
-			if (updates.endDate !== undefined) {
-				$stepperState.errors.step2.endDate = undefined;
-			}
-			$stepperState.errors.step2.dateRange = undefined;
-
-			if (Object.values($stepperState.errors.step2).every((v) => !v)) {
-				$stepperState.errors.step2 = undefined;
-			}
-		}
+		const fieldsToClear = ["dateRange"];
+		if (updates.startDate !== undefined) fieldsToClear.push("startDate");
+		if (updates.endDate !== undefined) fieldsToClear.push("endDate");
+		clearErrorsForStepId("dates", fieldsToClear);
 	}
 
 	if (updates.selectedThemes !== undefined) {
-		if ($stepperState.errors.step3) {
-			$stepperState.errors.step3.themes = undefined;
-			$stepperState.errors.step3.compatibility = undefined;
-			$stepperState.errors.step3.selection = undefined;
-
-			if (Object.values($stepperState.errors.step3).every((v) => !v)) {
-				$stepperState.errors.step3 = undefined;
-			}
-		}
+		clearErrorsForStepId("themes", ["themes", "compatibility", "selection"]);
 	}
 
 	if (updates.budget !== undefined) {
-		if ($stepperState.errors.step4) {
-			$stepperState.errors.step4.budget = undefined;
-			$stepperState.errors.step4.range = undefined;
-
-			if (Object.values($stepperState.errors.step4).every((v) => !v)) {
-				$stepperState.errors.step4 = undefined;
-			}
-		}
+		clearErrorsForStepId("budget", ["budget", "range"]);
 	}
 
 	// Trigger real-time validation after a short delay to avoid excessive validation
@@ -358,7 +404,9 @@ export function getStepErrorCount(step: number): number {
 // Computed properties
 let canGoNext = $derived(validateCurrentStep());
 let canGoPrevious = $derived($stepperState.currentStep > 1);
-let isLastStep = $derived($stepperState.currentStep === TOTAL_STEPS);
+let isLastStep = $derived(
+	$stepperState.currentStep === getTotalSteps($stepperState.enabledSteps),
+);
 let currentStepErrors = $derived(
 	$stepperState.errors[
 		`step${$stepperState.currentStep}` as keyof StepperErrors
