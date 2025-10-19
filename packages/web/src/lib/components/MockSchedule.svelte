@@ -25,6 +25,7 @@ interface ScheduleActivity {
 	activity: string;
 	location: string;
 	duration: string;
+	cost?: number;
 }
 
 interface ScheduleDay {
@@ -218,11 +219,14 @@ function generateMockSchedule(
 						: 1.0;
 			const duration = `${Math.round(baseDuration * durationMultiplier)}h`;
 
+			const activityCost = calculateActivityCost(activity);
+
 			dayActivities.push({
 				time: timeSlot,
 				activity,
 				location: locations[Math.floor(Math.random() * locations.length)],
 				duration,
+				cost: activityCost,
 			});
 		}
 
@@ -242,39 +246,89 @@ function generateMockSchedule(
 	return days;
 }
 
+// Calculate individual activity cost
+function calculateActivityCost(activityName: string): number {
+	const activityCosts = {
+		// Consultation & Analysis
+		consultation: 150,
+		analysis: 100,
+		check: 80,
+		evaluation: 120,
+		assessment: 110,
+
+		// Treatments & Procedures
+		treatment: 300,
+		procedure: 1800,
+		surgery: 2500,
+		transplant: 3500,
+		implant: 2200,
+
+		// Beauty & Skincare
+		facial: 200,
+		peel: 250,
+		microneedling: 350,
+		hydrafacial: 400,
+		infusion: 180,
+
+		// Wellness & Spa
+		massage: 120,
+		therapy: 180,
+		aromatherapy: 140,
+		meditation: 80,
+		yoga: 60,
+		sauna: 50,
+		detox: 200,
+		reflexology: 100,
+
+		// Dental
+		whitening: 300,
+		cleaning: 150,
+		orthodontic: 200,
+		veneer: 800,
+
+		// Hair
+		scalp: 150,
+		monitoring: 100,
+
+		// Recovery & Care
+		recovery: 100,
+		care: 80,
+		aftercare: 90,
+		preparation: 120,
+		instructions: 50,
+	};
+
+	let cost = 250; // default cost
+	const activityLower = activityName.toLowerCase();
+
+	// Find matching cost based on activity keywords
+	for (const [keyword, price] of Object.entries(activityCosts)) {
+		if (activityLower.includes(keyword)) {
+			cost = price;
+			break;
+		}
+	}
+
+	// Apply solution type cost multiplier
+	const solutionMultiplier =
+		solutionType === "premium" ? 1.5 : solutionType === "budget" ? 0.6 : 1.0;
+
+	return Math.round(cost * solutionMultiplier);
+}
+
 // Calculate estimated costs based on activities
 function calculateEstimatedCost(
 	schedule: ScheduleDay[],
 	budget: number,
 ): { total: number; perDay: number; breakdown: Record<string, number> } {
-	const activityCosts = {
-		consultation: 150,
-		treatment: 300,
-		surgery: 2500,
-		procedure: 1800,
-		massage: 120,
-		facial: 200,
-		therapy: 180,
-		analysis: 100,
-		check: 80,
-	};
-
 	let totalCost = 0;
 	const breakdown: Record<string, number> = {};
 
 	schedule.forEach((day) => {
 		day.activities.forEach((activity: ScheduleActivity) => {
-			let cost = 250; // default cost
-
-			// Find matching cost based on activity keywords
-			for (const [keyword, price] of Object.entries(activityCosts)) {
-				if (activity.activity.toLowerCase().includes(keyword)) {
-					cost = price;
-					break;
-				}
-			}
-
+			const cost = activity.cost || calculateActivityCost(activity.activity);
 			totalCost += cost;
+
 			const theme =
 				formData.selectedThemes.find((theme) =>
 					activity.activity.toLowerCase().includes(theme.replace("-", " ")),
@@ -282,15 +336,6 @@ function calculateEstimatedCost(
 
 			breakdown[theme] = (breakdown[theme] || 0) + cost;
 		});
-	});
-
-	// Apply solution type cost multiplier
-	const solutionMultiplier =
-		solutionType === "premium" ? 1.5 : solutionType === "budget" ? 0.6 : 1.0;
-	totalCost *= solutionMultiplier;
-
-	Object.keys(breakdown).forEach((key) => {
-		breakdown[key] *= solutionMultiplier;
 	});
 
 	// Adjust to fit within budget (roughly)
@@ -405,10 +450,20 @@ function getActivityIconComponent(activity: string) {
 			<Card class="overflow-hidden">
 				<CardHeader class="bg-muted/30">
 					<CardTitle class="flex items-center justify-between">
-						<span>Day {day.dayNumber}</span>
-						<span class="text-sm font-normal text-muted-foreground">
-							{formatDate(day.date)}
-						</span>
+						<div>
+							<span>Day {day.dayNumber}</span>
+							<div class="text-sm font-normal text-muted-foreground mt-1">
+								{formatDate(day.date)}
+							</div>
+						</div>
+						<div class="text-right">
+							<div class="text-xl font-bold text-primary">
+								${day.activities.reduce((sum, activity) => sum + (activity.cost || 0), 0).toLocaleString()}
+							</div>
+							<div class="text-xs text-muted-foreground">
+								Daily Total
+							</div>
+						</div>
 					</CardTitle>
 				</CardHeader>
 				<CardContent class="p-6">
@@ -440,20 +495,27 @@ function getActivityIconComponent(activity: string) {
 									</div>
 								</div>
 								<div class="flex-1">
-									<h4 class="font-semibold mb-1">
-										{activity.activity}
-									</h4>
+									<div class="flex items-start justify-between mb-1">
+										<h4 class="font-semibold">
+											{activity.activity}
+										</h4>
+										<div class="text-right">
+											<div class="text-lg font-bold text-primary">
+												${activity.cost?.toLocaleString()}
+											</div>
+											<div class="text-xs text-muted-foreground">
+												{solutionType === 'budget' ? 'Budget Rate' : 
+												 solutionType === 'premium' ? 'Premium Rate' : 
+												 'Standard Rate'}
+											</div>
+										</div>
+									</div>
 									<p
 										class="text-sm text-muted-foreground flex items-center gap-1"
 									>
 										<MapPin class="w-4 h-4" />
 										{activity.location}
 									</p>
-								</div>
-								<div class="flex-shrink-0">
-									<div
-										class="w-3 h-3 rounded-full bg-primary animate-pulse"
-									></div>
 								</div>
 							</div>
 						{/each}
