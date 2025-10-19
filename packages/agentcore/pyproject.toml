@@ -9,4 +9,5 @@ dependencies = [
     "bedrock-agentcore-starter-toolkit>=0.1.21",
     "ruff>=0.14.0",
     "strands-agents>=1.12.0",
+    "strands-agents-tools>=0.2.12",
 ]

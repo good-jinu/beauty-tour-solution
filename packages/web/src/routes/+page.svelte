@@ -44,7 +44,7 @@ async function handleStepperComplete(stepperData: StepperFormData) {
 	);
 
 	const requestData: GenerateJourneyRequest = {
-		region: legacyFormData.selectedRegion,
+		region: legacyFormData.selectedRegion || "South Korea - Seoul",
 		startDate: legacyFormData.startDate,
 		endDate: legacyFormData.endDate,
 		theme: legacyFormData.selectedTheme,

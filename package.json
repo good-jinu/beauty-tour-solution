@@ -11,7 +11,6 @@
 		"lint": "biome check --write && pnpm run -r lint",
 		"format": "biome format --write && pnpm run -r format",
 		"check": "biome check && pnpm run -r check",
-		"deploy-agentcore": "./scripts/deploy-agentcore.sh",
 		"prod-deploy": "pnpm --filter @bts/agentcore prod-deploy && pnpm --filter @bts/web prod-deploy",
 		"prod-remove": "pnpm --filter @bts/agentcore prod-remove && pnpm --filter @bts/web prod-remove"
 	},
