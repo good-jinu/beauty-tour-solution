@@ -1,7 +1,7 @@
 <script lang="ts">
 import { BadgeCheck, Info, Plus, Save, Share2 } from "@lucide/svelte";
 import { marked } from "marked";
-import MockSchedule from "$lib/components/MockSchedule.svelte";
+import ScheduleSolutions from "$lib/components/ScheduleSolutions.svelte";
 import Button from "$lib/components/ui/button/button.svelte";
 import type { StepperFormData } from "$lib/types";
 
@@ -58,17 +58,19 @@ let activeTab: "recommendation" | "schedule" = $state("schedule");
         <div class="flex justify-center mb-8">
             <div class="bg-muted/50 p-1 rounded-lg inline-flex">
                 <button
-                    onclick={() => activeTab = 'schedule'}
-                    class="px-6 py-2 rounded-md text-sm font-medium transition-all {activeTab === 'schedule' 
-                        ? 'bg-background shadow-sm text-foreground' 
+                    onclick={() => (activeTab = "schedule")}
+                    class="px-6 py-2 rounded-md text-sm font-medium transition-all {activeTab ===
+                    'schedule'
+                        ? 'bg-background shadow-sm text-foreground'
                         : 'text-muted-foreground hover:text-foreground'}"
                 >
-                    Schedule View
+                    Schedule Solutions
                 </button>
                 <button
-                    onclick={() => activeTab = 'recommendation'}
-                    class="px-6 py-2 rounded-md text-sm font-medium transition-all {activeTab === 'recommendation' 
-                        ? 'bg-background shadow-sm text-foreground' 
+                    onclick={() => (activeTab = "recommendation")}
+                    class="px-6 py-2 rounded-md text-sm font-medium transition-all {activeTab ===
+                    'recommendation'
+                        ? 'bg-background shadow-sm text-foreground'
                         : 'text-muted-foreground hover:text-foreground'}"
                 >
                     AI Recommendation
@@ -81,8 +83,8 @@ let activeTab: "recommendation" | "schedule" = $state("schedule");
             class="bg-card/60 backdrop-blur-sm border rounded-3xl shadow-xl overflow-hidden"
         >
             <div class="p-8 lg:p-12">
-                {#if activeTab === 'schedule'}
-                    <MockSchedule {formData} />
+                {#if activeTab === "schedule"}
+                    <ScheduleSolutions {formData} />
                 {:else}
                     <div
                         class="prose prose-slate max-w-none dark:prose-invert prose-lg"

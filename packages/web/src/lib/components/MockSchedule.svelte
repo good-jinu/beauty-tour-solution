@@ -17,6 +17,7 @@ import type { StepperFormData } from "$lib/types";
 
 interface Props {
 	formData: StepperFormData;
+	solutionType?: "topranking" | "premium" | "budget";
 }
 
 interface ScheduleActivity {
@@ -32,13 +33,14 @@ interface ScheduleDay {
 	activities: ScheduleActivity[];
 }
 
-let { formData }: Props = $props();
+let { formData, solutionType = "topranking" }: Props = $props();
 
 // Mock schedule data generator
 function generateMockSchedule(
 	startDate: string,
 	endDate: string,
 	themes: string[],
+	solutionType: "topranking" | "premium" | "budget" = "topranking",
 ) {
 	const start = new Date(startDate);
 	const end = new Date(endDate);
@@ -111,6 +113,30 @@ function generateMockSchedule(
 	// Time slots
 	const timeSlots = ["09:00", "11:00", "14:00", "16:00", "18:00"];
 
+	// Solution type configurations
+	const solutionConfigs = {
+		topranking: {
+			activitiesPerDay: { min: 2, max: 3 },
+			preferredActivities: ["treatment", "facial", "therapy", "consultation"],
+			costMultiplier: 1.0,
+			description: "Highest rated clinics and treatments",
+		},
+		budget: {
+			activitiesPerDay: { min: 1, max: 2 },
+			preferredActivities: ["consultation", "analysis", "check", "cleaning"],
+			costMultiplier: 0.6,
+			description: "Cost-effective treatments with essential care",
+		},
+		premium: {
+			activitiesPerDay: { min: 3, max: 4 },
+			preferredActivities: ["surgery", "procedure", "premium", "luxury"],
+			costMultiplier: 1.5,
+			description: "Luxury treatments with premium care",
+		},
+	};
+
+	const config = solutionConfigs[solutionType];
+
 	let currentDate = new Date(start);
 	let dayCount = 1;
 
@@ -120,9 +146,12 @@ function generateMockSchedule(
 			(theme) => themeActivities[theme as keyof typeof themeActivities] || [],
 		);
 
-		// Generate 2-4 activities per day based on day number and themes
+		// Generate activities based on solution type
 		const numActivities = Math.min(
-			Math.floor(Math.random() * 3) + 2,
+			Math.floor(
+				Math.random() *
+					(config.activitiesPerDay.max - config.activitiesPerDay.min + 1),
+			) + config.activitiesPerDay.min,
 			selectedThemeActivities.length,
 		);
 		const usedTimeSlots = new Set();
@@ -149,19 +178,45 @@ function generateMockSchedule(
 
 			usedActivities.add(activity);
 
-			// Vary locations and durations based on activity type
-			const locations = [
-				"Seoul Beauty Clinic",
-				"Gangnam Medical Center",
-				"Premium Wellness Spa",
-				"Elite Beauty Institute",
-				"Royal Treatment Center",
-			];
+			// Vary locations and durations based on solution type
+			const locationsByType = {
+				topranking: [
+					"Top-Rated Seoul Clinic",
+					"Award-Winning Medical Center",
+					"5-Star Beauty Institute",
+					"Certified Excellence Center",
+					"Premier Healthcare Facility",
+				],
+				budget: [
+					"Seoul Beauty Clinic",
+					"Affordable Care Center",
+					"Community Wellness",
+					"Basic Treatment Center",
+					"Essential Beauty Clinic",
+				],
+				premium: [
+					"Luxury Beauty Palace",
+					"VIP Medical Suite",
+					"Exclusive Wellness Resort",
+					"Premium Elite Center",
+					"Royal Luxury Clinic",
+				],
+			};
 
-			const duration =
+			const locations = locationsByType[solutionType];
+
+			const baseDuration =
 				activity.includes("Surgery") || activity.includes("Transplant")
-					? `${Math.floor(Math.random() * 4) + 3}h`
-					: `${Math.floor(Math.random() * 2) + 1}h`;
+					? Math.floor(Math.random() * 4) + 3
+					: Math.floor(Math.random() * 2) + 1;
+
+			const durationMultiplier =
+				solutionType === "premium"
+					? 1.3
+					: solutionType === "budget"
+						? 0.8
+						: 1.0;
+			const duration = `${Math.round(baseDuration * durationMultiplier)}h`;
 
 			dayActivities.push({
 				time: timeSlot,
@@ -229,8 +284,17 @@ function calculateEstimatedCost(
 		});
 	});
 
+	// Apply solution type cost multiplier
+	const solutionMultiplier =
+		solutionType === "premium" ? 1.5 : solutionType === "budget" ? 0.6 : 1.0;
+	totalCost *= solutionMultiplier;
+
+	Object.keys(breakdown).forEach((key) => {
+		breakdown[key] *= solutionMultiplier;
+	});
+
 	// Adjust to fit within budget (roughly)
-	const adjustmentFactor = Math.min(1, (budget / totalCost) * 0.8);
+	const adjustmentFactor = Math.min(1, (budget / totalCost) * 0.9);
 	totalCost *= adjustmentFactor;
 
 	Object.keys(breakdown).forEach((key) => {
@@ -249,6 +313,7 @@ const schedule = $derived(
 		formData.startDate,
 		formData.endDate,
 		formData.selectedThemes,
+		solutionType,
 	),
 );
 const costEstimate = $derived(
