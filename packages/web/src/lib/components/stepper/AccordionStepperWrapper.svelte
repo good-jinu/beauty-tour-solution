@@ -6,6 +6,7 @@ import StepperNavigation from "./StepperNavigation.svelte";
 import BudgetSelection from "./steps/BudgetSelection.svelte";
 import CountrySelection from "./steps/CountrySelection.svelte";
 import DateSelection from "./steps/DateSelection.svelte";
+import MoreRequestStep from "./steps/MoreRequestStep.svelte";
 import ThemeSelection from "./steps/ThemeSelection.svelte";
 
 interface Props {
@@ -59,6 +60,8 @@ function handleStepClick(step: number) {
                     <ThemeSelection />
                 {:else if stepperState.stepMapping[step] === "budget"}
                     <BudgetSelection />
+                {:else if stepperState.stepMapping[step] === "more-requests"}
+                    <MoreRequestStep />
                 {/if}
 
                 <!-- Error Recovery for current step -->

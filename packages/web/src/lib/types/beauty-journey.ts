@@ -26,6 +26,7 @@ export interface FormData {
 	includeTransport: boolean;
 	travelers: number;
 	specialRequests: string;
+	moreRequests?: string; // Additional user requests from the stepper
 }
 
 // Enhanced FormData interface compatible with stepper flow

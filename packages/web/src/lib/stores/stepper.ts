@@ -13,6 +13,7 @@ function createInitialState(
 			endDate: "",
 			selectedThemes: [],
 			budget: 0,
+			moreRequests: "",
 		},
 		errors: {},
 		isLoading: false,

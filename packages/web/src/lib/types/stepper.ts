@@ -12,6 +12,9 @@ export interface StepperFormData {
 	// Required - Budget Selection
 	budget: number;
 	currency?: "USD" | "EUR" | "GBP"; // Optional currency selection
+
+	// Optional - More Requests
+	moreRequests?: string;
 }
 
 // Partial interface for step-by-step validation
@@ -22,6 +25,7 @@ export interface PartialStepperFormData {
 	selectedThemes?: string[];
 	budget?: number;
 	currency?: "USD" | "EUR" | "GBP";
+	moreRequests?: string;
 }
 
 // Step-specific error interfaces
@@ -51,12 +55,19 @@ export interface BudgetStepErrors {
 	general?: string;
 }
 
+export interface MoreRequestStepErrors {
+	length?: string;
+	content?: string;
+	general?: string;
+}
+
 // Union type for all step errors
 export type AnyStepErrors =
 	| CountryStepErrors
 	| DateStepErrors
 	| ThemeStepErrors
-	| BudgetStepErrors;
+	| BudgetStepErrors
+	| MoreRequestStepErrors;
 
 // Main stepper errors interface
 export interface StepperErrors {
@@ -77,7 +88,9 @@ export type StepErrorType<T extends string> = T extends "country"
 			? ThemeStepErrors
 			: T extends "budget"
 				? BudgetStepErrors
-				: never;
+				: T extends "more-requests"
+					? MoreRequestStepErrors
+					: never;
 
 export interface StepperState {
 	currentStep: number;
@@ -127,10 +140,22 @@ export const AVAILABLE_STEPS: Record<string, StepConfig> = {
 		optional: false,
 		defaultOrder: 4,
 	},
+	"more-requests": {
+		id: "more-requests",
+		label: "Additional Requests",
+		component: "MoreRequestStep",
+		optional: true,
+		defaultOrder: 5,
+	},
 };
 
 // Default steps (without optional country selection)
-export const DEFAULT_STEP_ORDER = ["dates", "themes", "budget"];
+export const DEFAULT_STEP_ORDER = [
+	"dates",
+	"themes",
+	"budget",
+	"more-requests",
+];
 
 // Helper function to get total steps based on enabled steps
 export function getTotalSteps(enabledSteps: string[]): number {
@@ -262,6 +287,36 @@ export const StepValidation = {
 		return Object.keys(errors).length > 0 ? errors : null;
 	},
 
+	// More Requests validation
+	validateMoreRequestsStep: (
+		data: PartialStepperFormData,
+	): MoreRequestStepErrors | null => {
+		const errors: MoreRequestStepErrors = {};
+
+		// This step is optional, so empty requests are valid
+		if (data.moreRequests && data.moreRequests.trim().length > 0) {
+			// Validate length constraints
+			if (data.moreRequests.trim().length < 10) {
+				errors.length =
+					"Please provide more detailed information about your specific requests";
+			}
+
+			if (data.moreRequests.trim().length > 1000) {
+				errors.length = "Please keep your request under 1000 characters";
+			}
+
+			// Basic content validation
+			const hasOnlySpecialChars = /^[^a-zA-Z0-9\s]*$/.test(
+				data.moreRequests.trim(),
+			);
+			if (hasOnlySpecialChars) {
+				errors.content = "Please provide meaningful text in your request";
+			}
+		}
+
+		return Object.keys(errors).length > 0 ? errors : null;
+	},
+
 	// Validate step by step ID
 	validateStepById: (
 		stepId: string,
@@ -276,6 +331,8 @@ export const StepValidation = {
 				return StepValidation.validateThemesStep(data);
 			case "budget":
 				return StepValidation.validateBudgetStep(data);
+			case "more-requests":
+				return StepValidation.validateMoreRequestsStep(data);
 			default:
 				return null;
 		}
@@ -339,6 +396,22 @@ export const StepTypeGuards = {
 		return typeof data.budget === "number" && data.budget > 0;
 	},
 
+	// Check if more requests data is valid (always valid since it's optional)
+	isValidMoreRequestsData: (data: PartialStepperFormData): boolean => {
+		// This step is optional, so it's always valid
+		// But if there is content, it should meet minimum requirements
+		if (!data.moreRequests || data.moreRequests.trim().length === 0) {
+			return true; // Empty is valid
+		}
+
+		// If there is content, validate it
+		const trimmed = data.moreRequests.trim();
+		const hasValidLength = trimmed.length >= 10 && trimmed.length <= 1000;
+		const hasValidContent = !/^[^a-zA-Z0-9\s]*$/.test(trimmed);
+
+		return hasValidLength && hasValidContent;
+	},
+
 	// Check if data is valid for a specific step ID
 	isValidStepData: (stepId: string, data: PartialStepperFormData): boolean => {
 		switch (stepId) {
@@ -350,6 +423,8 @@ export const StepTypeGuards = {
 				return StepTypeGuards.isValidThemesData(data);
 			case "budget":
 				return StepTypeGuards.isValidBudgetData(data);
+			case "more-requests":
+				return StepTypeGuards.isValidMoreRequestsData(data);
 			default:
 				return false;
 		}
@@ -402,6 +477,7 @@ export const StepperUtils = {
 			includeTransport: additionalData.includeTransport ?? true,
 			travelers: additionalData.travelers ?? 1,
 			specialRequests: additionalData.specialRequests ?? "",
+			moreRequests: stepperData.moreRequests || "",
 		};
 	},
 
@@ -416,6 +492,7 @@ export const StepperUtils = {
 				: [],
 			budget: legacyData.budget,
 			currency: "USD", // Default currency
+			moreRequests: legacyData.moreRequests || "",
 		};
 	},
 
@@ -465,5 +542,6 @@ export const StepperUtils = {
 		selectedThemes: [],
 		budget: 0,
 		currency: "USD",
+		moreRequests: "",
 	}),
 };

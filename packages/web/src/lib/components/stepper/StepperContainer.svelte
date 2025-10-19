@@ -8,6 +8,7 @@ import { getTotalSteps, StepValidation } from "$lib/types/stepper";
 import { validate as validateBudget } from "./steps/BudgetSelection.svelte";
 import { validate as validateCountry } from "./steps/CountrySelection.svelte";
 import { validate as validateDates } from "./steps/DateSelection.svelte";
+import { validate as validateMoreRequests } from "./steps/MoreRequestStep.svelte";
 import { validate as validateThemes } from "./steps/ThemeSelection.svelte";
 
 // Props
@@ -55,9 +56,9 @@ $effect(() => {
 	// If no explicit steps provided, use default behavior
 	if (!steps) {
 		if (includeCountryStep) {
-			steps = ["country", "dates", "themes", "budget"];
+			steps = ["country", "dates", "themes", "budget", "more-requests"];
 		} else {
-			steps = ["dates", "themes", "budget"];
+			steps = ["dates", "themes", "budget", "more-requests"];
 		}
 	}
 
@@ -96,6 +97,12 @@ function validateStepWithStateUpdate(
 			result = validateBudget(
 				$stepperState.formData.budget,
 				$stepperState.formData.selectedThemes,
+				realTime,
+			);
+			break;
+		case "more-requests":
+			result = validateMoreRequests(
+				$stepperState.formData.moreRequests || "",
 				realTime,
 			);
 			break;
@@ -138,6 +145,11 @@ function validateCurrentStep(realTime = false): boolean {
 			return validateBudget(
 				$stepperState.formData.budget,
 				$stepperState.formData.selectedThemes,
+				realTime,
+			).isValid;
+		case "more-requests":
+			return validateMoreRequests(
+				$stepperState.formData.moreRequests || "",
 				realTime,
 			).isValid;
 		default:
@@ -350,6 +362,10 @@ export function updateFormData(updates: Partial<StepperFormData>) {
 
 	if (updates.budget !== undefined) {
 		clearErrorsForStepId("budget", ["budget", "range"]);
+	}
+
+	if (updates.moreRequests !== undefined) {
+		clearErrorsForStepId("more-requests", ["length", "content"]);
 	}
 
 	// Trigger real-time validation after a short delay to avoid excessive validation
