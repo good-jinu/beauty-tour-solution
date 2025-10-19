@@ -75,37 +75,7 @@ ${request.moreRequests ? `- Special Requests: ${request.moreRequests}` : ""}
       "notes": "Arrival day - light schedule for jet lag recovery"
     }
   ],
-  "recommendations": {
-    "clinics": [
-      {
-        "name": "Seoul Premium Beauty Center",
-        "rating": 4.8,
-        "specialties": ["skincare", "plastic-surgery"],
-        "location": "Gangnam District, Seoul",
-        "estimatedCost": 2500,
-        "description": "Award-winning clinic specializing in advanced skincare treatments"
-      }
-    ],
-    "accommodation": [
-      {
-        "name": "Medical Recovery Hotel Seoul",
-        "type": "medical-hotel",
-        "rating": 4.5,
-        "amenities": ["24/7 medical support", "recovery rooms", "healthy dining"],
-        "location": "Near medical district",
-        "pricePerNight": 180,
-        "description": "Specialized accommodation for medical tourism recovery"
-      }
-    ],
-    "transportation": [
-      {
-        "type": "airport-transfer",
-        "provider": "Medical Tourism Transport",
-        "estimatedCost": 80,
-        "description": "Comfortable transfer service for medical tourists"
-      }
-    ]
-  },
+
   "costBreakdown": {
     "treatments": 3500,
     "accommodation": 900,
@@ -158,9 +128,13 @@ Respond with ONLY the JSON object, no additional text or formatting.`;
 	}
 
 	private parseAgentResponse(
-		response: string,
+		response: GenerateScheduleResponse | string,
 	): Partial<GenerateScheduleResponse> {
 		try {
+			if (typeof response !== "string") {
+				return response;
+			}
+
 			// Handle string response - clean and parse JSON
 			let cleanResponse = response.trim();
 
@@ -216,11 +190,7 @@ Respond with ONLY the JSON object, no additional text or formatting.`;
 					notes: "Schedule generation failed - showing fallback data",
 				},
 			],
-			recommendations: {
-				clinics: [],
-				accommodation: [],
-				transportation: [],
-			},
+
 			costBreakdown: {
 				treatments: 200,
 				accommodation: 0,

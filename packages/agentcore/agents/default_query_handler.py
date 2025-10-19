@@ -46,21 +46,18 @@ def process_default_query(agent, query):
     else:
         # Retrieve information
         try:
-            result = agent.tool.memory(
-                action="retrieve",
-                query=query,
-                min_score=0.4,
-                max_results=9
-            )
+            # result = agent.tool.memory(
+            #     action="retrieve",
+            #     query=query,
+            #     min_score=0.4,
+            #     max_results=9
+            # )
 
             # Generate response from retrieved information
-            if result:
-                answer = agent.tool.use_llm(
-                    prompt=f"User question: \"{query}\"\n\nInformation from knowledge base:\n{result}",
-                    system_prompt=ANSWER_SYSTEM_PROMPT
-                )
-                return answer
-            else:
-                return "I couldn't find any relevant information in the knowledge base for your query."
+            answer = agent.tool.use_llm(
+                prompt=f"{query}",
+                system_prompt=ANSWER_SYSTEM_PROMPT
+            )
+            return answer
         except Exception as e:
             return f"I encountered an issue retrieving information: {str(e)}"

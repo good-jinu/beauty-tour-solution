@@ -2,15 +2,13 @@
 import type {
 	GenerateScheduleRequest,
 	GenerateScheduleResponse,
-	ScheduleActivity,
-	ScheduleDay,
 } from "@bts/core";
 import {
 	Activity,
-	AlertCircle,
+	CircleAlert,
 	ClipboardCheck,
 	Heart,
-	Loader2,
+	LoaderCircle,
 	MapPin,
 	Sparkles,
 	Stethoscope,
@@ -132,27 +130,21 @@ function getThemeColor(themes: string[]): string {
 	);
 }
 
-function getActivityIconComponent(activity: string) {
-	if (
-		activity.toLowerCase().includes("surgery") ||
-		activity.toLowerCase().includes("procedure")
-	) {
+function getActivityIconComponent(category: string) {
+	const categoryLower = category.toLowerCase();
+
+	if (categoryLower.includes("surgery")) {
 		return Stethoscope;
-	} else if (
-		activity.toLowerCase().includes("massage") ||
-		activity.toLowerCase().includes("spa")
-	) {
-		return Heart;
-	} else if (
-		activity.toLowerCase().includes("consultation") ||
-		activity.toLowerCase().includes("check")
-	) {
-		return ClipboardCheck;
-	} else if (
-		activity.toLowerCase().includes("treatment") ||
-		activity.toLowerCase().includes("therapy")
-	) {
+	} else if (categoryLower.includes("hair")) {
 		return Sparkles;
+	} else if (categoryLower.includes("skin")) {
+		return Heart;
+	} else if (categoryLower.includes("diet")) {
+		return ClipboardCheck;
+	} else if (categoryLower.includes("nail")) {
+		return Activity;
+	} else if (categoryLower.includes("makeup")) {
+		return CircleAlert;
 	}
 	return Activity;
 }
@@ -162,7 +154,7 @@ function getActivityIconComponent(activity: string) {
 	{#if isLoading}
 		<!-- Loading State -->
 		<div class="flex flex-col items-center justify-center py-12 space-y-4">
-			<Loader2 class="w-8 h-8 animate-spin text-primary" />
+			<LoaderCircle class="w-8 h-8 animate-spin text-primary" />
 			<div class="text-center">
 				<h3 class="text-lg font-semibold">
 					Generating Your Beauty Journey
@@ -175,7 +167,7 @@ function getActivityIconComponent(activity: string) {
 	{:else if error}
 		<!-- Error State -->
 		<div class="flex flex-col items-center justify-center py-12 space-y-4">
-			<AlertCircle class="w-8 h-8 text-destructive" />
+			<CircleAlert class="w-8 h-8 text-destructive" />
 			<div class="text-center">
 				<h3 class="text-lg font-semibold text-destructive">
 					Generation Failed
@@ -250,7 +242,7 @@ function getActivityIconComponent(activity: string) {
 						<div class="space-y-4">
 							{#each day.activities as activity}
 								{@const IconComponent =
-									getActivityIconComponent(activity.activity)}
+									getActivityIconComponent(activity.category)}
 								<div
 									class="flex items-start gap-4 p-4 rounded-lg border bg-card/50 hover:bg-card/70 transition-colors"
 								>
@@ -439,147 +431,6 @@ function getActivityIconComponent(activity: string) {
 				</div>
 			</CardContent>
 		</Card>
-
-		<!-- Recommendations -->
-		{#if scheduleData?.recommendations}
-			<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-				<!-- Clinics -->
-				{#if scheduleData.recommendations.clinics.length > 0}
-					<Card>
-						<CardHeader>
-							<CardTitle class="flex items-center gap-2">
-								<Stethoscope class="w-5 h-5" />
-								Recommended Clinics
-							</CardTitle>
-						</CardHeader>
-						<CardContent class="space-y-4">
-							{#each scheduleData.recommendations.clinics as clinic}
-								<div class="border rounded-lg p-3">
-									<div
-										class="flex justify-between items-start mb-2"
-									>
-										<h4 class="font-semibold">
-											{clinic.name}
-										</h4>
-										<div class="text-right">
-											<div class="text-sm font-medium">
-												★ {clinic.rating}
-											</div>
-											<div
-												class="text-xs text-muted-foreground"
-											>
-												${clinic.estimatedCost.toLocaleString()}
-											</div>
-										</div>
-									</div>
-									<p
-										class="text-sm text-muted-foreground mb-2"
-									>
-										{clinic.description}
-									</p>
-									<div class="flex flex-wrap gap-1">
-										{#each clinic.specialties as specialty}
-											<span
-												class="px-2 py-1 bg-muted text-xs rounded"
-											>
-												{specialty}
-											</span>
-										{/each}
-									</div>
-								</div>
-							{/each}
-						</CardContent>
-					</Card>
-				{/if}
-
-				<!-- Accommodation -->
-				{#if scheduleData.recommendations.accommodation.length > 0}
-					<Card>
-						<CardHeader>
-							<CardTitle class="flex items-center gap-2">
-								<Heart class="w-5 h-5" />
-								Accommodation
-							</CardTitle>
-						</CardHeader>
-						<CardContent class="space-y-4">
-							{#each scheduleData.recommendations.accommodation as hotel}
-								<div class="border rounded-lg p-3">
-									<div
-										class="flex justify-between items-start mb-2"
-									>
-										<h4 class="font-semibold">
-											{hotel.name}
-										</h4>
-										<div class="text-right">
-											<div class="text-sm font-medium">
-												★ {hotel.rating}
-											</div>
-											<div
-												class="text-xs text-muted-foreground"
-											>
-												${hotel.pricePerNight}/night
-											</div>
-										</div>
-									</div>
-									<p
-										class="text-sm text-muted-foreground mb-2"
-									>
-										{hotel.description}
-									</p>
-									<div class="flex flex-wrap gap-1">
-										{#each hotel.amenities as amenity}
-											<span
-												class="px-2 py-1 bg-muted text-xs rounded"
-											>
-												{amenity}
-											</span>
-										{/each}
-									</div>
-								</div>
-							{/each}
-						</CardContent>
-					</Card>
-				{/if}
-
-				<!-- Transportation -->
-				{#if scheduleData.recommendations.transportation.length > 0}
-					<Card>
-						<CardHeader>
-							<CardTitle class="flex items-center gap-2">
-								<MapPin class="w-5 h-5" />
-								Transportation
-							</CardTitle>
-						</CardHeader>
-						<CardContent class="space-y-4">
-							{#each scheduleData.recommendations.transportation as transport}
-								<div class="border rounded-lg p-3">
-									<div
-										class="flex justify-between items-start mb-2"
-									>
-										<h4 class="font-semibold">
-											{transport.provider}
-										</h4>
-										<div
-											class="text-xs text-muted-foreground"
-										>
-											${transport.estimatedCost}
-										</div>
-									</div>
-									<p class="text-sm text-muted-foreground">
-										{transport.description}
-									</p>
-									<span
-										class="inline-block px-2 py-1 bg-muted text-xs rounded mt-2"
-									>
-										{transport.type.replace("-", " ")}
-									</span>
-								</div>
-							{/each}
-						</CardContent>
-					</Card>
-				{/if}
-			</div>
-		{/if}
 	{:else}
 		<!-- Empty State -->
 		<div class="text-center py-12">

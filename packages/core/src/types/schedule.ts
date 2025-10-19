@@ -21,32 +21,6 @@ export interface ScheduleDay {
 	notes?: string;
 }
 
-export interface ScheduleRecommendation {
-	clinics: {
-		name: string;
-		rating: number;
-		specialties: string[];
-		location: string;
-		estimatedCost: number;
-		description: string;
-	}[];
-	accommodation: {
-		name: string;
-		type: "hotel" | "medical-hotel" | "recovery-center";
-		rating: number;
-		amenities: string[];
-		location: string;
-		pricePerNight: number;
-		description: string;
-	}[];
-	transportation: {
-		type: "airport-transfer" | "medical-transport" | "local-transport";
-		provider: string;
-		estimatedCost: number;
-		description: string;
-	}[];
-}
-
 export interface GenerateScheduleRequest {
 	region: string;
 	startDate: string;
@@ -61,7 +35,6 @@ export interface GenerateScheduleRequest {
 export interface GenerateScheduleResponse {
 	success: boolean;
 	schedule?: ScheduleDay[];
-	recommendations?: ScheduleRecommendation;
 	costBreakdown?: {
 		treatments: number;
 		accommodation: number;
