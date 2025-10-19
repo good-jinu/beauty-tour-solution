@@ -38,12 +38,16 @@ export class BedrockAgentCoreService {
 		return { arn, agentName, region };
 	}
 
-	async queryAgent(prompt: string): Promise<string> {
+	async queryAgent(
+		prompt: string,
+		type: "auto" | "default" | "trip-planner" = "auto",
+	): Promise<string> {
 		try {
 			// Prepare the payload — the text you want to send to the agent
 			const payload = new TextEncoder().encode(
 				JSON.stringify({
 					prompt,
+					type,
 				}),
 			);
 
@@ -61,16 +65,30 @@ export class BedrockAgentCoreService {
 
 			// Parse the response stream
 			const bytes = await response.response?.transformToByteArray();
-			const text = JSON.parse(new TextDecoder("utf-8").decode(bytes));
+			const responseData = JSON.parse(new TextDecoder("utf-8").decode(bytes));
 
-			console.log("🧠 Agent response:", text);
-			return text.result.content[0].text;
+			console.log("🧠 Agent response:", responseData);
+
+			// Extract the text from the standard Bedrock Agent response format
+			if (responseData.result.content?.[0]?.text) {
+				return responseData.result.content[0].text;
+			} else {
+				return responseData.result;
+			}
 		} catch (error) {
 			console.error("❌ Error querying agent:", error);
 			throw new Error(
 				`Failed to query agent: ${error instanceof Error ? error.message : "Unknown error"}`,
 			);
 		}
+	}
+
+	async queryAgentForSchedule(prompt: string): Promise<string> {
+		return this.queryAgent(prompt, "trip-planner");
+	}
+
+	async queryAgentForDefault(prompt: string): Promise<string> {
+		return this.queryAgent(prompt, "default");
 	}
 
 	getConfig(): AgentCoreConfig {

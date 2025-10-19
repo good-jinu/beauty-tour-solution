@@ -12,7 +12,7 @@ os.environ["STRANDS_KNOWLEDGE_BASE_ID"] = 'yourID'
 KB_ID = os.environ.get("STRANDS_KNOWLEDGE_BASE_ID")
 print(f"Using Knowledge Base ID: {KB_ID}")
 
-model_id = "amazon.nova-pro-v1:0"
+model_id = "ai21.jamba-1-5-mini-v1:0"
 model = BedrockModel(
     model_id=model_id,
 )
@@ -26,19 +26,31 @@ agent = Agent(
 def invoke(payload):
     """Main entry point for AI agent with support for multiple query types"""
     user_message = payload.get("prompt", "Hello! How can I help you today?")
+    request_type = payload.get("type", "auto")  # auto, default, or trip-planner
     
     # Determine the query type
-    query_type = determine_query_type(agent, user_message)
+    if request_type == "auto":
+        query_type = determine_query_type(agent, user_message)
+    elif request_type == "trip-planner":
+        query_type = QueryType.TRIP_PLANNER
+    else:  # request_type == "default"
+        query_type = QueryType.DEFAULT
     
-    print(f"Detected query type: {query_type.value}")
+    print(f"Request type: {request_type}, Detected query type: {query_type.value}")
     
     # Route to appropriate handler based on query type
     if query_type == QueryType.TRIP_PLANNER:
         result = process_trip_planner_query(agent, user_message)
+        # For trip planner, return structured response
+        return {
+            "result": result
+        }
     else:  # QueryType.DEFAULT
         result = process_default_query(agent, user_message)
-    
-    return {"result": result}
+        # For default queries, return simple text response
+        return {
+            "result": result
+        }
 
 if __name__ == "__main__":
     app.run()

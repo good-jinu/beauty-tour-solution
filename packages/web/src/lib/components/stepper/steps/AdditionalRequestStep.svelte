@@ -1,14 +1,14 @@
 <script module lang="ts">
-import type { MoreRequestStepErrors } from "$lib/types/stepper.js";
+import type { AdditionalRequestStepErrors } from "$lib/types/stepper.js";
 
 export function validate(
 	moreRequests: string,
 	realTime = false,
 ): {
 	isValid: boolean;
-	errors: MoreRequestStepErrors | undefined;
+	errors: AdditionalRequestStepErrors | undefined;
 } {
-	const errors: MoreRequestStepErrors = {};
+	const errors: AdditionalRequestStepErrors = {};
 
 	// This step is optional, so empty requests are valid
 	if (moreRequests && moreRequests.trim().length > 0) {
@@ -98,7 +98,7 @@ export function validate(
 						   dark:bg-gray-700 dark:text-white
 						   resize-none transition-colors duration-200
 						   {isOverLimit ? 'border-red-500 focus:ring-red-500' : ''}"
-					placeholder="For example: I prefer non-invasive treatments, need vegetarian meal options, looking for specific certifications, have allergies to certain products, want treatments from female practitioners only, etc."
+					placeholder="I want Kpop idol style like Blackpink Rose hair and makeup. Blonde straight hair and bright skin."
 					value={$stepperState.formData.moreRequests || ""}
 					on:input={handleTextareaInput}
 					maxlength="1000"
@@ -128,21 +128,6 @@ export function validate(
 						</svg>
 					</button>
 				{/if}
-			</div>
-
-			<!-- Helpful suggestions -->
-			<div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-				<h3 class="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-					💡 What to include:
-				</h3>
-				<ul class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-					<li>• Specific treatment preferences or concerns</li>
-					<li>• Dietary restrictions or allergies</li>
-					<li>• Accessibility requirements</li>
-					<li>• Practitioner gender preferences</li>
-					<li>• Certification or quality standards you prefer</li>
-					<li>• Any medical conditions we should know about</li>
-				</ul>
 			</div>
 
 			<!-- Skip option -->

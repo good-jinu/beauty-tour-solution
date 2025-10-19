@@ -15,7 +15,7 @@ export class JourneyGenerator {
 		const prompt = this.createPrompt(formData);
 
 		try {
-			const result = await this.agentService.queryAgent(prompt);
+			const result = await this.agentService.queryAgentForDefault(prompt);
 
 			return {
 				success: true,

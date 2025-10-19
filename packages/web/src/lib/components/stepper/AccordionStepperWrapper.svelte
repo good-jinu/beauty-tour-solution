@@ -3,10 +3,10 @@ import type { StepperState } from "$lib/types";
 import AccordionStepper from "./AccordionStepper.svelte";
 import ErrorRecovery from "./ErrorRecovery.svelte";
 import StepperNavigation from "./StepperNavigation.svelte";
+import AdditionalRequestStep from "./steps/AdditionalRequestStep.svelte";
 import BudgetSelection from "./steps/BudgetSelection.svelte";
 import CountrySelection from "./steps/CountrySelection.svelte";
 import DateSelection from "./steps/DateSelection.svelte";
-import MoreRequestStep from "./steps/MoreRequestStep.svelte";
 import ThemeSelection from "./steps/ThemeSelection.svelte";
 
 interface Props {
@@ -61,7 +61,7 @@ function handleStepClick(step: number) {
                 {:else if stepperState.stepMapping[step] === "budget"}
                     <BudgetSelection />
                 {:else if stepperState.stepMapping[step] === "more-requests"}
-                    <MoreRequestStep />
+                    <AdditionalRequestStep />
                 {/if}
 
                 <!-- Error Recovery for current step -->

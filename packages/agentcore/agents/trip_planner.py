@@ -52,9 +52,9 @@ def process_trip_planner_query(agent, query):
 
         # Try to parse as JSON to validate
         try:
-            json.loads(result_str)
+            result = json.loads(result_str)
             # If parsing succeeds, return the original string for the client to parse
-            return result_str
+            return result
         except json.JSONDecodeError as e:
             print(f"JSON parsing error: {e}")
             print(f"Raw result: {result_str}")

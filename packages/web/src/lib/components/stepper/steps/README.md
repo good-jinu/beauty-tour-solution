@@ -28,7 +28,7 @@ This directory contains all the individual step components for the beauty tour s
 - **Purpose**: Budget range selection
 - **Validation**: Minimum $500, maximum $50,000, theme compatibility checks
 
-### 5. MoreRequestStep.svelte
+### 5. AdditionalRequestStep.svelte
 - **Step ID**: `more-requests`
 - **Optional**: Yes
 - **Purpose**: Additional user requests and preferences
@@ -90,7 +90,7 @@ const legacyData = StepperUtils.stepperToLegacyFormData(stepperData);
 
 ## Validation
 
-The MoreRequestStep includes built-in validation:
+The AdditionalRequestStep includes built-in validation:
 - Optional field (empty is valid)
 - If provided, minimum 10 characters
 - Maximum 1000 characters

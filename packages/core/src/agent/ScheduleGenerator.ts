@@ -17,7 +17,7 @@ export class ScheduleGenerator {
 		const prompt = this.createStructuredPrompt(request);
 
 		try {
-			const result = await this.agentService.queryAgent(prompt);
+			const result = await this.agentService.queryAgentForSchedule(prompt);
 
 			// Parse the structured JSON response
 			const parsedResult = this.parseAgentResponse(result);
@@ -161,7 +161,7 @@ Respond with ONLY the JSON object, no additional text or formatting.`;
 		response: string,
 	): Partial<GenerateScheduleResponse> {
 		try {
-			// Clean the response to extract JSON
+			// Handle string response - clean and parse JSON
 			let cleanResponse = response.trim();
 
 			// Remove any markdown code blocks if present

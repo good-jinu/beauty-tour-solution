@@ -14,7 +14,7 @@ import {
 	TabsTrigger,
 } from "$lib/components/ui/tabs";
 import type { StepperFormData } from "$lib/types";
-import MockSchedule from "./MockSchedule.svelte";
+import ScheduleContents from "./ScheduleContents.svelte";
 
 interface Props {
 	formData: StepperFormData;
@@ -203,7 +203,7 @@ const solutions = [
 				</Card>
 
 				<!-- Schedule Content -->
-				<MockSchedule {formData} solutionType={solution.id} />
+				<ScheduleContents {formData} solutionType={solution.id} />
 			</TabsContent>
 		{/each}
 	</Tabs>

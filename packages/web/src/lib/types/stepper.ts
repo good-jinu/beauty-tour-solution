@@ -55,7 +55,7 @@ export interface BudgetStepErrors {
 	general?: string;
 }
 
-export interface MoreRequestStepErrors {
+export interface AdditionalRequestStepErrors {
 	length?: string;
 	content?: string;
 	general?: string;
@@ -67,7 +67,7 @@ export type AnyStepErrors =
 	| DateStepErrors
 	| ThemeStepErrors
 	| BudgetStepErrors
-	| MoreRequestStepErrors;
+	| AdditionalRequestStepErrors;
 
 // Main stepper errors interface
 export interface StepperErrors {
@@ -89,7 +89,7 @@ export type StepErrorType<T extends string> = T extends "country"
 			: T extends "budget"
 				? BudgetStepErrors
 				: T extends "more-requests"
-					? MoreRequestStepErrors
+					? AdditionalRequestStepErrors
 					: never;
 
 export interface StepperState {
@@ -143,7 +143,7 @@ export const AVAILABLE_STEPS: Record<string, StepConfig> = {
 	"more-requests": {
 		id: "more-requests",
 		label: "Additional Requests",
-		component: "MoreRequestStep",
+		component: "AdditionalRequestStep",
 		optional: true,
 		defaultOrder: 5,
 	},
@@ -290,8 +290,8 @@ export const StepValidation = {
 	// More Requests validation
 	validateMoreRequestsStep: (
 		data: PartialStepperFormData,
-	): MoreRequestStepErrors | null => {
-		const errors: MoreRequestStepErrors = {};
+	): AdditionalRequestStepErrors | null => {
+		const errors: AdditionalRequestStepErrors = {};
 
 		// This step is optional, so empty requests are valid
 		if (data.moreRequests && data.moreRequests.trim().length > 0) {

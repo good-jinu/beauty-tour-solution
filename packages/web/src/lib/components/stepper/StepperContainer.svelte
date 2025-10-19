@@ -4,11 +4,10 @@ import { initializeStepper, stepperState } from "$lib/stores/stepper";
 import type { StepperErrors, StepperFormData, StepperState } from "$lib/types";
 import type { AnyStepErrors } from "$lib/types/stepper";
 import { getTotalSteps, StepValidation } from "$lib/types/stepper";
-
+import { validate as validateMoreRequests } from "./steps/AdditionalRequestStep.svelte";
 import { validate as validateBudget } from "./steps/BudgetSelection.svelte";
 import { validate as validateCountry } from "./steps/CountrySelection.svelte";
 import { validate as validateDates } from "./steps/DateSelection.svelte";
-import { validate as validateMoreRequests } from "./steps/MoreRequestStep.svelte";
 import { validate as validateThemes } from "./steps/ThemeSelection.svelte";
 
 // Props

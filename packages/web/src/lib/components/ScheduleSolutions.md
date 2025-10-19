@@ -57,10 +57,10 @@ const formData: StepperFormData = {
 
 ## Dependencies
 
-- `MockSchedule.svelte` - The underlying schedule generator
+- `ScheduleContents.svelte` - The underlying schedule generator
 - UI components: `Tabs`, `Card`, `Badge`
 - Lucide icons: `Crown`, `DollarSign`, `Scale`
 
 ## Integration
 
-The component is already integrated into `ResultsSection.svelte` and replaces the single `MockSchedule` component to provide multiple options for users to choose from.
+The component is already integrated into `ResultsSection.svelte` and replaces the single `ScheduleContents` component to provide multiple options for users to choose from.
