@@ -1,6 +1,6 @@
 <script lang="ts">
 import "../app.css";
-import favicon from "$lib/assets/favicon.svg";
+import favicon from "$lib/assets/favicon.ico";
 import ThemeProvider from "$lib/components/ThemeProvider.svelte";
 import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 import { Toaster } from "$lib/components/ui/sonner";
