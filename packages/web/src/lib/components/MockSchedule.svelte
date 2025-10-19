@@ -1,12 +1,21 @@
 <script lang="ts">
+import type {
+	GenerateScheduleRequest,
+	GenerateScheduleResponse,
+	ScheduleActivity,
+	ScheduleDay,
+} from "@bts/core";
 import {
 	Activity,
+	AlertCircle,
 	ClipboardCheck,
 	Heart,
+	Loader2,
 	MapPin,
 	Sparkles,
 	Stethoscope,
 } from "@lucide/svelte";
+import { onMount } from "svelte";
 import {
 	Card,
 	CardContent,
@@ -20,352 +29,80 @@ interface Props {
 	solutionType?: "topranking" | "premium" | "budget";
 }
 
-interface ScheduleActivity {
-	time: string;
-	activity: string;
-	location: string;
-	duration: string;
-	cost?: number;
-}
-
-interface ScheduleDay {
-	date: Date;
-	dayNumber: number;
-	activities: ScheduleActivity[];
-}
-
 let { formData, solutionType = "topranking" }: Props = $props();
 
-// Mock schedule data generator
-function generateMockSchedule(
-	startDate: string,
-	endDate: string,
-	themes: string[],
-	solutionType: "topranking" | "premium" | "budget" = "topranking",
-) {
-	const start = new Date(startDate);
-	const end = new Date(endDate);
-	const days = [];
+// State management
+let isLoading = $state(true);
+let error = $state<string | null>(null);
+let scheduleData = $state<GenerateScheduleResponse | null>(null);
 
-	// Theme-based activities mapping with more variety
-	const themeActivities = {
-		skincare: [
-			"Hydrafacial Treatment",
-			"LED Light Therapy",
-			"Chemical Peel Session",
-			"Collagen Facial",
-			"Vitamin C Infusion",
-			"Microneedling Session",
-			"Oxygen Facial",
-			"Anti-aging Treatment",
-			"Acne Treatment",
-			"Skin Analysis & Consultation",
-		],
-		"plastic-surgery": [
-			"Initial Consultation",
-			"Pre-surgery Health Check",
-			"Surgery Preparation",
-			"Main Surgery Procedure",
-			"Post-surgery Recovery",
-			"Wound Care Session",
-			"Follow-up Appointment",
-			"Progress Evaluation",
-			"Final Check-up",
-			"Aftercare Instructions",
-		],
-		"wellness-spa": [
-			"Full Body Massage",
-			"Aromatherapy Session",
-			"Hot Stone Therapy",
-			"Meditation Class",
-			"Yoga Session",
-			"Sauna & Steam",
-			"Detox Treatment",
-			"Reflexology",
-			"Thai Massage",
-			"Relaxation Therapy",
-		],
-		dental: [
-			"Dental Consultation",
-			"Teeth Whitening",
-			"Dental Cleaning",
-			"Orthodontic Check",
-			"Cosmetic Dental Work",
-			"Implant Consultation",
-			"Veneer Fitting",
-			"Root Canal Treatment",
-			"Gum Treatment",
-			"Final Dental Check",
-		],
-		"hair-transplant": [
-			"Hair Analysis",
-			"Transplant Consultation",
-			"Pre-procedure Preparation",
-			"Hair Transplant Procedure",
-			"Scalp Treatment",
-			"Recovery Care",
-			"Progress Check",
-			"Aftercare Session",
-			"Growth Monitoring",
-			"Final Assessment",
-		],
-	};
+// API call to generate real schedule
+async function generateSchedule() {
+	isLoading = true;
+	error = null;
 
-	// Time slots
-	const timeSlots = ["09:00", "11:00", "14:00", "16:00", "18:00"];
+	try {
+		const request: GenerateScheduleRequest = {
+			region: formData.selectedCountry || "south-korea", // Default to South Korea if no country selected
+			startDate: formData.startDate,
+			endDate: formData.endDate,
+			selectedThemes: formData.selectedThemes,
+			budget: formData.budget,
+			travelers: 1, // Default to 1 traveler
+			solutionType,
+			moreRequests: formData.moreRequests,
+		};
 
-	// Solution type configurations
-	const solutionConfigs = {
-		topranking: {
-			activitiesPerDay: { min: 2, max: 3 },
-			preferredActivities: ["treatment", "facial", "therapy", "consultation"],
-			costMultiplier: 1.0,
-			description: "Highest rated clinics and treatments",
-		},
-		budget: {
-			activitiesPerDay: { min: 1, max: 2 },
-			preferredActivities: ["consultation", "analysis", "check", "cleaning"],
-			costMultiplier: 0.6,
-			description: "Cost-effective treatments with essential care",
-		},
-		premium: {
-			activitiesPerDay: { min: 3, max: 4 },
-			preferredActivities: ["surgery", "procedure", "premium", "luxury"],
-			costMultiplier: 1.5,
-			description: "Luxury treatments with premium care",
-		},
-	};
-
-	const config = solutionConfigs[solutionType];
-
-	let currentDate = new Date(start);
-	let dayCount = 1;
-
-	while (currentDate <= end) {
-		const dayActivities = [];
-		const selectedThemeActivities = themes.flatMap(
-			(theme) => themeActivities[theme as keyof typeof themeActivities] || [],
-		);
-
-		// Generate activities based on solution type
-		const numActivities = Math.min(
-			Math.floor(
-				Math.random() *
-					(config.activitiesPerDay.max - config.activitiesPerDay.min + 1),
-			) + config.activitiesPerDay.min,
-			selectedThemeActivities.length,
-		);
-		const usedTimeSlots = new Set();
-		const usedActivities = new Set();
-
-		for (let i = 0; i < numActivities; i++) {
-			let timeSlot: string | null = null;
-			do {
-				timeSlot = timeSlots[Math.floor(Math.random() * timeSlots.length)];
-			} while (usedTimeSlots.has(timeSlot));
-
-			usedTimeSlots.add(timeSlot);
-
-			// Pick a unique activity
-			let activity: string | null = null;
-			let attempts = 0;
-			do {
-				activity =
-					selectedThemeActivities[
-						Math.floor(Math.random() * selectedThemeActivities.length)
-					];
-				attempts++;
-			} while (usedActivities.has(activity) && attempts < 10);
-
-			usedActivities.add(activity);
-
-			// Vary locations and durations based on solution type
-			const locationsByType = {
-				topranking: [
-					"Top-Rated Seoul Clinic",
-					"Award-Winning Medical Center",
-					"5-Star Beauty Institute",
-					"Certified Excellence Center",
-					"Premier Healthcare Facility",
-				],
-				budget: [
-					"Seoul Beauty Clinic",
-					"Affordable Care Center",
-					"Community Wellness",
-					"Basic Treatment Center",
-					"Essential Beauty Clinic",
-				],
-				premium: [
-					"Luxury Beauty Palace",
-					"VIP Medical Suite",
-					"Exclusive Wellness Resort",
-					"Premium Elite Center",
-					"Royal Luxury Clinic",
-				],
-			};
-
-			const locations = locationsByType[solutionType];
-
-			const baseDuration =
-				activity.includes("Surgery") || activity.includes("Transplant")
-					? Math.floor(Math.random() * 4) + 3
-					: Math.floor(Math.random() * 2) + 1;
-
-			const durationMultiplier =
-				solutionType === "premium"
-					? 1.3
-					: solutionType === "budget"
-						? 0.8
-						: 1.0;
-			const duration = `${Math.round(baseDuration * durationMultiplier)}h`;
-
-			const activityCost = calculateActivityCost(activity);
-
-			dayActivities.push({
-				time: timeSlot,
-				activity,
-				location: locations[Math.floor(Math.random() * locations.length)],
-				duration,
-				cost: activityCost,
-			});
-		}
-
-		// Sort activities by time
-		dayActivities.sort((a, b) => a.time.localeCompare(b.time));
-
-		days.push({
-			date: new Date(currentDate),
-			dayNumber: dayCount,
-			activities: dayActivities,
+		const response = await fetch("/api/generate-schedule", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(request),
 		});
 
-		currentDate.setDate(currentDate.getDate() + 1);
-		dayCount++;
-	}
+		const result: GenerateScheduleResponse = await response.json();
 
-	return days;
-}
-
-// Calculate individual activity cost
-function calculateActivityCost(activityName: string): number {
-	const activityCosts = {
-		// Consultation & Analysis
-		consultation: 150,
-		analysis: 100,
-		check: 80,
-		evaluation: 120,
-		assessment: 110,
-
-		// Treatments & Procedures
-		treatment: 300,
-		procedure: 1800,
-		surgery: 2500,
-		transplant: 3500,
-		implant: 2200,
-
-		// Beauty & Skincare
-		facial: 200,
-		peel: 250,
-		microneedling: 350,
-		hydrafacial: 400,
-		infusion: 180,
-
-		// Wellness & Spa
-		massage: 120,
-		therapy: 180,
-		aromatherapy: 140,
-		meditation: 80,
-		yoga: 60,
-		sauna: 50,
-		detox: 200,
-		reflexology: 100,
-
-		// Dental
-		whitening: 300,
-		cleaning: 150,
-		orthodontic: 200,
-		veneer: 800,
-
-		// Hair
-		scalp: 150,
-		monitoring: 100,
-
-		// Recovery & Care
-		recovery: 100,
-		care: 80,
-		aftercare: 90,
-		preparation: 120,
-		instructions: 50,
-	};
-
-	let cost = 250; // default cost
-	const activityLower = activityName.toLowerCase();
-
-	// Find matching cost based on activity keywords
-	for (const [keyword, price] of Object.entries(activityCosts)) {
-		if (activityLower.includes(keyword)) {
-			cost = price;
-			break;
+		if (result.success) {
+			scheduleData = result;
+		} else {
+			error = result.error || "Failed to generate schedule";
 		}
+	} catch (err) {
+		error = err instanceof Error ? err.message : "Network error occurred";
+	} finally {
+		isLoading = false;
 	}
-
-	// Apply solution type cost multiplier
-	const solutionMultiplier =
-		solutionType === "premium" ? 1.5 : solutionType === "budget" ? 0.6 : 1.0;
-
-	return Math.round(cost * solutionMultiplier);
 }
 
-// Calculate estimated costs based on activities
-function calculateEstimatedCost(
-	schedule: ScheduleDay[],
-	budget: number,
-): { total: number; perDay: number; breakdown: Record<string, number> } {
-	let totalCost = 0;
-	const breakdown: Record<string, number> = {};
+// Load schedule on component mount
+onMount(() => {
+	generateSchedule();
+});
 
-	schedule.forEach((day) => {
-		day.activities.forEach((activity: ScheduleActivity) => {
-			const cost = activity.cost || calculateActivityCost(activity.activity);
-			totalCost += cost;
-
-			const theme =
-				formData.selectedThemes.find((theme) =>
-					activity.activity.toLowerCase().includes(theme.replace("-", " ")),
-				) || "general";
-
-			breakdown[theme] = (breakdown[theme] || 0) + cost;
-		});
-	});
-
-	// Adjust to fit within budget (roughly)
-	const adjustmentFactor = Math.min(1, (budget / totalCost) * 0.9);
-	totalCost *= adjustmentFactor;
-
-	Object.keys(breakdown).forEach((key) => {
-		breakdown[key] *= adjustmentFactor;
-	});
-
-	return {
-		total: Math.round(totalCost),
-		perDay: Math.round(totalCost / schedule.length),
-		breakdown,
-	};
-}
-
-const schedule = $derived(
-	generateMockSchedule(
-		formData.startDate,
-		formData.endDate,
-		formData.selectedThemes,
-		solutionType,
-	),
-);
+// Derived values for display
+const schedule = $derived(scheduleData?.schedule || []);
 const costEstimate = $derived(
-	calculateEstimatedCost(schedule, formData.budget),
+	scheduleData?.costBreakdown || {
+		total: 0,
+		treatments: 0,
+		accommodation: 0,
+		transportation: 0,
+		activities: 0,
+		budgetUtilization: 0,
+	},
+);
+const summary = $derived(
+	scheduleData?.summary || {
+		totalDays: 0,
+		totalActivities: 0,
+		totalThemes: 0,
+		estimatedCost: 0,
+	},
 );
 
-function formatDate(date: Date): string {
+function formatDate(dateString: string): string {
+	const date = new Date(dateString);
 	return date.toLocaleDateString("en-US", {
 		weekday: "long",
 		year: "numeric",
@@ -422,178 +159,434 @@ function getActivityIconComponent(activity: string) {
 </script>
 
 <div class="space-y-6">
-	<!-- Schedule Header -->
-	<div class="text-center mb-8">
-		<h2 class="text-3xl font-bold mb-2">Your Beauty Journey Schedule</h2>
-		<p class="text-muted-foreground">
-			{schedule.length} day{schedule.length > 1 ? "s" : ""} of personalized
-			treatments
-		</p>
-		<div class="flex flex-wrap gap-2 justify-center mt-4">
-			{#each formData.selectedThemes as theme}
-				<span
-					class="px-3 py-1 rounded-full text-sm font-medium {getThemeColor(
-						[theme],
-					)}"
+	{#if isLoading}
+		<!-- Loading State -->
+		<div class="flex flex-col items-center justify-center py-12 space-y-4">
+			<Loader2 class="w-8 h-8 animate-spin text-primary" />
+			<div class="text-center">
+				<h3 class="text-lg font-semibold">
+					Generating Your Beauty Journey
+				</h3>
+				<p class="text-muted-foreground">
+					Our AI is creating a personalized schedule just for you...
+				</p>
+			</div>
+		</div>
+	{:else if error}
+		<!-- Error State -->
+		<div class="flex flex-col items-center justify-center py-12 space-y-4">
+			<AlertCircle class="w-8 h-8 text-destructive" />
+			<div class="text-center">
+				<h3 class="text-lg font-semibold text-destructive">
+					Generation Failed
+				</h3>
+				<p class="text-muted-foreground mb-4">{error}</p>
+				<button
+					onclick={generateSchedule}
+					class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
 				>
-					{theme
-						.replace("-", " ")
-						.replace(/\b\w/g, (l) => l.toUpperCase())}
-				</span>
+					Try Again
+				</button>
+			</div>
+		</div>
+	{:else if schedule.length > 0}
+		<!-- Schedule Content -->
+		<!-- Schedule Header -->
+		<div class="text-center mb-8">
+			<h2 class="text-3xl font-bold mb-2">
+				Your Beauty Journey Schedule
+			</h2>
+			<p class="text-muted-foreground">
+				{summary.totalDays} day{summary.totalDays > 1 ? "s" : ""} of personalized
+				treatments
+			</p>
+			<div class="flex flex-wrap gap-2 justify-center mt-4">
+				{#each formData.selectedThemes as theme}
+					<span
+						class="px-3 py-1 rounded-full text-sm font-medium {getThemeColor(
+							[theme],
+						)}"
+					>
+						{theme
+							.replace("-", " ")
+							.replace(/\b\w/g, (l) => l.toUpperCase())}
+					</span>
+				{/each}
+			</div>
+		</div>
+
+		<!-- Schedule Days -->
+		<div class="grid gap-6">
+			{#each schedule as day}
+				<Card class="overflow-hidden">
+					<CardHeader class="bg-muted/30">
+						<CardTitle class="flex items-center justify-between">
+							<div>
+								<span>Day {day.dayNumber}</span>
+								<div
+									class="text-sm font-normal text-muted-foreground mt-1"
+								>
+									{formatDate(day.date)}
+								</div>
+							</div>
+							<div class="text-right">
+								<div class="text-xl font-bold text-primary">
+									${day.totalCost?.toLocaleString() ||
+										day.activities
+											.reduce(
+												(sum, activity) =>
+													sum + (activity.cost || 0),
+												0,
+											)
+											.toLocaleString()}
+								</div>
+								<div class="text-xs text-muted-foreground">
+									Daily Total
+								</div>
+							</div>
+						</CardTitle>
+					</CardHeader>
+					<CardContent class="p-6">
+						<div class="space-y-4">
+							{#each day.activities as activity}
+								{@const IconComponent =
+									getActivityIconComponent(activity.activity)}
+								<div
+									class="flex items-start gap-4 p-4 rounded-lg border bg-card/50 hover:bg-card/70 transition-colors"
+								>
+									<div class="flex-shrink-0 text-center">
+										<div
+											class="text-lg font-semibold text-primary"
+										>
+											{activity.time}
+										</div>
+										<div
+											class="text-xs text-muted-foreground"
+										>
+											{activity.duration}
+										</div>
+									</div>
+									<div class="flex-shrink-0 mt-1">
+										<div
+											class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"
+										>
+											<IconComponent
+												class="w-4 h-4 text-primary"
+											/>
+										</div>
+									</div>
+									<div class="flex-1">
+										<div
+											class="flex items-start justify-between mb-1"
+										>
+											<h4 class="font-semibold">
+												{activity.activity}
+											</h4>
+											<div class="text-right">
+												<div
+													class="text-lg font-bold text-primary"
+												>
+													${activity.cost?.toLocaleString()}
+												</div>
+												<div
+													class="text-xs text-muted-foreground"
+												>
+													{solutionType === "budget"
+														? "Budget Rate"
+														: solutionType ===
+															  "premium"
+															? "Premium Rate"
+															: "Standard Rate"}
+												</div>
+											</div>
+										</div>
+										<p
+											class="text-sm text-muted-foreground flex items-center gap-1"
+										>
+											<MapPin class="w-4 h-4" />
+											{activity.location}
+										</p>
+										{#if activity.description}
+											<p
+												class="text-sm text-muted-foreground mt-1"
+											>
+												{activity.description}
+											</p>
+										{/if}
+									</div>
+								</div>
+							{/each}
+						</div>
+						{#if day.notes}
+							<div class="mt-4 p-3 bg-muted/50 rounded-lg">
+								<p class="text-sm text-muted-foreground">
+									<strong>Note:</strong>
+									{day.notes}
+								</p>
+							</div>
+						{/if}
+					</CardContent>
+				</Card>
 			{/each}
 		</div>
-	</div>
 
-	<!-- Schedule Days -->
-	<div class="grid gap-6">
-		{#each schedule as day}
-			<Card class="overflow-hidden">
-				<CardHeader class="bg-muted/30">
-					<CardTitle class="flex items-center justify-between">
+		<!-- Schedule Summary -->
+		<Card class="bg-primary/5 border-primary/20">
+			<CardContent class="p-6">
+				<div class="text-center">
+					<h3 class="text-lg font-semibold mb-4">Schedule Summary</h3>
+					<div
+						class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-6"
+					>
 						<div>
-							<span>Day {day.dayNumber}</span>
-							<div class="text-sm font-normal text-muted-foreground mt-1">
-								{formatDate(day.date)}
+							<div class="font-medium text-muted-foreground">
+								Total Days
+							</div>
+							<div class="text-2xl font-bold text-primary">
+								{summary.totalDays}
 							</div>
 						</div>
-						<div class="text-right">
-							<div class="text-xl font-bold text-primary">
-								${day.activities.reduce((sum, activity) => sum + (activity.cost || 0), 0).toLocaleString()}
+						<div>
+							<div class="font-medium text-muted-foreground">
+								Activities
 							</div>
-							<div class="text-xs text-muted-foreground">
-								Daily Total
+							<div class="text-2xl font-bold text-primary">
+								{summary.totalActivities}
 							</div>
 						</div>
-					</CardTitle>
-				</CardHeader>
-				<CardContent class="p-6">
-					<div class="space-y-4">
-						{#each day.activities as activity}
-							{@const IconComponent = getActivityIconComponent(
-								activity.activity,
-							)}
-							<div
-								class="flex items-start gap-4 p-4 rounded-lg border bg-card/50 hover:bg-card/70 transition-colors"
+						<div>
+							<div class="font-medium text-muted-foreground">
+								Themes
+							</div>
+							<div class="text-2xl font-bold text-primary">
+								{summary.totalThemes}
+							</div>
+						</div>
+						<div>
+							<div class="font-medium text-muted-foreground">
+								Est. Cost
+							</div>
+							<div class="text-2xl font-bold text-primary">
+								${costEstimate.total.toLocaleString()}
+							</div>
+						</div>
+					</div>
+
+					<!-- Budget vs Estimate -->
+					<div class="bg-muted/30 rounded-lg p-4">
+						<div class="flex justify-between items-center mb-2">
+							<span class="text-sm font-medium"
+								>Budget Utilization</span
 							>
-								<div class="flex-shrink-0 text-center">
-									<div
-										class="text-lg font-semibold text-primary"
-									>
-										{activity.time}
-									</div>
-									<div class="text-xs text-muted-foreground">
-										{activity.duration}
-									</div>
+							<span class="text-sm text-muted-foreground">
+								${costEstimate.total.toLocaleString()} / ${formData.budget.toLocaleString()}
+							</span>
+						</div>
+						<div class="w-full bg-muted rounded-full h-2">
+							<div
+								class="bg-primary h-2 rounded-full transition-all duration-500"
+								style="width: {Math.min(
+									100,
+									costEstimate.budgetUtilization * 100,
+								)}%"
+							></div>
+						</div>
+						<div class="text-xs text-muted-foreground mt-1">
+							{Math.round(costEstimate.budgetUtilization * 100)}%
+							of budget
+						</div>
+					</div>
+
+					<!-- Cost Breakdown -->
+					{#if costEstimate.treatments > 0}
+						<div
+							class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"
+						>
+							<div class="bg-muted/20 rounded-lg p-3">
+								<div class="font-medium text-muted-foreground">
+									Treatments
 								</div>
-								<div class="flex-shrink-0 mt-1">
-									<div
-										class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"
-									>
-										<IconComponent
-											class="w-4 h-4 text-primary"
-										/>
-									</div>
+								<div class="text-lg font-bold text-primary">
+									${costEstimate.treatments.toLocaleString()}
 								</div>
-								<div class="flex-1">
-									<div class="flex items-start justify-between mb-1">
+							</div>
+							<div class="bg-muted/20 rounded-lg p-3">
+								<div class="font-medium text-muted-foreground">
+									Accommodation
+								</div>
+								<div class="text-lg font-bold text-primary">
+									${costEstimate.accommodation.toLocaleString()}
+								</div>
+							</div>
+							<div class="bg-muted/20 rounded-lg p-3">
+								<div class="font-medium text-muted-foreground">
+									Transport
+								</div>
+								<div class="text-lg font-bold text-primary">
+									${costEstimate.transportation.toLocaleString()}
+								</div>
+							</div>
+							<div class="bg-muted/20 rounded-lg p-3">
+								<div class="font-medium text-muted-foreground">
+									Activities
+								</div>
+								<div class="text-lg font-bold text-primary">
+									${costEstimate.activities.toLocaleString()}
+								</div>
+							</div>
+						</div>
+					{/if}
+				</div>
+			</CardContent>
+		</Card>
+
+		<!-- Recommendations -->
+		{#if scheduleData?.recommendations}
+			<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+				<!-- Clinics -->
+				{#if scheduleData.recommendations.clinics.length > 0}
+					<Card>
+						<CardHeader>
+							<CardTitle class="flex items-center gap-2">
+								<Stethoscope class="w-5 h-5" />
+								Recommended Clinics
+							</CardTitle>
+						</CardHeader>
+						<CardContent class="space-y-4">
+							{#each scheduleData.recommendations.clinics as clinic}
+								<div class="border rounded-lg p-3">
+									<div
+										class="flex justify-between items-start mb-2"
+									>
 										<h4 class="font-semibold">
-											{activity.activity}
+											{clinic.name}
 										</h4>
 										<div class="text-right">
-											<div class="text-lg font-bold text-primary">
-												${activity.cost?.toLocaleString()}
+											<div class="text-sm font-medium">
+												★ {clinic.rating}
 											</div>
-											<div class="text-xs text-muted-foreground">
-												{solutionType === 'budget' ? 'Budget Rate' : 
-												 solutionType === 'premium' ? 'Premium Rate' : 
-												 'Standard Rate'}
+											<div
+												class="text-xs text-muted-foreground"
+											>
+												${clinic.estimatedCost.toLocaleString()}
 											</div>
 										</div>
 									</div>
 									<p
-										class="text-sm text-muted-foreground flex items-center gap-1"
+										class="text-sm text-muted-foreground mb-2"
 									>
-										<MapPin class="w-4 h-4" />
-										{activity.location}
+										{clinic.description}
 									</p>
+									<div class="flex flex-wrap gap-1">
+										{#each clinic.specialties as specialty}
+											<span
+												class="px-2 py-1 bg-muted text-xs rounded"
+											>
+												{specialty}
+											</span>
+										{/each}
+									</div>
 								</div>
-							</div>
-						{/each}
-					</div>
-				</CardContent>
-			</Card>
-		{/each}
-	</div>
+							{/each}
+						</CardContent>
+					</Card>
+				{/if}
 
-	<!-- Schedule Summary -->
-	<Card class="bg-primary/5 border-primary/20">
-		<CardContent class="p-6">
-			<div class="text-center">
-				<h3 class="text-lg font-semibold mb-4">Schedule Summary</h3>
-				<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-6">
-					<div>
-						<div class="font-medium text-muted-foreground">
-							Total Days
-						</div>
-						<div class="text-2xl font-bold text-primary">
-							{schedule.length}
-						</div>
-					</div>
-					<div>
-						<div class="font-medium text-muted-foreground">
-							Activities
-						</div>
-						<div class="text-2xl font-bold text-primary">
-							{schedule.reduce(
-								(sum, day) => sum + day.activities.length,
-								0,
-							)}
-						</div>
-					</div>
-					<div>
-						<div class="font-medium text-muted-foreground">
-							Themes
-						</div>
-						<div class="text-2xl font-bold text-primary">
-							{formData.selectedThemes.length}
-						</div>
-					</div>
-					<div>
-						<div class="font-medium text-muted-foreground">
-							Est. Cost
-						</div>
-						<div class="text-2xl font-bold text-primary">
-							${costEstimate.total.toLocaleString()}
-						</div>
-					</div>
-				</div>
+				<!-- Accommodation -->
+				{#if scheduleData.recommendations.accommodation.length > 0}
+					<Card>
+						<CardHeader>
+							<CardTitle class="flex items-center gap-2">
+								<Heart class="w-5 h-5" />
+								Accommodation
+							</CardTitle>
+						</CardHeader>
+						<CardContent class="space-y-4">
+							{#each scheduleData.recommendations.accommodation as hotel}
+								<div class="border rounded-lg p-3">
+									<div
+										class="flex justify-between items-start mb-2"
+									>
+										<h4 class="font-semibold">
+											{hotel.name}
+										</h4>
+										<div class="text-right">
+											<div class="text-sm font-medium">
+												★ {hotel.rating}
+											</div>
+											<div
+												class="text-xs text-muted-foreground"
+											>
+												${hotel.pricePerNight}/night
+											</div>
+										</div>
+									</div>
+									<p
+										class="text-sm text-muted-foreground mb-2"
+									>
+										{hotel.description}
+									</p>
+									<div class="flex flex-wrap gap-1">
+										{#each hotel.amenities as amenity}
+											<span
+												class="px-2 py-1 bg-muted text-xs rounded"
+											>
+												{amenity}
+											</span>
+										{/each}
+									</div>
+								</div>
+							{/each}
+						</CardContent>
+					</Card>
+				{/if}
 
-				<!-- Budget vs Estimate -->
-				<div class="bg-muted/30 rounded-lg p-4">
-					<div class="flex justify-between items-center mb-2">
-						<span class="text-sm font-medium"
-							>Budget Utilization</span
-						>
-						<span class="text-sm text-muted-foreground">
-							${costEstimate.total.toLocaleString()} / ${formData.budget.toLocaleString()}
-						</span>
-					</div>
-					<div class="w-full bg-muted rounded-full h-2">
-						<div
-							class="bg-primary h-2 rounded-full transition-all duration-500"
-							style="width: {Math.min(
-								100,
-								(costEstimate.total / formData.budget) * 100,
-							)}%"
-						></div>
-					</div>
-					<div class="text-xs text-muted-foreground mt-1">
-						{Math.round(
-							(costEstimate.total / formData.budget) * 100,
-						)}% of budget
-					</div>
-				</div>
+				<!-- Transportation -->
+				{#if scheduleData.recommendations.transportation.length > 0}
+					<Card>
+						<CardHeader>
+							<CardTitle class="flex items-center gap-2">
+								<MapPin class="w-5 h-5" />
+								Transportation
+							</CardTitle>
+						</CardHeader>
+						<CardContent class="space-y-4">
+							{#each scheduleData.recommendations.transportation as transport}
+								<div class="border rounded-lg p-3">
+									<div
+										class="flex justify-between items-start mb-2"
+									>
+										<h4 class="font-semibold">
+											{transport.provider}
+										</h4>
+										<div
+											class="text-xs text-muted-foreground"
+										>
+											${transport.estimatedCost}
+										</div>
+									</div>
+									<p class="text-sm text-muted-foreground">
+										{transport.description}
+									</p>
+									<span
+										class="inline-block px-2 py-1 bg-muted text-xs rounded mt-2"
+									>
+										{transport.type.replace("-", " ")}
+									</span>
+								</div>
+							{/each}
+						</CardContent>
+					</Card>
+				{/if}
 			</div>
-		</CardContent>
-	</Card>
+		{/if}
+	{:else}
+		<!-- Empty State -->
+		<div class="text-center py-12">
+			<h3 class="text-lg font-semibold">No Schedule Generated</h3>
+			<p class="text-muted-foreground">
+				Unable to generate a schedule with the provided information.
+			</p>
+		</div>
+	{/if}
 </div>

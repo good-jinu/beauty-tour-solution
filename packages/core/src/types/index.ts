@@ -2,3 +2,4 @@
 
 export * from "./journey";
 export * from "./region";
+export * from "./schedule";
