@@ -8,11 +8,11 @@ from agents.trip_planner import process_trip_planner_query
 from agents.default_query_handler import process_default_query
 
 # Set knowledge base ID (can be overridden by environment variable)
-os.environ["STRANDS_KNOWLEDGE_BASE_ID"] = '8H4MNIAEPL'
+os.environ["STRANDS_KNOWLEDGE_BASE_ID"] = 'yourId'
 KB_ID = os.environ.get("STRANDS_KNOWLEDGE_BASE_ID")
 print(f"Using Knowledge Base ID: {KB_ID}")
 
-model_id = "ai21.jamba-1-5-large-v1:0"
+model_id = "us.amazon.nova-pro-v1:0"
 model = BedrockModel(
     model_id=model_id,
 )
