@@ -1,11 +1,9 @@
 <script lang="ts">
-import { Eye } from "@lucide/svelte";
 import ResultsSection from "$lib/components/ResultsSection.svelte";
 import {
 	AccordionStepperWrapper,
 	StepperContainer,
 } from "$lib/components/stepper";
-import Button from "$lib/components/ui/button/button.svelte";
 import type { StepperFormData } from "$lib/types";
 
 // Application flow state
@@ -18,32 +16,6 @@ let isLoading = $state(false);
 // Results state
 let showResults = $state(false);
 let currentFormData = $state<StepperFormData | null>(null);
-
-// Demo mode for testing
-function showDemo() {
-	const demoFormData: StepperFormData = {
-		startDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-			.toISOString()
-			.split("T")[0], // 1 week from now
-		endDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000)
-			.toISOString()
-			.split("T")[0], // 12 days from now
-		selectedThemes: ["skincare", "wellness-spa"],
-		budget: 5000,
-		currency: "USD",
-	};
-
-	currentFormData = demoFormData;
-	currentFlow = "results";
-	showResults = true;
-
-	setTimeout(() => {
-		document.getElementById("results-section")?.scrollIntoView({
-			behavior: "smooth",
-			block: "start",
-		});
-	}, 100);
-}
 
 async function handleStepperComplete(stepperData: StepperFormData) {
 	isLoading = true;
@@ -97,23 +69,6 @@ function resetForm() {
 	<!-- Tour Planning Section -->
 	{#if currentFlow === "tour-planning"}
 		<div id="tour-planning-section" class="px-4 sm:px-6 lg:px-8">
-			<!-- Demo Button -->
-			<div class="text-center mb-8">
-				<Button
-					onclick={showDemo}
-					variant="outline"
-					size="lg"
-					class="mb-4"
-				>
-					<Eye class="w-4 h-4 mr-2" />
-					View Demo Schedule
-				</Button>
-				<p class="text-sm text-muted-foreground">
-					See a sample beauty tour schedule with skincare and
-					wellness treatments
-				</p>
-			</div>
-
 			<StepperContainer oncomplete={handleStepperComplete}>
 				{#snippet children({
 					stepperState,

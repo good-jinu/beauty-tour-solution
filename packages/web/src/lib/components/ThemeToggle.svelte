@@ -21,25 +21,14 @@ if (!theme || !resolvedTheme || !toggleTheme) {
 let isDark = $derived($resolvedTheme === "dark");
 </script>
 
-<div class="flex items-center gap-3">
-    <!-- Theme icons -->
-    <Sun
-        class="h-4 w-4 text-muted-foreground transition-colors {isDark
-            ? 'opacity-50'
-            : 'opacity-100'}"
-    />
-
-    <!-- Switch component -->
-    <Switch
-        checked={isDark}
-        onCheckedChange={toggleTheme}
-        aria-label="Toggle theme"
-    />
-
-    <!-- Moon icon for dark mode -->
-    <Moon
-        class="h-4 w-4 text-muted-foreground transition-colors {isDark
-            ? 'opacity-100'
-            : 'opacity-50'}"
-    />
-</div>
+<button
+    onclick={toggleTheme}
+    class="flex items-center justify-center w-9 h-9 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+    aria-label="Toggle theme"
+>
+    {#if isDark}
+        <Sun class="h-4 w-4" />
+    {:else}
+        <Moon class="h-4 w-4" />
+    {/if}
+</button>
