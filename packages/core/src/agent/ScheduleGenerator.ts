@@ -2,7 +2,15 @@ import { BedrockAgentCoreService } from "@bts/infra";
 import type {
 	GenerateScheduleRequest,
 	GenerateScheduleResponse,
+	ScheduleActivity,
+	ScheduleDay,
 } from "../types";
+
+interface ParsedSchedule {
+	schedule: ScheduleDay[];
+	costBreakdown?: GenerateScheduleResponse["costBreakdown"];
+	summary?: GenerateScheduleResponse["summary"];
+}
 
 export class ScheduleGenerator {
 	private agentService: BedrockAgentCoreService;
@@ -17,7 +25,7 @@ export class ScheduleGenerator {
 		const prompt = this.createStructuredPrompt(request);
 
 		try {
-			const result = await this.agentService.queryAgentForSchedule(prompt);
+			const result = await this.agentService.queryAgent(prompt, "trip-planner");
 
 			// Parse the structured JSON response and add business logic calculations
 			const parsedResult = this.parseAgentResponse(result, request);
@@ -87,7 +95,7 @@ FOCUS ON:
 			}
 
 			const jsonString = cleanResponse.substring(jsonStart, jsonEnd);
-			const parsed = JSON.parse(jsonString);
+			const parsed: ParsedSchedule = JSON.parse(jsonString);
 
 			// Basic validation
 			if (!parsed.schedule || !Array.isArray(parsed.schedule)) {
@@ -95,10 +103,10 @@ FOCUS ON:
 			}
 
 			// Ensure all required fields exist
-			parsed.schedule.forEach((day: any) => {
+			parsed.schedule.forEach((day: ScheduleDay) => {
 				if (!day.activities) day.activities = [];
 				if (!day.notes) day.notes = "";
-				day.activities.forEach((activity: any) => {
+				day.activities.forEach((activity: ScheduleActivity) => {
 					if (!activity.description) activity.description = "";
 				});
 			});
@@ -112,7 +120,7 @@ FOCUS ON:
 	}
 
 	private addBusinessLogicCalculations(
-		parsed: any,
+		parsed: ParsedSchedule,
 		request: GenerateScheduleRequest,
 	): Partial<GenerateScheduleResponse> {
 		// Calculate totals in business logic, not LLM
@@ -120,9 +128,9 @@ FOCUS ON:
 		let totalActivities = 0;
 
 		// Calculate day totals
-		parsed.schedule.forEach((day: any) => {
+		parsed.schedule.forEach((day: ScheduleDay) => {
 			const dayCost = day.activities.reduce(
-				(sum: number, activity: any) => sum + (activity.cost || 0),
+				(sum: number, activity: ScheduleActivity) => sum + (activity.cost || 0),
 				0,
 			);
 			day.totalCost = dayCost;
@@ -137,7 +145,7 @@ FOCUS ON:
 		totalCost = Math.round(totalCost * costMultiplier);
 
 		// Update day costs with multiplier
-		parsed.schedule.forEach((day: any) => {
+		parsed.schedule.forEach((day: ScheduleDay) => {
 			day.totalCost = Math.round(day.totalCost * costMultiplier);
 		});
 
@@ -153,8 +161,8 @@ FOCUS ON:
 
 		// Calculate summary
 		const uniqueCategories = new Set();
-		parsed.schedule.forEach((day: any) => {
-			day.activities.forEach((activity: any) => {
+		parsed.schedule.forEach((day: ScheduleDay) => {
+			day.activities.forEach((activity: ScheduleActivity) => {
 				uniqueCategories.add(activity.category);
 			});
 		});

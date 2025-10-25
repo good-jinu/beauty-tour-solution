@@ -6,7 +6,7 @@ import { getGuestId, getOrCreateGuestId } from "$lib/utils/guest";
  * Store for managing the guest ID throughout the application
  */
 function createGuestStore() {
-	const { subscribe, set, update } = writable<string | null>(null);
+	const { subscribe, set } = writable<string | null>(null);
 
 	return {
 		subscribe,

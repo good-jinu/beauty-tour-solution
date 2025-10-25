@@ -44,6 +44,7 @@ export interface DynamoDBPlanItem {
 	createdAt: string;
 	updatedAt: string;
 	ttl?: number; // Optional TTL for data cleanup
+	[key: string]: unknown; // Index signature for DynamoDB compatibility
 }
 
 // Validation Types
@@ -64,16 +65,16 @@ export interface ErrorResponse {
 	error: {
 		code: string;
 		message: string;
-		details?: any;
+		details?: unknown;
 	};
 }
 
-export interface SuccessResponse<T = any> {
+export interface SuccessResponse<T = unknown> {
 	success: true;
 	data: T;
 }
 
-export type ApiResponse<T = any> = SuccessResponse<T> | ErrorResponse;
+export type ApiResponse<T = unknown> = SuccessResponse<T> | ErrorResponse;
 
 // Plan Service Types
 export interface SavePlanRequest {

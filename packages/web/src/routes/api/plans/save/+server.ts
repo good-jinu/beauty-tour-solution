@@ -1,4 +1,4 @@
-import { PlanService, ServiceFactory } from "@bts/core";
+import { PlanService } from "@bts/core";
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
 import { createDynamoDBPlanRepository } from "$lib/services/repositoryFactory";
@@ -25,7 +25,7 @@ async function getPlanService(): Promise<PlanService> {
 function logApiEvent(
 	level: "info" | "warn" | "error",
 	message: string,
-	context?: any,
+	context?: unknown,
 ) {
 	const timestamp = new Date().toISOString();
 	const contextStr = context ? ` ${JSON.stringify(context)}` : "";

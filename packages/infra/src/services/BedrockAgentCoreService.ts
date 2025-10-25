@@ -83,21 +83,7 @@ export class BedrockAgentCoreService {
 		}
 	}
 
-	async queryAgentForSchedule(prompt: string): Promise<string> {
-		return this.queryAgent(prompt, "trip-planner");
-	}
-
-	async queryAgentForDefault(prompt: string): Promise<string> {
-		return this.queryAgent(prompt, "default");
-	}
-
 	getConfig(): AgentCoreConfig {
 		return this.config;
 	}
-}
-
-// Convenience function for backward compatibility
-export async function queryMainAgent(prompt: string): Promise<string> {
-	const service = new BedrockAgentCoreService();
-	return service.queryAgent(prompt);
 }

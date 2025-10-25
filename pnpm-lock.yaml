@@ -69,9 +69,6 @@ importers:
       '@bts/core':
         specifier: workspace:*
         version: link:../core
-      '@bts/infra':
-        specifier: workspace:*
-        version: link:../infra
       marked:
         specifier: ^16.3.0
         version: 16.3.0

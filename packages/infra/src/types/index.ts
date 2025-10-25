@@ -22,4 +22,3 @@ export interface GoogleGenAIConfig {
 }
 
 // Export plan types
-export * from "./plan.js";

@@ -177,7 +177,7 @@ export const validateGetPlansRequest = (
 export const createErrorResponse = (
 	code: string,
 	message: string,
-	details?: any,
+	details?: unknown,
 ): ApiResponse<never> => ({
 	success: false,
 	error: {

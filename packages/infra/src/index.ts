@@ -12,8 +12,8 @@ export type {
 	ThemePrompt,
 } from "./services/BedrockService.js";
 export { BedrockService } from "./services/BedrockService.js";
-export type { DynamoDBConfig } from "./services/DynamoDBPlanService.js";
-export { DynamoDBPlanService } from "./services/DynamoDBPlanService.js";
+export type { DynamoDBServiceConfig } from "./services/DynamoDBService.js";
+export { DynamoDBService } from "./services/DynamoDBService.js";
 export type {
 	GoogleGenAIConfig,
 	GoogleGenAIImageGenerationRequest,
@@ -24,5 +24,5 @@ export { GoogleGenAIService } from "./services/GoogleGenAIService.js";
 export { S3Service } from "./services/S3Service.js";
 export * from "./types/index.js";
 // Export utilities
-export * from "./utils/dynamodb-transforms.js";
+
 export * from "./utils/timestamp.js";
