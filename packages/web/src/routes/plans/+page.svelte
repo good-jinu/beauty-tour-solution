@@ -156,25 +156,39 @@ function getThemeIcon(theme: string | null | undefined) {
 	}
 }
 
+let previousPlanId: string | null = null;
+
 onMount(() => {
 	if (showDetails) {
 		loadPlan();
 	} else {
 		loadPlans();
 	}
+	previousPlanId = planId;
 });
 
 // Reactive statement to handle URL changes
-$: if (planId) {
-	loadPlan();
-} else if (!loading) {
-	loadPlans();
+$: if (planId !== previousPlanId) {
+	if (planId) {
+		loadPlan();
+	} else {
+		loadPlans();
+	}
+	previousPlanId = planId;
 }
 </script>
 
 <svelte:head>
-	<title>{showDetails ? (plan?.title || "Plan Details") : "My Plans"} - Beauty Tour Solution</title>
-	<meta name="description" content={showDetails ? "View detailed information about your travel plan" : "View and manage your saved travel plans"} />
+	<title
+		>{showDetails ? plan?.title || "Plan Details" : "My Plans"} - Beauty Tour
+		Solution</title
+	>
+	<meta
+		name="description"
+		content={showDetails
+			? "View detailed information about your travel plan"
+			: "View and manage your saved travel plans"}
+	/>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8 max-w-4xl">
@@ -202,7 +216,7 @@ $: if (planId) {
 					<Skeleton class="h-8 w-3/4" />
 					<Skeleton class="h-4 w-1/2" />
 				</div>
-				
+
 				<Card>
 					<CardHeader>
 						<Skeleton class="h-6 w-1/3" />
@@ -252,7 +266,11 @@ $: if (planId) {
 				<CardDescription>{error}</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<Button onclick={showDetails ? loadPlan : loadPlans} variant="outline" class="w-full">
+				<Button
+					onclick={showDetails ? loadPlan : loadPlans}
+					variant="outline"
+					class="w-full"
+				>
 					Try Again
 				</Button>
 			</CardContent>
@@ -267,8 +285,13 @@ $: if (planId) {
 						{plan.title || "Untitled Plan"}
 					</h1>
 					{#if plan.planData.formData?.theme}
-						{@const ThemeIcon = getThemeIcon(plan.planData.formData.theme)}
-						<Badge variant="secondary" class="flex items-center gap-1">
+						{@const ThemeIcon = getThemeIcon(
+							plan.planData.formData.theme,
+						)}
+						<Badge
+							variant="secondary"
+							class="flex items-center gap-1"
+						>
 							<ThemeIcon class="w-3 h-3" />
 							{plan.planData.formData.theme}
 						</Badge>
@@ -297,19 +320,27 @@ $: if (planId) {
 								<MapPin class="w-4 h-4 text-muted-foreground" />
 								<div>
 									<p class="font-medium">Destination</p>
-									<p class="text-sm text-muted-foreground">{plan.planData.formData.region}</p>
+									<p class="text-sm text-muted-foreground">
+										{plan.planData.formData.region}
+									</p>
 								</div>
 							</div>
 						{/if}
 
 						{#if plan.planData.formData?.startDate && plan.planData.formData?.endDate}
 							<div class="flex items-center gap-3">
-								<CalendarDays class="w-4 h-4 text-muted-foreground" />
+								<CalendarDays
+									class="w-4 h-4 text-muted-foreground"
+								/>
 								<div>
 									<p class="font-medium">Travel Dates</p>
 									<p class="text-sm text-muted-foreground">
-										{formatDate(plan.planData.formData.startDate)} - 
-										{formatDate(plan.planData.formData.endDate)}
+										{formatDate(
+											plan.planData.formData.startDate,
+										)} -
+										{formatDate(
+											plan.planData.formData.endDate,
+										)}
 									</p>
 								</div>
 							</div>
@@ -321,8 +352,10 @@ $: if (planId) {
 								<div>
 									<p class="font-medium">Travelers</p>
 									<p class="text-sm text-muted-foreground">
-										{plan.planData.formData.travelers} 
-										{plan.planData.formData.travelers === 1 ? "person" : "people"}
+										{plan.planData.formData.travelers}
+										{plan.planData.formData.travelers === 1
+											? "person"
+											: "people"}
 									</p>
 								</div>
 							</div>
@@ -330,10 +363,16 @@ $: if (planId) {
 
 						{#if plan.planData.formData?.budget}
 							<div class="flex items-center gap-3">
-								<DollarSign class="w-4 h-4 text-muted-foreground" />
+								<DollarSign
+									class="w-4 h-4 text-muted-foreground"
+								/>
 								<div>
 									<p class="font-medium">Budget</p>
-									<p class="text-sm text-muted-foreground">{formatCurrency(plan.planData.formData.budget)}</p>
+									<p class="text-sm text-muted-foreground">
+										{formatCurrency(
+											plan.planData.formData.budget,
+										)}
+									</p>
 								</div>
 							</div>
 						{/if}
@@ -356,7 +395,9 @@ $: if (planId) {
 								<p class="font-medium mb-2">Inclusions</p>
 								<div class="flex flex-wrap gap-2">
 									{#each plan.planData.preferences.inclusions as inclusion}
-										<Badge variant="outline">{inclusion}</Badge>
+										<Badge variant="outline"
+											>{inclusion}</Badge
+										>
 									{/each}
 								</div>
 							</div>
@@ -365,14 +406,20 @@ $: if (planId) {
 						{#if plan.planData.preferences.region && plan.planData.preferences.region !== plan.planData.formData?.region}
 							<div>
 								<p class="font-medium">Preferred Region</p>
-								<p class="text-sm text-muted-foreground">{plan.planData.preferences.region}</p>
+								<p class="text-sm text-muted-foreground">
+									{plan.planData.preferences.region}
+								</p>
 							</div>
 						{/if}
 
 						{#if plan.planData.preferences.budget && plan.planData.preferences.budget !== plan.planData.formData?.budget}
 							<div>
 								<p class="font-medium">Preferred Budget</p>
-								<p class="text-sm text-muted-foreground">{formatCurrency(plan.planData.preferences.budget)}</p>
+								<p class="text-sm text-muted-foreground">
+									{formatCurrency(
+										plan.planData.preferences.budget,
+									)}
+								</p>
 							</div>
 						{/if}
 
@@ -380,8 +427,10 @@ $: if (planId) {
 							<div>
 								<p class="font-medium">Preferred Travelers</p>
 								<p class="text-sm text-muted-foreground">
-									{plan.planData.preferences.travelers} 
-									{plan.planData.preferences.travelers === 1 ? "person" : "people"}
+									{plan.planData.preferences.travelers}
+									{plan.planData.preferences.travelers === 1
+										? "person"
+										: "people"}
 								</p>
 							</div>
 						{/if}
@@ -399,24 +448,39 @@ $: if (planId) {
 				</CardHeader>
 				<CardContent class="space-y-3">
 					<div class="flex justify-between items-center">
-						<span class="text-sm text-muted-foreground">Plan ID</span>
-						<code class="text-xs bg-muted px-2 py-1 rounded">{plan.planId}</code>
+						<span class="text-sm text-muted-foreground"
+							>Plan ID</span
+						>
+						<code class="text-xs bg-muted px-2 py-1 rounded"
+							>{plan.planId}</code
+						>
 					</div>
 					<Separator />
 					<div class="flex justify-between items-center">
-						<span class="text-sm text-muted-foreground">Guest ID</span>
-						<code class="text-xs bg-muted px-2 py-1 rounded">{plan.guestId}</code>
+						<span class="text-sm text-muted-foreground"
+							>Guest ID</span
+						>
+						<code class="text-xs bg-muted px-2 py-1 rounded"
+							>{plan.guestId}</code
+						>
 					</div>
 					<Separator />
 					<div class="flex justify-between items-center">
-						<span class="text-sm text-muted-foreground">Created</span>
-						<span class="text-sm">{formatDate(plan.createdAt)}</span>
+						<span class="text-sm text-muted-foreground"
+							>Created</span
+						>
+						<span class="text-sm">{formatDate(plan.createdAt)}</span
+						>
 					</div>
 					{#if plan.updatedAt !== plan.createdAt}
 						<Separator />
 						<div class="flex justify-between items-center">
-							<span class="text-sm text-muted-foreground">Last Updated</span>
-							<span class="text-sm">{formatDate(plan.updatedAt)}</span>
+							<span class="text-sm text-muted-foreground"
+								>Last Updated</span
+							>
+							<span class="text-sm"
+								>{formatDate(plan.updatedAt)}</span
+							>
 						</div>
 					{/if}
 				</CardContent>
@@ -442,7 +506,10 @@ $: if (planId) {
 		{:else}
 			<div class="space-y-4">
 				{#each plans as planItem}
-					<Card class="hover:shadow-md transition-shadow cursor-pointer" onclick={() => viewPlan(planItem.planId)}>
+					<Card
+						class="hover:shadow-md transition-shadow cursor-pointer"
+						onclick={() => viewPlan(planItem.planId)}
+					>
 						<CardHeader>
 							<div class="flex items-start justify-between">
 								<div class="space-y-1">
@@ -461,30 +528,48 @@ $: if (planId) {
 							</div>
 						</CardHeader>
 						<CardContent>
-							<div class="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+							<div
+								class="grid gap-3 md:grid-cols-2 lg:grid-cols-4"
+							>
 								{#if planItem.planData.formData?.region}
-									<div class="flex items-center gap-2 text-sm text-muted-foreground">
+									<div
+										class="flex items-center gap-2 text-sm text-muted-foreground"
+									>
 										<MapPin class="w-4 h-4" />
 										{planItem.planData.formData.region}
 									</div>
 								{/if}
 
 								{#if planItem.planData.formData?.startDate && planItem.planData.formData?.endDate}
-									<div class="flex items-center gap-2 text-sm text-muted-foreground">
+									<div
+										class="flex items-center gap-2 text-sm text-muted-foreground"
+									>
 										<CalendarDays class="w-4 h-4" />
-										{formatDate(planItem.planData.formData.startDate)} - {formatDate(planItem.planData.formData.endDate)}
+										{formatDate(
+											planItem.planData.formData
+												.startDate,
+										)} - {formatDate(
+											planItem.planData.formData.endDate,
+										)}
 									</div>
 								{/if}
 
 								{#if planItem.planData.formData?.travelers}
-									<div class="flex items-center gap-2 text-sm text-muted-foreground">
+									<div
+										class="flex items-center gap-2 text-sm text-muted-foreground"
+									>
 										<Users class="w-4 h-4" />
-										{planItem.planData.formData.travelers} 
-										{planItem.planData.formData.travelers === 1 ? "person" : "people"}
+										{planItem.planData.formData.travelers}
+										{planItem.planData.formData
+											.travelers === 1
+											? "person"
+											: "people"}
 									</div>
 								{/if}
 
-								<div class="flex items-center gap-2 text-sm text-muted-foreground">
+								<div
+									class="flex items-center gap-2 text-sm text-muted-foreground"
+								>
 									<Clock class="w-4 h-4" />
 									{formatDate(planItem.updatedAt)}
 								</div>
