@@ -38,6 +38,7 @@
 	},
 	"dependencies": {
 		"@bts/core": "workspace:*",
+		"@bts/infra": "workspace:*",
 		"marked": "^16.3.0",
 		"sst": "3.17.14",
 		"svelte-kit-sst": "2.43.5"

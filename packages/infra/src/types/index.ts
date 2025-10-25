@@ -20,3 +20,6 @@ export interface GoogleGenAIConfig {
 	modelId?: string;
 	maxImageSize?: number;
 }
+
+// Export plan types
+export * from "./plan.js";

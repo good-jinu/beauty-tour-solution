@@ -1,11 +1,18 @@
 <script lang="ts">
 import "../app.css";
+import { onMount } from "svelte";
 import favicon from "$lib/assets/favicon.ico";
 import ThemeProvider from "$lib/components/ThemeProvider.svelte";
 import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 import { Toaster } from "$lib/components/ui/sonner";
+import { guestStore } from "$lib/stores/guest";
 
 let { children } = $props();
+
+// Initialize guest ID when the app mounts
+onMount(() => {
+	guestStore.initialize();
+});
 </script>
 
 <svelte:head>

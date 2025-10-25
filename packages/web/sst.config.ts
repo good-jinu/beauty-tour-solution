@@ -10,7 +10,19 @@ export default $config({
 		};
 	},
 	async run() {
-		// SvelteKit 앱 배포 (Bedrock 권한 포함)
+		// DynamoDB table for storing user plans
+		const plansTable = new sst.aws.Dynamo("BeautyTourPlans", {
+			fields: {
+				guestId: "string",
+				planId: "string",
+			},
+			primaryIndex: {
+				hashKey: "guestId",
+				rangeKey: "planId",
+			},
+		});
+
+		// SvelteKit
 		const web = new sst.aws.SvelteKit("BeautyTourSolution", {
 			domain: {
 				name: process.env.WEB_DOMAIN ?? "",
@@ -19,6 +31,7 @@ export default $config({
 			environment: {
 				APP_AWS_REGION: process.env.APP_AWS_REGION ?? "us-east-1",
 			},
+			link: [plansTable],
 			permissions: [
 				{
 					actions: [
@@ -27,6 +40,11 @@ export default $config({
 						"bedrock-agentcore:*",
 						"s3:PutObject",
 						"s3:GetObject",
+						"dynamodb:PutItem",
+						"dynamodb:GetItem",
+						"dynamodb:Query",
+						"dynamodb:UpdateItem",
+						"dynamodb:DeleteItem",
 					],
 					resources: ["*"],
 				},
@@ -38,6 +56,7 @@ export default $config({
 
 		return {
 			url: web.url,
+			plansTable: plansTable.name,
 		};
 	},
 });
