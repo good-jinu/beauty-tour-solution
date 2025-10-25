@@ -19,6 +19,7 @@ import {
 	transformToDynamoItem,
 	validatePlanDataForStorage,
 } from "../utils/dynamodb-transforms.js";
+import { logger } from "../utils/logger.js";
 import { getCurrentTimestamp } from "../utils/timestamp.js";
 
 export interface DynamoDBConfig {
@@ -39,8 +40,10 @@ export class DynamoDBPlanService {
 			// Try to import SST Resource dynamically
 			const { Resource } = require("sst");
 			sstTableName = Resource?.BeautyTourPlans?.name;
-		} catch {
+			logger.debug("SST Resource loaded", { tableName: sstTableName });
+		} catch (error) {
 			// SST not available in development/testing
+			logger.debug("SST Resource not available, using fallback configuration");
 		}
 
 		this.tableName =
@@ -50,10 +53,23 @@ export class DynamoDBPlanService {
 			"BeautyTourPlans";
 
 		if (!this.tableName) {
-			throw new Error(
-				"DynamoDB table name is required. Set PLANS_TABLE_NAME environment variable or provide tableName in config.",
-			);
+			const errorMessage =
+				"DynamoDB table name is required. Set PLANS_TABLE_NAME environment variable or provide tableName in config.";
+			logger.error(errorMessage);
+			throw new Error(errorMessage);
 		}
+
+		logger.info("Initializing DynamoDB service", {
+			region,
+			tableName: this.tableName,
+			configSource: config.tableName
+				? "config"
+				: sstTableName
+					? "sst"
+					: process.env.PLANS_TABLE_NAME
+						? "env"
+						: "default",
+		});
 
 		const dynamoClient = new DynamoDBClient({ region });
 		this.client = DynamoDBDocumentClient.from(dynamoClient);
@@ -63,8 +79,17 @@ export class DynamoDBPlanService {
 	 * Save a plan to DynamoDB
 	 */
 	async savePlan(request: SavePlanRequest): Promise<SavedPlan> {
+		const startTime = Date.now();
+
 		try {
+			logger.info("Starting DynamoDB plan save operation", {
+				guestId: request.guestId,
+				tableName: this.tableName,
+				hasTitle: !!request.title,
+			});
+
 			// Validate and sanitize plan data
+			logger.debug("Validating plan data for storage");
 			const validatedPlanData = validatePlanDataForStorage(request.planData);
 
 			const planId = this.generatePlanId();
@@ -79,7 +104,14 @@ export class DynamoDBPlanService {
 				updatedAt: now,
 			};
 
+			logger.debug("Created saved plan object", {
+				planId,
+				guestId: request.guestId,
+				timestamp: now,
+			});
+
 			// Transform to DynamoDB item
+			logger.debug("Transforming to DynamoDB item format");
 			const dynamoItem = transformToDynamoItem(savedPlan);
 
 			const command = new PutCommand({
@@ -90,19 +122,101 @@ export class DynamoDBPlanService {
 					"attribute_not_exists(guestId) AND attribute_not_exists(planId)",
 			});
 
+			logger.debug("Sending put command to DynamoDB", {
+				tableName: this.tableName,
+				itemSize: JSON.stringify(dynamoItem).length,
+			});
+
 			await this.client.send(command);
+
+			const processingTime = Date.now() - startTime;
+			logger.info("Plan saved successfully to DynamoDB", {
+				planId,
+				guestId: request.guestId,
+				processingTime: `${processingTime}ms`,
+			});
 
 			return savedPlan;
 		} catch (error: any) {
-			console.error("Failed to save plan to DynamoDB:", error);
+			const processingTime = Date.now() - startTime;
+			logger.error("Failed to save plan to DynamoDB", error, {
+				guestId: request.guestId,
+				tableName: this.tableName,
+				processingTime: `${processingTime}ms`,
+				errorName: error?.name,
+				errorCode: error?.code,
+			});
 
+			// Handle specific DynamoDB errors with detailed logging
 			if (error?.name === "ConditionalCheckFailedException") {
+				logger.warn("Plan ID conflict detected - plan already exists");
 				throw new Error("Plan with this ID already exists");
 			}
 
-			throw new Error(
-				`Failed to save plan: ${error?.message || "Unknown error"}`,
-			);
+			if (error?.name === "ResourceNotFoundException") {
+				logger.error("DynamoDB table not found", undefined, {
+					tableName: this.tableName,
+				});
+				throw new Error(`DynamoDB table '${this.tableName}' not found`);
+			}
+
+			if (
+				error?.name === "AccessDeniedException" ||
+				error?.name === "UnauthorizedOperation"
+			) {
+				logger.error("Access denied to DynamoDB table", undefined, {
+					tableName: this.tableName,
+					operation: "PutItem",
+				});
+				throw new Error("Access denied to DynamoDB table");
+			}
+
+			if (error?.name === "ValidationException") {
+				logger.error("DynamoDB validation error", error, {
+					tableName: this.tableName,
+					validationMessage: error.message,
+				});
+				throw new Error(`DynamoDB validation error: ${error.message}`);
+			}
+
+			if (error?.name === "ProvisionedThroughputExceededException") {
+				logger.warn("DynamoDB throughput exceeded", {
+					tableName: this.tableName,
+				});
+				throw new Error("Database is temporarily overloaded. Please try again");
+			}
+
+			if (error?.name === "ServiceUnavailableException") {
+				logger.error("DynamoDB service unavailable");
+				throw new Error("Database service is temporarily unavailable");
+			}
+
+			if (error?.name === "ThrottlingException") {
+				logger.warn("DynamoDB request throttled", {
+					tableName: this.tableName,
+				});
+				throw new Error("Too many requests. Please try again in a moment");
+			}
+
+			// Network/timeout errors
+			if (error?.code === "ENOTFOUND" || error?.code === "ECONNREFUSED") {
+				logger.error("Network connectivity error to DynamoDB", error);
+				throw new Error("Unable to connect to database");
+			}
+
+			if (error?.code === "ETIMEDOUT" || error?.name === "TimeoutError") {
+				logger.error("DynamoDB request timeout", error);
+				throw new Error("Database request timed out");
+			}
+
+			// Generic error with more context
+			const errorMessage = error?.message || "Unknown error";
+			logger.error("Unhandled DynamoDB error", error, {
+				errorType: error?.name || "Unknown",
+				errorCode: error?.code || "Unknown",
+			});
+
+			throw new Error(`Failed to save plan to database: ${errorMessage}`);
 		}
 	}
 
