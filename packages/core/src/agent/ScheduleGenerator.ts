@@ -19,8 +19,8 @@ export class ScheduleGenerator {
 		try {
 			const result = await this.agentService.queryAgentForSchedule(prompt);
 
-			// Parse the structured JSON response
-			const parsedResult = this.parseAgentResponse(result);
+			// Parse the structured JSON response and add business logic calculations
+			const parsedResult = this.parseAgentResponse(result, request);
 
 			return {
 				success: true,
@@ -42,134 +42,136 @@ export class ScheduleGenerator {
 		const duration = this.calculateDuration(request.startDate, request.endDate);
 		const solutionType = request.solutionType || "topranking";
 
-		return `You are a professional beauty and medical tourism consultant. Generate a detailed, structured beauty journey schedule based on the following information:
+		return `Create a beauty tourism schedule for ${request.region}.
 
-**Request Details:**
-- Destination: ${request.region}
-- Travel Dates: ${request.startDate} to ${request.endDate} (${duration} days)
-- Treatment Themes: ${request.selectedThemes.join(", ")}
+TRIP DETAILS:
+- Dates: ${request.startDate} to ${request.endDate} (${duration} days)
+- Themes: ${request.selectedThemes.join(", ")}
 - Budget: $${request.budget} USD
 - Solution Type: ${solutionType}
-- Number of Travelers: ${request.travelers || 1}
+- Travelers: ${request.travelers || 1}
 ${request.moreRequests ? `- Special Requests: ${request.moreRequests}` : ""}
 
-**IMPORTANT: You must respond with ONLY a valid JSON object in the following structure:**
-
-{
-  "schedule": [
-    {
-      "date": "2024-01-15",
-      "dayNumber": 1,
-      "activities": [
-        {
-          "time": "09:00",
-          "activity": "Initial Consultation",
-          "location": "Seoul Beauty Clinic",
-          "duration": "2h",
-          "cost": 200,
-          "description": "Comprehensive skin analysis and treatment planning",
-          "category": "consultation"
-        }
-      ],
-      "totalCost": 200,
-      "notes": "Arrival day - light schedule for jet lag recovery"
-    }
-  ],
-
-  "costBreakdown": {
-    "treatments": 3500,
-    "accommodation": 900,
-    "transportation": 200,
-    "activities": 300,
-    "total": 4900,
-    "budgetUtilization": 0.82
-  },
-  "summary": {
-    "totalDays": 5,
-    "totalActivities": 12,
-    "totalThemes": 2,
-    "estimatedCost": 4900
-  }
-}
-
-**Guidelines for generating the schedule:**
-
-1. **Solution Type Considerations:**
-   - topranking: Focus on highest-rated clinics, standard pricing
-   - premium: Luxury clinics and services, 1.5x cost multiplier
-   - budget: Cost-effective options, 0.6x cost multiplier
-
-2. **Activity Categories:**
-   - consultation: Initial assessments, planning sessions
-   - treatment: Main procedures and treatments
-   - recovery: Rest periods, wound care, follow-ups
-   - wellness: Spa treatments, relaxation activities
-   - transport: Travel between locations
-
-3. **Scheduling Logic:**
-   - Day 1: Arrival, consultation, light activities
-   - Middle days: Main treatments with recovery time
-   - Final day: Follow-up, departure preparation
-   - Balance treatment intensity with recovery needs
-
-4. **Cost Calculation:**
-   - Ensure total stays within budget (±10%)
-   - Include realistic pricing for the region
-   - Factor in solution type multipliers
-
-5. **Theme-Specific Activities:**
-   - skincare: Facials, peels, LED therapy, consultations
-   - plastic-surgery: Consultations, procedures, recovery care
-   - wellness-spa: Massages, aromatherapy, meditation
-   - dental: Cleanings, whitening, consultations
-   - hair-transplant: Analysis, procedures, aftercare
-
-Respond with ONLY the JSON object, no additional text or formatting.`;
+FOCUS ON:
+- Generate activities with individual costs only
+- Don't calculate totals or summaries
+- Day 1: consultations, Day 2+: treatments, Final day: follow-ups
+- Categories: consultation, treatment, recovery, wellness, transport
+- Include specific locations and detailed descriptions
+- Use realistic individual activity costs for ${request.region}`;
 	}
 
 	private parseAgentResponse(
 		response: GenerateScheduleResponse | string,
+		request: GenerateScheduleRequest,
 	): Partial<GenerateScheduleResponse> {
 		try {
 			if (typeof response !== "string") {
 				return response;
 			}
 
-			// Handle string response - clean and parse JSON
+			// Clean and parse JSON response
 			let cleanResponse = response.trim();
 
-			// Remove any markdown code blocks if present
+			// Remove markdown code blocks
 			cleanResponse = cleanResponse
 				.replace(/```json\n?/g, "")
 				.replace(/```\n?/g, "");
 
-			// Find the JSON object in the response
+			// Extract JSON object
 			const jsonStart = cleanResponse.indexOf("{");
 			const jsonEnd = cleanResponse.lastIndexOf("}") + 1;
 
 			if (jsonStart === -1 || jsonEnd === 0) {
-				throw new Error("No JSON object found in response");
+				throw new Error("No JSON found in response");
 			}
 
 			const jsonString = cleanResponse.substring(jsonStart, jsonEnd);
 			const parsed = JSON.parse(jsonString);
 
-			// Validate the structure
+			// Basic validation
 			if (!parsed.schedule || !Array.isArray(parsed.schedule)) {
-				throw new Error("Invalid schedule structure in response");
+				throw new Error("Invalid schedule structure");
 			}
 
-			return parsed;
+			// Ensure all required fields exist
+			parsed.schedule.forEach((day: any) => {
+				if (!day.activities) day.activities = [];
+				if (!day.notes) day.notes = "";
+				day.activities.forEach((activity: any) => {
+					if (!activity.description) activity.description = "";
+				});
+			});
+
+			// Add business logic calculations here (moved from Python)
+			return this.addBusinessLogicCalculations(parsed, request);
 		} catch (error) {
 			console.error("Failed to parse agent response:", error);
-			console.error("Raw response:", response);
-
-			// Return a fallback structure
 			return this.createFallbackSchedule();
 		}
 	}
 
+	private addBusinessLogicCalculations(
+		parsed: any,
+		request: GenerateScheduleRequest,
+	): Partial<GenerateScheduleResponse> {
+		// Calculate totals in business logic, not LLM
+		let totalCost = 0;
+		let totalActivities = 0;
+
+		// Calculate day totals
+		parsed.schedule.forEach((day: any) => {
+			const dayCost = day.activities.reduce(
+				(sum: number, activity: any) => sum + (activity.cost || 0),
+				0,
+			);
+			day.totalCost = dayCost;
+			totalCost += dayCost;
+			totalActivities += day.activities.length;
+		});
+
+		// Apply solution type multiplier
+		const solutionType = request.solutionType || "topranking";
+		const costMultiplier =
+			solutionType === "premium" ? 1.5 : solutionType === "budget" ? 0.6 : 1.0;
+		totalCost = Math.round(totalCost * costMultiplier);
+
+		// Update day costs with multiplier
+		parsed.schedule.forEach((day: any) => {
+			day.totalCost = Math.round(day.totalCost * costMultiplier);
+		});
+
+		// Calculate cost breakdown
+		parsed.costBreakdown = {
+			treatments: Math.round(totalCost * 0.7),
+			accommodation: Math.round(totalCost * 0.2),
+			transportation: Math.round(totalCost * 0.05),
+			activities: Math.round(totalCost * 0.05),
+			total: totalCost,
+			budgetUtilization: Math.min(1.0, totalCost / request.budget),
+		};
+
+		// Calculate summary
+		const uniqueCategories = new Set();
+		parsed.schedule.forEach((day: any) => {
+			day.activities.forEach((activity: any) => {
+				uniqueCategories.add(activity.category);
+			});
+		});
+
+		parsed.summary = {
+			totalDays: parsed.schedule.length,
+			totalActivities,
+			totalThemes: uniqueCategories.size,
+			estimatedCost: totalCost,
+		};
+
+		return parsed;
+	}
+
 	private createFallbackSchedule(): Partial<GenerateScheduleResponse> {
+		const totalCost = 200;
+
 		return {
 			schedule: [
 				{
@@ -186,24 +188,24 @@ Respond with ONLY the JSON object, no additional text or formatting.`;
 							category: "consultation" as const,
 						},
 					],
-					totalCost: 200,
+					totalCost: totalCost,
 					notes: "Schedule generation failed - showing fallback data",
 				},
 			],
 
 			costBreakdown: {
-				treatments: 200,
-				accommodation: 0,
-				transportation: 0,
-				activities: 0,
-				total: 200,
-				budgetUtilization: 0.1,
+				treatments: Math.round(totalCost * 0.7),
+				accommodation: Math.round(totalCost * 0.2),
+				transportation: Math.round(totalCost * 0.05),
+				activities: Math.round(totalCost * 0.05),
+				total: totalCost,
+				budgetUtilization: 0.04,
 			},
 			summary: {
 				totalDays: 1,
 				totalActivities: 1,
 				totalThemes: 1,
-				estimatedCost: 200,
+				estimatedCost: totalCost,
 			},
 		};
 	}

@@ -13,29 +13,22 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "$lib/components/ui/tabs";
-import type { StepperFormData } from "$lib/types";
+import type {
+	ScheduleSolutionsProps,
+	SolutionConfig,
+	SolutionType,
+} from "$lib/types";
+import { getSolutionMetadata, SolutionCostUtils } from "$lib/types";
 import ScheduleContents from "./ScheduleContents.svelte";
 
-interface Props {
-	formData: StepperFormData;
-}
-
-let { formData }: Props = $props();
+let { formData }: ScheduleSolutionsProps = $props();
 
 // Calculate estimated costs for each solution type
-function calculateSolutionCost(
-	solutionType: "topranking" | "premium" | "budget",
-): number {
-	const baseCost = formData.budget * 0.8; // Use 80% of budget as base
-	const multipliers = {
-		budget: 0.6,
-		topranking: 1.0,
-		premium: 1.5,
-	};
-	return Math.round(baseCost * multipliers[solutionType]);
+function calculateSolutionCost(solutionType: SolutionType): number {
+	return SolutionCostUtils.calculateSolutionCost(solutionType, formData.budget);
 }
 
-const solutions = [
+const solutions: SolutionConfig[] = [
 	{
 		id: "topranking",
 		name: "Top Ranking",
@@ -84,7 +77,7 @@ const solutions = [
 		estimatedCost: calculateSolutionCost("premium"),
 		costLabel: "Premium Service",
 	},
-] as const;
+];
 </script>
 
 <div class="space-y-6">
@@ -100,12 +93,17 @@ const solutions = [
 		<TabsList class="grid w-full grid-cols-3 mb-6">
 			{#each solutions as solution, index}
 				{@const IconComponent = solution.icon}
-				<TabsTrigger value={solution.id} class="flex flex-col items-center gap-1 py-3 h-auto">
+				<TabsTrigger
+					value={solution.id}
+					class="flex flex-col items-center gap-1 py-3 h-auto"
+				>
 					<div>Solution {index + 1}</div>
 					<div class="flex items-center gap-2">
 						<IconComponent class="w-4 h-4" />
 						<span class="hidden sm:inline">{solution.name}</span>
-						<span class="sm:hidden">{solution.name.split(' ')[0]}</span>
+						<span class="sm:hidden"
+							>{solution.name.split(" ")[0]}</span
+						>
 					</div>
 					<div class="text-xs font-semibold {solution.color}">
 						${solution.estimatedCost.toLocaleString()}
@@ -118,25 +116,27 @@ const solutions = [
 			{@const IconComponent = solution.icon}
 			<TabsContent value={solution.id} class="space-y-6">
 				<!-- Solution Overview Card -->
-				<Card class="border-2 {solution.id === 'topranking' ? 'border-primary' : 'border-border'}">
+				{@const metadata = getSolutionMetadata(solution.id)}
+				<Card class="border-2 {metadata.borderClass}">
 					<CardHeader>
 						<div class="flex items-start justify-between">
 							<div class="flex items-center gap-3">
-								<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-									<IconComponent class="w-6 h-6 {solution.color}" />
+								<div
+									class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center"
+								>
+									<IconComponent
+										class="w-6 h-6 {solution.color}"
+									/>
 								</div>
 								<div class="flex-1">
 									<CardTitle class="flex items-center gap-2">
 										{solution.name}
-										{#if solution.id === "topranking"}
-											<Badge variant="default" class="text-xs">
-												{solution.highlight}
-											</Badge>
-										{:else}
-											<Badge variant="secondary" class="text-xs">
-												{solution.highlight}
-											</Badge>
-										{/if}
+										<Badge
+											variant={metadata.badgeVariant}
+											class="text-xs"
+										>
+											{solution.highlight}
+										</Badge>
 									</CardTitle>
 									<p class="text-muted-foreground mt-1">
 										{solution.description}
@@ -145,14 +145,19 @@ const solutions = [
 							</div>
 							<!-- Cost Information -->
 							<div class="text-right">
-								<div class="text-2xl font-bold {solution.color}">
+								<div
+									class="text-2xl font-bold {solution.color}"
+								>
 									${solution.estimatedCost.toLocaleString()}
 								</div>
 								<div class="text-xs text-muted-foreground">
 									{solution.costLabel}
 								</div>
 								<div class="text-xs text-muted-foreground mt-1">
-									{Math.round((solution.estimatedCost / formData.budget) * 100)}% of budget
+									{SolutionCostUtils.calculateBudgetPercentage(
+										solution.estimatedCost,
+										formData.budget,
+									)}% of budget
 								</div>
 							</div>
 						</div>
@@ -161,43 +166,51 @@ const solutions = [
 						<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
 							{#each solution.features as feature}
 								<div class="flex items-center gap-2 text-sm">
-									<div class="w-2 h-2 rounded-full bg-primary"></div>
+									<div
+										class="w-2 h-2 rounded-full bg-primary"
+									></div>
 									<span>{feature}</span>
 								</div>
 							{/each}
 						</div>
-						
+
 						<!-- Cost Breakdown Bar -->
 						<div class="bg-muted/30 rounded-lg p-3">
 							<div class="flex justify-between items-center mb-2">
-								<span class="text-sm font-medium">Estimated Total Cost</span>
+								<span class="text-sm font-medium"
+									>Estimated Total Cost</span
+								>
 								<span class="text-sm text-muted-foreground">
-									${solution.estimatedCost.toLocaleString()} / ${formData.budget.toLocaleString()}
+									${solution.estimatedCost.toLocaleString()} /
+									${formData.budget.toLocaleString()}
 								</span>
 							</div>
 							<div class="w-full bg-muted rounded-full h-2">
 								<div
-									class="h-2 rounded-full transition-all duration-500 {
-										solution.id === 'budget' ? 'bg-green-500' :
-										solution.id === 'premium' ? 'bg-purple-500' :
-										'bg-primary'
-									}"
-									style="width: {Math.min(100, (solution.estimatedCost / formData.budget) * 100)}%"
+									class="h-2 rounded-full transition-all duration-500 {metadata.progressBarClass}"
+									style="width: {Math.min(
+										100,
+										SolutionCostUtils.calculateBudgetPercentage(
+											solution.estimatedCost,
+											formData.budget,
+										),
+									)}%"
 								></div>
 							</div>
-							{#if solution.id === 'budget'}
-								<div class="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
-									Save ${(calculateSolutionCost("topranking") - solution.estimatedCost).toLocaleString()}
-								</div>
-							{:else if solution.id === 'premium'}
-								<div class="text-xs text-purple-600 dark:text-purple-400 mt-1 font-medium">
-									+${(solution.estimatedCost - calculateSolutionCost("topranking")).toLocaleString()} for premium experience
-								</div>
-							{:else}
-								<div class="text-xs text-muted-foreground mt-1">
-									Balanced cost and quality
-								</div>
-							{/if}
+							<div
+								class="text-xs mt-1 font-medium {solution.id ===
+								'budget'
+									? 'text-green-600 dark:text-green-400'
+									: solution.id === 'premium'
+										? 'text-purple-600 dark:text-purple-400'
+										: 'text-muted-foreground'}"
+							>
+								{SolutionCostUtils.getCostComparisonText(
+									solution.id,
+									solution.estimatedCost,
+									calculateSolutionCost("topranking"),
+								)}
+							</div>
 						</div>
 					</CardContent>
 				</Card>

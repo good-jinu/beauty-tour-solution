@@ -4,7 +4,7 @@ export interface ScheduleActivity {
 	location: string;
 	duration: string;
 	cost: number;
-	description?: string;
+	description: string;
 	category:
 		| "treatment"
 		| "consultation"
@@ -18,7 +18,7 @@ export interface ScheduleDay {
 	dayNumber: number;
 	activities: ScheduleActivity[];
 	totalCost: number;
-	notes?: string;
+	notes: string;
 }
 
 export interface GenerateScheduleRequest {

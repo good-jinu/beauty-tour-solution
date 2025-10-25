@@ -100,7 +100,7 @@ export function validate(
 						   {isOverLimit ? 'border-red-500 focus:ring-red-500' : ''}"
 					placeholder="I want Kpop idol style like Blackpink Rose hair and makeup. Blonde straight hair and bright skin."
 					value={$stepperState.formData.moreRequests || ""}
-					on:input={handleTextareaInput}
+					oninput={handleTextareaInput}
 					maxlength="1000"
 				></textarea>
 
@@ -118,7 +118,7 @@ export function validate(
 				{#if characterCount > 0}
 					<button
 						type="button"
-						on:click={handleClearText}
+						onclick={handleClearText}
 						class="absolute top-8 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
 							   transition-colors duration-200"
 						aria-label="Clear text"

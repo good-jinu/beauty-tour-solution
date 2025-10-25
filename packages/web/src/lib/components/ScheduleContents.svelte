@@ -20,14 +20,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "$lib/components/ui/card";
-import type { StepperFormData } from "$lib/types";
+import type { ScheduleContentsProps } from "$lib/types";
 
-interface Props {
-	formData: StepperFormData;
-	solutionType?: "topranking" | "premium" | "budget";
-}
-
-let { formData, solutionType = "topranking" }: Props = $props();
+let { formData, solutionType = "topranking" }: ScheduleContentsProps = $props();
 
 // State management
 let isLoading = $state(true);
@@ -298,25 +293,21 @@ function getActivityIconComponent(category: string) {
 											<MapPin class="w-4 h-4" />
 											{activity.location}
 										</p>
-										{#if activity.description}
-											<p
-												class="text-sm text-muted-foreground mt-1"
-											>
-												{activity.description}
-											</p>
-										{/if}
+										<p
+											class="text-sm text-muted-foreground mt-1"
+										>
+											{activity.description}
+										</p>
 									</div>
 								</div>
 							{/each}
 						</div>
-						{#if day.notes}
-							<div class="mt-4 p-3 bg-muted/50 rounded-lg">
-								<p class="text-sm text-muted-foreground">
-									<strong>Note:</strong>
-									{day.notes}
-								</p>
-							</div>
-						{/if}
+						<div class="mt-4 p-3 bg-muted/50 rounded-lg">
+							<p class="text-sm text-muted-foreground">
+								<strong>Note:</strong>
+								{day.notes}
+							</p>
+						</div>
 					</CardContent>
 				</Card>
 			{/each}
