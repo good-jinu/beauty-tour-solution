@@ -31,7 +31,7 @@ let { formData = $bindable(), errors, isLoading, onSubmit }: Props = $props();
                 <h2
                     class="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3"
                 >
-                    Let's Plan Your Journey
+                    Let's Plan Your Tour
                 </h2>
                 <p
                     class="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto"
@@ -135,7 +135,7 @@ let { formData = $bindable(), errors, isLoading, onSubmit }: Props = $props();
                                     class="text-xs sm:text-sm text-muted-foreground"
                                 >
                                     Choose what to include in your beauty
-                                    journey
+                                    tour
                                 </p>
                             </div>
                         </div>
@@ -204,9 +204,9 @@ let { formData = $bindable(), errors, isLoading, onSubmit }: Props = $props();
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                         ></path>
                                     </svg>
-                                    Creating Your Beauty Journey...
+                                    Creating Your Beauty Tour...
                                 {:else}
-                                    Get My Beauty Journey Recommendations
+                                    Get My Beauty Tour Recommendations
                                 {/if}
                             </Button>
                             <p

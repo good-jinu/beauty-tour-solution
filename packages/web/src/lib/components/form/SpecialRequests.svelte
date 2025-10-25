@@ -21,7 +21,7 @@ let { specialRequests = $bindable() }: Props = $props();
     <textarea
         id="special-requests"
         bind:value={specialRequests}
-        placeholder="Tell us about medical conditions, allergies, recovery preferences, dietary restrictions, specific treatment goals, or anything else we should know for your beauty journey..."
+        placeholder="Tell us about medical conditions, allergies, recovery preferences, dietary restrictions, specific treatment goals, or anything else we should know for your beauty tour..."
         class="w-full min-h-[120px] p-4 border rounded-xl bg-background text-sm resize-y focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         rows="5"
     ></textarea>

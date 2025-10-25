@@ -8,7 +8,7 @@
                     <span
                         class="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent"
                     >
-                        Your Beauty Journey
+                        Your Beauty Tour
                     </span>
                     <br class="hidden sm:block" />
                     <span class="text-foreground">Starts Here</span>

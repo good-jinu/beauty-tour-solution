@@ -47,6 +47,22 @@ onMount(() => {
 
 				<!-- Navigation and Theme Toggle -->
 				<div class="flex items-center space-x-4">
+					<!-- Navigation Links -->
+					<nav class="hidden sm:flex items-center space-x-4">
+						<a 
+							href="/" 
+							class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+						>
+							Create Plan
+						</a>
+						<a 
+							href="/plans" 
+							class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+						>
+							My Plans
+						</a>
+					</nav>
+					
 					<!-- Theme Toggle -->
 					<ThemeToggle />
 				</div>

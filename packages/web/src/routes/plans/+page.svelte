@@ -1,0 +1,498 @@
+<script lang="ts">
+import type { SavedPlan } from "@bts/core";
+import {
+	ArrowLeft,
+	CalendarDays,
+	Camera,
+	Clock,
+	DollarSign,
+	Heart,
+	Hotel,
+	MapPin,
+	Plane,
+	Star,
+	Users,
+	Utensils,
+} from "@lucide/svelte";
+import { onMount } from "svelte";
+import { toast } from "svelte-sonner";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { Badge } from "$lib/components/ui/badge";
+import { Button } from "$lib/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "$lib/components/ui/card";
+import { Separator } from "$lib/components/ui/separator";
+import { Skeleton } from "$lib/components/ui/skeleton";
+import { guestStore } from "$lib/stores/guest";
+
+let plans: SavedPlan[] = [];
+let plan: SavedPlan | null = null;
+let loading = true;
+let error: string | null = null;
+
+$: planId = $page.url.searchParams.get("planId");
+$: showDetails = !!planId;
+
+async function loadPlans() {
+	const guestId = guestStore.getCurrent();
+	if (!guestId) {
+		error = "Guest ID not found. Please refresh the page.";
+		loading = false;
+		return;
+	}
+
+	try {
+		loading = true;
+		error = null;
+
+		const response = await fetch(
+			`/api/plans?guestId=${encodeURIComponent(guestId)}`,
+		);
+		const result = await response.json();
+
+		if (result.success) {
+			plans = result.data || [];
+		} else {
+			error = result.error?.message || "Failed to load plans";
+			toast.error("Failed to load plans", {
+				description: error || "Unknown error occurred",
+			});
+		}
+	} catch (err) {
+		error = "Network error occurred while loading plans";
+		toast.error("Network Error", {
+			description: "Failed to connect to the server",
+		});
+	} finally {
+		loading = false;
+	}
+}
+
+async function loadPlan() {
+	const guestId = guestStore.getCurrent();
+	if (!guestId) {
+		error = "Guest ID not found. Please refresh the page.";
+		loading = false;
+		return;
+	}
+
+	if (!planId) {
+		error = "Plan ID not found.";
+		loading = false;
+		return;
+	}
+
+	try {
+		loading = true;
+		error = null;
+
+		const response = await fetch(
+			`/api/plans/${encodeURIComponent(planId)}?guestId=${encodeURIComponent(guestId)}`,
+		);
+		const result = await response.json();
+
+		if (result.success) {
+			plan = result.data;
+		} else {
+			error = result.error?.message || "Failed to load plan";
+			toast.error("Failed to load plan", {
+				description: error || "Unknown error occurred",
+			});
+		}
+	} catch (err) {
+		error = "Network error occurred while loading plan";
+		toast.error("Network Error", {
+			description: "Failed to connect to the server",
+		});
+	} finally {
+		loading = false;
+	}
+}
+
+function formatDate(dateString: string): string {
+	return new Date(dateString).toLocaleDateString("en-US", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
+}
+
+function formatCurrency(amount: number): string {
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+	}).format(amount);
+}
+
+function goBack() {
+	goto("/plans");
+}
+
+function viewPlan(planId: string) {
+	goto(`/plans?planId=${encodeURIComponent(planId)}`);
+}
+
+function getThemeIcon(theme: string | null | undefined) {
+	if (!theme) return Hotel;
+	switch (theme.toLowerCase()) {
+		case "adventure":
+			return Plane;
+		case "relaxation":
+			return Heart;
+		case "cultural":
+			return Camera;
+		case "culinary":
+			return Utensils;
+		case "luxury":
+			return Star;
+		default:
+			return Hotel;
+	}
+}
+
+onMount(() => {
+	if (showDetails) {
+		loadPlan();
+	} else {
+		loadPlans();
+	}
+});
+
+// Reactive statement to handle URL changes
+$: if (planId) {
+	loadPlan();
+} else if (!loading) {
+	loadPlans();
+}
+</script>
+
+<svelte:head>
+	<title>{showDetails ? (plan?.title || "Plan Details") : "My Plans"} - Beauty Tour Solution</title>
+	<meta name="description" content={showDetails ? "View detailed information about your travel plan" : "View and manage your saved travel plans"} />
+</svelte:head>
+
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+	{#if showDetails}
+		<!-- Back Button -->
+		<Button variant="ghost" onclick={goBack} class="mb-6">
+			<ArrowLeft class="w-4 h-4 mr-2" />
+			Back to Plans
+		</Button>
+	{:else}
+		<!-- Header for Plans List -->
+		<div class="space-y-2 mb-6">
+			<h1 class="text-3xl font-bold tracking-tight">My Plans</h1>
+			<p class="text-muted-foreground">
+				View and manage your saved travel plans
+			</p>
+		</div>
+	{/if}
+
+	{#if loading}
+		<!-- Loading State -->
+		{#if showDetails}
+			<div class="space-y-6">
+				<div class="space-y-2">
+					<Skeleton class="h-8 w-3/4" />
+					<Skeleton class="h-4 w-1/2" />
+				</div>
+				
+				<Card>
+					<CardHeader>
+						<Skeleton class="h-6 w-1/3" />
+					</CardHeader>
+					<CardContent class="space-y-4">
+						<Skeleton class="h-4 w-full" />
+						<Skeleton class="h-4 w-3/4" />
+						<Skeleton class="h-4 w-1/2" />
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader>
+						<Skeleton class="h-6 w-1/4" />
+					</CardHeader>
+					<CardContent class="space-y-4">
+						<Skeleton class="h-4 w-full" />
+						<Skeleton class="h-4 w-2/3" />
+					</CardContent>
+				</Card>
+			</div>
+		{:else}
+			<div class="space-y-4">
+				{#each Array(3) as _}
+					<Card>
+						<CardHeader>
+							<Skeleton class="h-6 w-1/2" />
+							<Skeleton class="h-4 w-1/3" />
+						</CardHeader>
+						<CardContent>
+							<div class="space-y-2">
+								<Skeleton class="h-4 w-full" />
+								<Skeleton class="h-4 w-3/4" />
+							</div>
+						</CardContent>
+					</Card>
+				{/each}
+			</div>
+		{/if}
+	{:else if error}
+		<!-- Error State -->
+		<Card class="max-w-md mx-auto">
+			<CardHeader>
+				<CardTitle class="text-destructive">
+					{showDetails ? "Error Loading Plan" : "Error Loading Plans"}
+				</CardTitle>
+				<CardDescription>{error}</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<Button onclick={showDetails ? loadPlan : loadPlans} variant="outline" class="w-full">
+					Try Again
+				</Button>
+			</CardContent>
+		</Card>
+	{:else if showDetails && plan}
+		<!-- Plan Details -->
+		<div class="space-y-6">
+			<!-- Header -->
+			<div class="space-y-2">
+				<div class="flex items-start justify-between">
+					<h1 class="text-3xl font-bold tracking-tight">
+						{plan.title || "Untitled Plan"}
+					</h1>
+					{#if plan.planData.formData?.theme}
+						{@const ThemeIcon = getThemeIcon(plan.planData.formData.theme)}
+						<Badge variant="secondary" class="flex items-center gap-1">
+							<ThemeIcon class="w-3 h-3" />
+							{plan.planData.formData.theme}
+						</Badge>
+					{/if}
+				</div>
+				<p class="text-muted-foreground">
+					Created on {formatDate(plan.createdAt)}
+					{#if plan.updatedAt !== plan.createdAt}
+						• Updated on {formatDate(plan.updatedAt)}
+					{/if}
+				</p>
+			</div>
+
+			<!-- Basic Information -->
+			<Card>
+				<CardHeader>
+					<CardTitle class="flex items-center gap-2">
+						<MapPin class="w-5 h-5" />
+						Trip Overview
+					</CardTitle>
+				</CardHeader>
+				<CardContent class="space-y-4">
+					<div class="grid gap-4 md:grid-cols-2">
+						{#if plan.planData.formData?.region}
+							<div class="flex items-center gap-3">
+								<MapPin class="w-4 h-4 text-muted-foreground" />
+								<div>
+									<p class="font-medium">Destination</p>
+									<p class="text-sm text-muted-foreground">{plan.planData.formData.region}</p>
+								</div>
+							</div>
+						{/if}
+
+						{#if plan.planData.formData?.startDate && plan.planData.formData?.endDate}
+							<div class="flex items-center gap-3">
+								<CalendarDays class="w-4 h-4 text-muted-foreground" />
+								<div>
+									<p class="font-medium">Travel Dates</p>
+									<p class="text-sm text-muted-foreground">
+										{formatDate(plan.planData.formData.startDate)} - 
+										{formatDate(plan.planData.formData.endDate)}
+									</p>
+								</div>
+							</div>
+						{/if}
+
+						{#if plan.planData.formData?.travelers}
+							<div class="flex items-center gap-3">
+								<Users class="w-4 h-4 text-muted-foreground" />
+								<div>
+									<p class="font-medium">Travelers</p>
+									<p class="text-sm text-muted-foreground">
+										{plan.planData.formData.travelers} 
+										{plan.planData.formData.travelers === 1 ? "person" : "people"}
+									</p>
+								</div>
+							</div>
+						{/if}
+
+						{#if plan.planData.formData?.budget}
+							<div class="flex items-center gap-3">
+								<DollarSign class="w-4 h-4 text-muted-foreground" />
+								<div>
+									<p class="font-medium">Budget</p>
+									<p class="text-sm text-muted-foreground">{formatCurrency(plan.planData.formData.budget)}</p>
+								</div>
+							</div>
+						{/if}
+					</div>
+				</CardContent>
+			</Card>
+
+			<!-- Preferences -->
+			{#if plan.planData.preferences}
+				<Card>
+					<CardHeader>
+						<CardTitle class="flex items-center gap-2">
+							<Heart class="w-5 h-5" />
+							Preferences
+						</CardTitle>
+					</CardHeader>
+					<CardContent class="space-y-4">
+						{#if plan.planData.preferences.inclusions && plan.planData.preferences.inclusions.length > 0}
+							<div>
+								<p class="font-medium mb-2">Inclusions</p>
+								<div class="flex flex-wrap gap-2">
+									{#each plan.planData.preferences.inclusions as inclusion}
+										<Badge variant="outline">{inclusion}</Badge>
+									{/each}
+								</div>
+							</div>
+						{/if}
+
+						{#if plan.planData.preferences.region && plan.planData.preferences.region !== plan.planData.formData?.region}
+							<div>
+								<p class="font-medium">Preferred Region</p>
+								<p class="text-sm text-muted-foreground">{plan.planData.preferences.region}</p>
+							</div>
+						{/if}
+
+						{#if plan.planData.preferences.budget && plan.planData.preferences.budget !== plan.planData.formData?.budget}
+							<div>
+								<p class="font-medium">Preferred Budget</p>
+								<p class="text-sm text-muted-foreground">{formatCurrency(plan.planData.preferences.budget)}</p>
+							</div>
+						{/if}
+
+						{#if plan.planData.preferences.travelers && plan.planData.preferences.travelers !== plan.planData.formData?.travelers}
+							<div>
+								<p class="font-medium">Preferred Travelers</p>
+								<p class="text-sm text-muted-foreground">
+									{plan.planData.preferences.travelers} 
+									{plan.planData.preferences.travelers === 1 ? "person" : "people"}
+								</p>
+							</div>
+						{/if}
+					</CardContent>
+				</Card>
+			{/if}
+
+			<!-- Plan Metadata -->
+			<Card>
+				<CardHeader>
+					<CardTitle class="flex items-center gap-2">
+						<Clock class="w-5 h-5" />
+						Plan Information
+					</CardTitle>
+				</CardHeader>
+				<CardContent class="space-y-3">
+					<div class="flex justify-between items-center">
+						<span class="text-sm text-muted-foreground">Plan ID</span>
+						<code class="text-xs bg-muted px-2 py-1 rounded">{plan.planId}</code>
+					</div>
+					<Separator />
+					<div class="flex justify-between items-center">
+						<span class="text-sm text-muted-foreground">Guest ID</span>
+						<code class="text-xs bg-muted px-2 py-1 rounded">{plan.guestId}</code>
+					</div>
+					<Separator />
+					<div class="flex justify-between items-center">
+						<span class="text-sm text-muted-foreground">Created</span>
+						<span class="text-sm">{formatDate(plan.createdAt)}</span>
+					</div>
+					{#if plan.updatedAt !== plan.createdAt}
+						<Separator />
+						<div class="flex justify-between items-center">
+							<span class="text-sm text-muted-foreground">Last Updated</span>
+							<span class="text-sm">{formatDate(plan.updatedAt)}</span>
+						</div>
+					{/if}
+				</CardContent>
+			</Card>
+		</div>
+	{:else if !showDetails}
+		<!-- Plans List -->
+		{#if plans.length === 0}
+			<!-- Empty State -->
+			<Card class="max-w-md mx-auto text-center">
+				<CardHeader>
+					<CardTitle>No Plans Found</CardTitle>
+					<CardDescription>
+						You haven't created any travel plans yet.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<Button onclick={() => goto("/")} class="w-full">
+						Create Your First Plan
+					</Button>
+				</CardContent>
+			</Card>
+		{:else}
+			<div class="space-y-4">
+				{#each plans as planItem}
+					<Card class="hover:shadow-md transition-shadow cursor-pointer" onclick={() => viewPlan(planItem.planId)}>
+						<CardHeader>
+							<div class="flex items-start justify-between">
+								<div class="space-y-1">
+									<CardTitle class="text-xl">
+										{planItem.title || "Untitled Plan"}
+									</CardTitle>
+									<CardDescription>
+										Created {formatDate(planItem.createdAt)}
+									</CardDescription>
+								</div>
+								{#if planItem.planData.formData?.theme}
+									<Badge variant="secondary">
+										{planItem.planData.formData.theme}
+									</Badge>
+								{/if}
+							</div>
+						</CardHeader>
+						<CardContent>
+							<div class="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+								{#if planItem.planData.formData?.region}
+									<div class="flex items-center gap-2 text-sm text-muted-foreground">
+										<MapPin class="w-4 h-4" />
+										{planItem.planData.formData.region}
+									</div>
+								{/if}
+
+								{#if planItem.planData.formData?.startDate && planItem.planData.formData?.endDate}
+									<div class="flex items-center gap-2 text-sm text-muted-foreground">
+										<CalendarDays class="w-4 h-4" />
+										{formatDate(planItem.planData.formData.startDate)} - {formatDate(planItem.planData.formData.endDate)}
+									</div>
+								{/if}
+
+								{#if planItem.planData.formData?.travelers}
+									<div class="flex items-center gap-2 text-sm text-muted-foreground">
+										<Users class="w-4 h-4" />
+										{planItem.planData.formData.travelers} 
+										{planItem.planData.formData.travelers === 1 ? "person" : "people"}
+									</div>
+								{/if}
+
+								<div class="flex items-center gap-2 text-sm text-muted-foreground">
+									<Clock class="w-4 h-4" />
+									{formatDate(planItem.updatedAt)}
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				{/each}
+			</div>
+		{/if}
+	{/if}
+</div>

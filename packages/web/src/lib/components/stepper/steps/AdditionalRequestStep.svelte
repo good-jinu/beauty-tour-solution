@@ -107,7 +107,7 @@ export function validate(
 				<!-- Character Counter -->
 				<div class="flex justify-between items-center mt-2">
 					<div class="text-xs text-gray-500 dark:text-gray-400">
-						This information helps us personalize your beauty journey
+						This information helps us personalize your beauty tour
 					</div>
 					<div class="text-xs {isOverLimit ? 'text-red-500' : isNearLimit ? 'text-yellow-500' : 'text-gray-500'}">
 						{characterCount}/1000 characters

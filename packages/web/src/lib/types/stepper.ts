@@ -455,8 +455,8 @@ export const StepTypeGuards = {
 	},
 };
 
-// Import the FormData type from beauty-journey for conversion utilities
-import type { FormData } from "./beauty-journey";
+// Import the FormData type from beauty-tour for conversion utilities
+import type { FormData } from "./beauty-tour";
 
 // Utility functions for data conversion
 export const StepperUtils = {

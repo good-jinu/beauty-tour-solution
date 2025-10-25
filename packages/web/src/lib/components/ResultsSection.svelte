@@ -103,7 +103,7 @@ async function handleSavePlan() {
 		const requestBody: SavePlanApiRequest = {
 			guestId,
 			planData,
-			title: `Beauty Journey - ${new Date().toLocaleDateString()}`,
+			title: `Beauty Tour - ${new Date().toLocaleDateString()}`,
 		};
 
 		// Call save API with timeout
@@ -238,7 +238,7 @@ function retrySave() {
             >
                 <div class="text-center sm:text-left">
                     <h2 class="text-3xl sm:text-4xl font-bold mb-2">
-                        Your Beauty Journey Schedule
+                        Your Beauty Tour Schedule
                     </h2>
                     <p class="text-muted-foreground">
                         Detailed schedule based on your preferences
@@ -314,7 +314,7 @@ function retrySave() {
                         <span class="text-sm font-medium text-green-800">Plan Saved Successfully!</span>
                     </div>
                     <p class="text-sm text-green-700">
-                        Your beauty journey plan has been saved and can be accessed later.
+                        Your beauty tour plan has been saved and can be accessed later.
                     </p>
                 </div>
             {/if}

@@ -56,7 +56,7 @@ Ensure your AWS credentials have sufficient permissions to create and manage the
 
 ## Project layout (high level)
 
-- `packages/web` — SvelteKit frontend and serverless routes. This is the primary web application. The `routes/api/generate-journey` endpoint contains server logic to generate travel plans.
+- `packages/web` — SvelteKit frontend and serverless routes. This is the primary web application. The `routes/api/generate-tour` endpoint contains server logic to generate travel plans.
 - `mise.toml` — mise configuration (tool versions and tasks used to run/install/dev/deploy)
 
 Explore `packages/web/src` for the frontend, components, and backend route handlers.

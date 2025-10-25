@@ -152,7 +152,7 @@ function getActivityIconComponent(category: string) {
 			<LoaderCircle class="w-8 h-8 animate-spin text-primary" />
 			<div class="text-center">
 				<h3 class="text-lg font-semibold">
-					Generating Your Beauty Journey
+					Generating Your Beauty Tour
 				</h3>
 				<p class="text-muted-foreground">
 					Our AI is creating a personalized schedule just for you...
@@ -181,7 +181,7 @@ function getActivityIconComponent(category: string) {
 		<!-- Schedule Header -->
 		<div class="text-center mb-8">
 			<h2 class="text-3xl font-bold mb-2">
-				Your Beauty Journey Schedule
+				Your Beauty Tour Schedule
 			</h2>
 			<p class="text-muted-foreground">
 				{summary.totalDays} day{summary.totalDays > 1 ? "s" : ""} of personalized

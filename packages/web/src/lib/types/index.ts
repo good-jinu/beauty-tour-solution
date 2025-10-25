@@ -1,5 +1,5 @@
 export * from "./api";
-export * from "./beauty-journey";
+export * from "./beauty-tour";
 export * from "./schedule-solutions";
 export * from "./stepper";
 export * from "./theme";

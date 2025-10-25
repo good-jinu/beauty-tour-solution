@@ -1,6 +1,6 @@
 # ScheduleSolutions Component
 
-The `ScheduleSolutions` component provides users with multiple schedule options (solutions) for their beauty journey. It displays 3 different schedule candidates: Top Ranking, Budget, and Premium solutions.
+The `ScheduleSolutions` component provides users with multiple schedule options (solutions) for their beauty tour. It displays 3 different schedule candidates: Top Ranking, Budget, and Premium solutions.
 
 ## Features
 

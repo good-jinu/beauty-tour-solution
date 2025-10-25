@@ -6,14 +6,14 @@ export interface Region {
 	city: string;
 }
 
-export interface JourneyTheme {
+export interface TourTheme {
 	value: string;
 	label: string;
 	description: string;
 	icon: string;
 }
 
-// Journey planning form data
+// Tour planning form data
 export interface FormData {
 	selectedRegion: string;
 	startDate: string;
@@ -119,7 +119,7 @@ export const REGIONS: Region[] = [
 	},
 ];
 
-export const JOURNEY_THEMES: JourneyTheme[] = [
+export const JOURNEY_THEMES: TourTheme[] = [
 	{
 		value: "plastic-surgery",
 		label: "Plastic Surgery",

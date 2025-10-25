@@ -9,8 +9,8 @@ import Button from "$lib/components/ui/button/button.svelte";
 import type { StepperFormData } from "$lib/types";
 
 // Application flow state
-type AppFlow = "journey-planning" | "results";
-let currentFlow: AppFlow = $state("journey-planning");
+type AppFlow = "tour-planning" | "results";
+let currentFlow: AppFlow = $state("tour-planning");
 
 // Stepper state
 let isLoading = $state(false);
@@ -69,12 +69,12 @@ function resetForm() {
 	showResults = false;
 	currentFormData = null;
 
-	// Reset to journey planning flow
-	currentFlow = "journey-planning";
+	// Reset to tour planning flow
+	currentFlow = "tour-planning";
 
 	// Scroll back to the top of the form
 	setTimeout(() => {
-		document.getElementById("journey-planning-section")?.scrollIntoView({
+		document.getElementById("tour-planning-section")?.scrollIntoView({
 			behavior: "smooth",
 			block: "start",
 		});
@@ -83,10 +83,10 @@ function resetForm() {
 </script>
 
 <svelte:head>
-	<title>Plan Your Beauty Journey - Beauty Tour Solution</title>
+	<title>Plan Your Beauty Tour - Beauty Tour Solution</title>
 	<meta
 		name="description"
-		content="Create your perfect beauty and wellness journey with our AI-powered journey planner"
+		content="Create your perfect beauty and wellness tour with our AI-powered tour planner"
 	/>
 </svelte:head>
 
@@ -94,9 +94,9 @@ function resetForm() {
 <div
 	class="min-h-screen bg-gradient-to-b from-muted/20 via-background to-muted/10"
 >
-	<!-- Journey Planning Section -->
-	{#if currentFlow === "journey-planning"}
-		<div id="journey-planning-section" class="px-4 sm:px-6 lg:px-8">
+	<!-- Tour Planning Section -->
+	{#if currentFlow === "tour-planning"}
+		<div id="tour-planning-section" class="px-4 sm:px-6 lg:px-8">
 			<!-- Demo Button -->
 			<div class="text-center mb-8">
 				<Button
@@ -109,7 +109,7 @@ function resetForm() {
 					View Demo Schedule
 				</Button>
 				<p class="text-sm text-muted-foreground">
-					See a sample beauty journey schedule with skincare and
+					See a sample beauty tour schedule with skincare and
 					wellness treatments
 				</p>
 			</div>

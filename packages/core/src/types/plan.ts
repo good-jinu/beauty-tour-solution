@@ -1,4 +1,4 @@
-import type { GenerateJourneyRequest, GenerateScheduleResponse } from "./index";
+import type { GenerateScheduleResponse, GenerateTourRequest } from "./index";
 
 // Guest User Types
 export interface GuestUser {
@@ -9,7 +9,7 @@ export interface GuestUser {
 
 // Plan Data Types
 export interface PlanData {
-	formData: GenerateJourneyRequest;
+	formData: GenerateTourRequest;
 	schedule?: GenerateScheduleResponse;
 	preferences: {
 		region: string;

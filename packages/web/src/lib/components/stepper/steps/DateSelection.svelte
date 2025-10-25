@@ -159,7 +159,7 @@ export function validate(
     <div class="text-center space-y-2">
         <h2 class="text-2xl font-bold">Select Your Travel Dates</h2>
         <p class="text-muted-foreground">
-            Choose when you'd like to start and end your beauty journey
+            Choose when you'd like to start and end your beauty tour
         </p>
     </div>
 

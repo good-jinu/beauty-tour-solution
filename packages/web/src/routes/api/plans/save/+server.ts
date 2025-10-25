@@ -1,7 +1,5 @@
-import { PlanService } from "@bts/core";
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
-import { createDynamoDBPlanRepository } from "$lib/services/repositoryFactory";
 import {
 	createErrorResponse,
 	createSuccessResponse,
@@ -9,44 +7,15 @@ import {
 	type SavePlanApiRequest,
 	validateSavePlanRequest,
 } from "$lib/types/api";
-
-// Create plan service with DynamoDB repository using factory
-let planService: PlanService | null = null;
-
-async function getPlanService(): Promise<PlanService> {
-	if (!planService) {
-		const planRepository = await createDynamoDBPlanRepository();
-		planService = new PlanService(planRepository);
-	}
-	return planService;
-}
-
-// Simple API logger for web layer
-function logApiEvent(
-	level: "info" | "warn" | "error",
-	message: string,
-	context?: unknown,
-) {
-	const timestamp = new Date().toISOString();
-	const contextStr = context ? ` ${JSON.stringify(context)}` : "";
-	const logMessage = `[${timestamp}] [${level.toUpperCase()}] [API] ${message}${contextStr}`;
-
-	switch (level) {
-		case "info":
-			console.info(logMessage);
-			break;
-		case "warn":
-			console.warn(logMessage);
-			break;
-		case "error":
-			console.error(logMessage);
-			break;
-	}
-}
+import {
+	generateRequestId,
+	getPlanService,
+	logApiEvent,
+} from "$lib/utils/apiHelpers";
 
 export const POST: RequestHandler = async ({ request }) => {
 	const startTime = Date.now();
-	const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+	const requestId = generateRequestId();
 
 	try {
 		logApiEvent("info", "Starting plan save request", { requestId });

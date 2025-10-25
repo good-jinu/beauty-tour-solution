@@ -286,7 +286,7 @@ export function nextStep() {
 			toast.success(`Step ${$stepperState.currentStep - 1} completed!`);
 		} else {
 			// Final step completed
-			toast.success("All steps completed! Generating your beauty journey...");
+			toast.success("All steps completed! Generating your beauty tour...");
 			oncomplete?.($stepperState.formData);
 		}
 	} else {
@@ -434,7 +434,7 @@ let globalWarning = $derived($stepperState.errors.global);
 <div
 	class="stepper-container"
 	role="region"
-	aria-label="Beauty Journey Planner"
+	aria-label="Beauty Tour Planner"
 	aria-live="polite"
 	aria-atomic="true"
 >

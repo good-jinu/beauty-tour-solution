@@ -8,13 +8,13 @@ class QueryType(Enum):
 # System prompts for different query types
 QUERY_TYPE_CLASSIFIER_PROMPT = """
 You are a query type classifier. Analyze the user's query and respond with ONLY one word:
-- "trip-planner" if the query is asking for structured beauty journey schedule generation, travel planning, or itinerary creation
+- "trip-planner" if the query is asking for structured beauty tour schedule generation, travel planning, or itinerary creation
 - "default" for all other queries (knowledge base questions, general information, storage requests)
 
 Trip-planner indicators:
-- Mentions "generate a detailed, structured beauty journey schedule"
+- Mentions "generate a detailed, structured beauty tour schedule"
 - Contains "respond with ONLY a valid JSON object"
-- Asks for "schedule generation" or "beauty journey schedule"
+- Asks for "schedule generation" or "beauty tour schedule"
 - Requests travel itinerary, treatment planning, or structured trip data
 - Contains destination, dates, themes, budget information for planning
 

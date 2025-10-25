@@ -23,7 +23,7 @@ export function validate(
 
 <script lang="ts">
     import { stepperState } from "$lib/stores/stepper.js";
-    import { JOURNEY_THEMES } from "$lib/types/beauty-journey.js";
+    import { JOURNEY_THEMES } from "$lib/types/beauty-tour.js";
     import ErrorDisplay from "../ErrorDisplay.svelte";
 
     function handleThemeToggle(themeValue: string) {
