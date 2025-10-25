@@ -1,20 +1,15 @@
 <script lang="ts">
 import { BadgeCheck, Info, Plus, Save, Share2 } from "@lucide/svelte";
-import { marked } from "marked";
 import ScheduleSolutions from "$lib/components/ScheduleSolutions.svelte";
 import Button from "$lib/components/ui/button/button.svelte";
 import type { StepperFormData } from "$lib/types";
 
 interface Props {
-	aiRecommendation: string;
 	formData: StepperFormData;
 	onReset: () => void;
 }
 
-let { aiRecommendation, formData, onReset }: Props = $props();
-
-// Tab state for switching between AI recommendation and schedule
-let activeTab: "recommendation" | "schedule" = $state("schedule");
+let { formData, onReset }: Props = $props();
 </script>
 
 <section
@@ -28,7 +23,7 @@ let activeTab: "recommendation" | "schedule" = $state("schedule");
                 class="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6"
             >
                 <BadgeCheck class="w-4 h-4" />
-                Recommendations Ready
+                Schedule Ready
             </div>
 
             <div
@@ -36,10 +31,10 @@ let activeTab: "recommendation" | "schedule" = $state("schedule");
             >
                 <div class="text-center sm:text-left">
                     <h2 class="text-3xl sm:text-4xl font-bold mb-2">
-                        Your Personalized Beauty Journey
+                        Your Beauty Journey Schedule
                     </h2>
                     <p class="text-muted-foreground">
-                        Tailored recommendations based on your preferences
+                        Detailed schedule based on your preferences
                     </p>
                 </div>
                 <Button
@@ -54,44 +49,12 @@ let activeTab: "recommendation" | "schedule" = $state("schedule");
             </div>
         </div>
 
-        <!-- Tab Navigation -->
-        <div class="flex justify-center mb-8">
-            <div class="bg-muted/50 p-1 rounded-lg inline-flex">
-                <button
-                    onclick={() => (activeTab = "schedule")}
-                    class="px-6 py-2 rounded-md text-sm font-medium transition-all {activeTab ===
-                    'schedule'
-                        ? 'bg-background shadow-sm text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'}"
-                >
-                    Schedule Solutions
-                </button>
-                <button
-                    onclick={() => (activeTab = "recommendation")}
-                    class="px-6 py-2 rounded-md text-sm font-medium transition-all {activeTab ===
-                    'recommendation'
-                        ? 'bg-background shadow-sm text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'}"
-                >
-                    AI Recommendation
-                </button>
-            </div>
-        </div>
-
         <!-- Results Content -->
         <div
             class="bg-card/60 backdrop-blur-sm border rounded-3xl shadow-xl overflow-hidden"
         >
             <div class="p-8 lg:p-12">
-                {#if activeTab === "schedule"}
-                    <ScheduleSolutions {formData} />
-                {:else}
-                    <div
-                        class="prose prose-slate max-w-none dark:prose-invert prose-lg"
-                    >
-                        {@html marked(aiRecommendation)}
-                    </div>
-                {/if}
+                <ScheduleSolutions {formData} />
             </div>
         </div>
 
@@ -108,10 +71,9 @@ let activeTab: "recommendation" | "schedule" = $state("schedule");
                     >
                 </div>
                 <p class="text-sm text-muted-foreground leading-relaxed">
-                    This is an AI-generated recommendation based on your
-                    preferences. Please consult with qualified medical
-                    professionals and conduct thorough research before making
-                    any medical tourism decisions.
+                    This schedule is generated based on your preferences. 
+                    Please consult with qualified medical professionals and 
+                    conduct thorough research before making any medical tourism decisions.
                 </p>
             </div>
 
@@ -130,22 +92,4 @@ let activeTab: "recommendation" | "schedule" = $state("schedule");
     </div>
 </section>
 
-<style>
-    :global(.prose) {
-        line-height: 1.8;
-    }
 
-    :global(.prose h1),
-    :global(.prose h2),
-    :global(.prose h3) {
-        scroll-margin-top: 2rem;
-    }
-
-    :global(.prose p) {
-        margin-bottom: 1.25rem;
-    }
-
-    :global(.prose strong) {
-        font-weight: 600;
-    }
-</style>

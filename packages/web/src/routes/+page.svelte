@@ -1,8 +1,4 @@
 <script lang="ts">
-import type {
-	GenerateJourneyRequest,
-	GenerateJourneyResponse,
-} from "@bts/core";
 import { Eye } from "@lucide/svelte";
 import ResultsSection from "$lib/components/ResultsSection.svelte";
 import {
@@ -11,7 +7,6 @@ import {
 } from "$lib/components/stepper";
 import Button from "$lib/components/ui/button/button.svelte";
 import type { StepperFormData } from "$lib/types";
-import { StepperUtils } from "$lib/types";
 
 // Application flow state
 type AppFlow = "journey-planning" | "results";
@@ -20,8 +15,7 @@ let currentFlow: AppFlow = $state("journey-planning");
 // Stepper state
 let isLoading = $state(false);
 
-// AI Response state
-let aiRecommendation = $state("");
+// Results state
 let showResults = $state(false);
 let currentFormData = $state<StepperFormData | null>(null);
 
@@ -40,8 +34,6 @@ function showDemo() {
 	};
 
 	currentFormData = demoFormData;
-	aiRecommendation =
-		"# Demo Beauty Journey Plan\n\nThis is a sample AI-generated recommendation for your beauty journey. The schedule view shows a detailed day-by-day breakdown of your treatments and activities.\n\n## Your Selected Themes\n- **Skincare**: Advanced facial treatments and skin rejuvenation\n- **Wellness & Spa**: Relaxation and holistic wellness treatments\n\n## What to Expect\nYour journey includes a perfect blend of medical-grade skincare treatments and luxurious spa experiences, all designed to help you achieve your beauty and wellness goals.";
 	currentFlow = "results";
 	showResults = true;
 
@@ -53,86 +45,28 @@ function showDemo() {
 	}, 100);
 }
 
-// Default add-ons for legacy API compatibility
-const defaultAddOns = {
-	includeFlights: true,
-	includeHotels: true,
-	includeActivities: true,
-	includeTransport: true,
-	travelers: 1,
-	specialRequests: "",
-};
-
 async function handleStepperComplete(stepperData: StepperFormData) {
 	isLoading = true;
 	showResults = false;
-	aiRecommendation = "";
 	currentFormData = stepperData;
 
-	// Convert stepper data to legacy API format
-	const legacyFormData = StepperUtils.stepperToLegacyFormData(
-		stepperData,
-		defaultAddOns,
-	);
+	// Simply show the schedule without API call
+	currentFlow = "results";
+	showResults = true;
+	isLoading = false;
 
-	const requestData: GenerateJourneyRequest = {
-		region: legacyFormData.selectedRegion || "South Korea - Seoul",
-		startDate: legacyFormData.startDate,
-		endDate: legacyFormData.endDate,
-		theme: legacyFormData.selectedTheme,
-		budget: legacyFormData.budget,
-		travelers: legacyFormData.travelers,
-		addOns: {
-			flights: legacyFormData.includeFlights,
-			hotels: legacyFormData.includeHotels,
-			activities: legacyFormData.includeActivities,
-			transport: legacyFormData.includeTransport,
-		},
-		specialRequests: legacyFormData.specialRequests,
-	};
-
-	try {
-		const response = await fetch("/api/generate-journey", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(requestData),
+	// Scroll to results
+	setTimeout(() => {
+		document.getElementById("results-section")?.scrollIntoView({
+			behavior: "smooth",
+			block: "start",
 		});
-
-		if (!response.ok) {
-			throw new Error("Failed to generate recommendations");
-		}
-
-		const data: GenerateJourneyResponse = await response.json();
-
-		if (data.success) {
-			aiRecommendation = data.recommendation ?? "";
-			currentFlow = "results";
-			showResults = true;
-
-			// Scroll to results
-			setTimeout(() => {
-				document.getElementById("results-section")?.scrollIntoView({
-					behavior: "smooth",
-					block: "start",
-				});
-			}, 100);
-		} else {
-			alert(`Error: ${data.error || "Unknown error occurred"}`);
-		}
-	} catch (error) {
-		console.error("Error:", error);
-		alert("Failed to generate recommendations. Please try again.");
-	} finally {
-		isLoading = false;
-	}
+	}, 100);
 }
 
 function resetForm() {
 	// Reset results display
 	showResults = false;
-	aiRecommendation = "";
 	currentFormData = null;
 
 	// Reset to journey planning flow
@@ -165,7 +99,7 @@ function resetForm() {
 		<div id="journey-planning-section" class="px-4 sm:px-6 lg:px-8">
 			<!-- Demo Button -->
 			<div class="text-center mb-8">
-				<Button 
+				<Button
 					onclick={showDemo}
 					variant="outline"
 					size="lg"
@@ -175,10 +109,11 @@ function resetForm() {
 					View Demo Schedule
 				</Button>
 				<p class="text-sm text-muted-foreground">
-					See a sample beauty journey schedule with skincare and wellness treatments
+					See a sample beauty journey schedule with skincare and
+					wellness treatments
 				</p>
 			</div>
-			
+
 			<StepperContainer oncomplete={handleStepperComplete}>
 				{#snippet children({
 					stepperState,
@@ -217,9 +152,9 @@ function resetForm() {
 	{/if}
 
 	<!-- Results Section -->
-	{#if currentFlow === "results" && showResults && aiRecommendation && currentFormData}
+	{#if currentFlow === "results" && showResults && currentFormData}
 		<div id="results-section" class="px-4 sm:px-6 lg:px-8">
-			<ResultsSection {aiRecommendation} formData={currentFormData} onReset={resetForm} />
+			<ResultsSection formData={currentFormData} onReset={resetForm} />
 		</div>
 	{/if}
 </div>
