@@ -1,10 +1,12 @@
 <script lang="ts">
+import { EVENT_TYPES } from "@bts/core";
 import ResultsSection from "$lib/components/ResultsSection.svelte";
 import {
 	AccordionStepperWrapper,
 	StepperContainer,
 } from "$lib/components/stepper";
 import type { StepperFormData } from "$lib/types";
+import { trackCustomEvent } from "$lib/utils/tracking";
 
 // Application flow state
 type AppFlow = "tour-planning" | "results";
@@ -22,6 +24,17 @@ async function handleStepperComplete(stepperData: StepperFormData) {
 	showResults = false;
 	currentFormData = stepperData;
 
+	// Track form completion
+	try {
+		await trackCustomEvent(EVENT_TYPES.CLICK, {
+			element_tag: "form",
+			element_text: "tour_planning_completed",
+			element_class: "stepper-form",
+		});
+	} catch (error) {
+		console.warn("Failed to track form completion:", error);
+	}
+
 	// Simply show the schedule without API call
 	currentFlow = "results";
 	showResults = true;
@@ -37,6 +50,17 @@ async function handleStepperComplete(stepperData: StepperFormData) {
 }
 
 function resetForm() {
+	// Track form reset
+	try {
+		trackCustomEvent(EVENT_TYPES.CLICK, {
+			element_tag: "button",
+			element_text: "form_reset",
+			element_class: "reset-button",
+		});
+	} catch (error) {
+		console.warn("Failed to track form reset:", error);
+	}
+
 	// Reset results display
 	showResults = false;
 	currentFormData = null;

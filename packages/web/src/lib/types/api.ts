@@ -1,6 +1,6 @@
-// API Request and Response Types for Plan Persistence
+// API Request and Response Types for Plan Persistence and Event Tracking
 
-import type { ApiResponse, PlanData, SavedPlan } from "@bts/core";
+import type { ApiResponse, PlanData, SavedPlan, UserEvent } from "@bts/core";
 
 // API Request Types
 export interface SavePlanApiRequest {
@@ -13,9 +13,33 @@ export interface GetPlansApiRequest {
 	guestId: string;
 }
 
+// Event API Request Types
+export interface StoreEventApiRequest extends UserEvent {}
+
+export interface BatchStoreEventsApiRequest {
+	events: UserEvent[];
+}
+
 // API Response Types
 export type SavePlanApiResponse = ApiResponse<SavedPlan>;
 export type GetPlansApiResponse = ApiResponse<SavedPlan[]>;
+
+// Event API Response Types
+export interface EventApiSuccessData {
+	eventId: string;
+	timestamp: string;
+	message: string;
+}
+
+export interface BatchEventApiSuccessData {
+	successCount: number;
+	failureCount: number;
+	eventIds: string[];
+	message: string;
+}
+
+export type StoreEventApiResponse = ApiResponse<EventApiSuccessData>;
+export type BatchStoreEventsApiResponse = ApiResponse<BatchEventApiSuccessData>;
 
 // Runtime validation schemas for request validation
 export interface ValidationSchema<T> {
@@ -173,6 +197,173 @@ export const validateGetPlansRequest = (
 	};
 };
 
+// Event API validation functions
+export const validateStoreEventRequest = (
+	data: unknown,
+): { isValid: boolean; data?: StoreEventApiRequest; errors?: string[] } => {
+	const errors: string[] = [];
+
+	if (!data || typeof data !== "object") {
+		errors.push("Request body must be an object");
+		return { isValid: false, errors };
+	}
+
+	const request = data as Record<string, unknown>;
+
+	// Validate event_type
+	if (!request.event_type || typeof request.event_type !== "string") {
+		errors.push("event_type is required and must be a string");
+	} else {
+		const validEventTypes = ["page_visit", "click", "scroll"];
+		if (!validEventTypes.includes(request.event_type)) {
+			errors.push(`event_type must be one of: ${validEventTypes.join(", ")}`);
+		}
+	}
+
+	// Validate timestamp
+	if (!request.timestamp || typeof request.timestamp !== "string") {
+		errors.push("timestamp is required and must be a string");
+	} else {
+		const date = new Date(request.timestamp);
+		if (isNaN(date.getTime())) {
+			errors.push("timestamp must be a valid ISO 8601 date string");
+		}
+	}
+
+	// Validate page_url
+	if (!request.page_url || typeof request.page_url !== "string") {
+		errors.push("page_url is required and must be a string");
+	} else if (request.page_url.length > 2048) {
+		errors.push("page_url must not exceed 2048 characters");
+	}
+
+	// Validate optional fields
+	if (
+		request.user_agent !== undefined &&
+		(typeof request.user_agent !== "string" || request.user_agent.length > 500)
+	) {
+		errors.push("user_agent must be a string not exceeding 500 characters");
+	}
+
+	if (
+		request.viewport_width !== undefined &&
+		(typeof request.viewport_width !== "number" ||
+			request.viewport_width < 1 ||
+			request.viewport_width > 10000)
+	) {
+		errors.push("viewport_width must be a number between 1 and 10000");
+	}
+
+	if (
+		request.viewport_height !== undefined &&
+		(typeof request.viewport_height !== "number" ||
+			request.viewport_height < 1 ||
+			request.viewport_height > 10000)
+	) {
+		errors.push("viewport_height must be a number between 1 and 10000");
+	}
+
+	if (
+		request.element_tag !== undefined &&
+		(typeof request.element_tag !== "string" || request.element_tag.length > 50)
+	) {
+		errors.push("element_tag must be a string not exceeding 50 characters");
+	}
+
+	if (
+		request.element_class !== undefined &&
+		(typeof request.element_class !== "string" ||
+			request.element_class.length > 200)
+	) {
+		errors.push("element_class must be a string not exceeding 200 characters");
+	}
+
+	if (
+		request.element_id !== undefined &&
+		(typeof request.element_id !== "string" || request.element_id.length > 100)
+	) {
+		errors.push("element_id must be a string not exceeding 100 characters");
+	}
+
+	if (
+		request.element_text !== undefined &&
+		(typeof request.element_text !== "string" ||
+			request.element_text.length > 500)
+	) {
+		errors.push("element_text must be a string not exceeding 500 characters");
+	}
+
+	if (
+		request.scroll_percent !== undefined &&
+		(typeof request.scroll_percent !== "number" ||
+			request.scroll_percent < 0 ||
+			request.scroll_percent > 100)
+	) {
+		errors.push("scroll_percent must be a number between 0 and 100");
+	}
+
+	if (errors.length > 0) {
+		return { isValid: false, errors };
+	}
+
+	return {
+		isValid: true,
+		data: request as unknown as StoreEventApiRequest,
+	};
+};
+
+export const validateBatchStoreEventsRequest = (
+	data: unknown,
+): {
+	isValid: boolean;
+	data?: BatchStoreEventsApiRequest;
+	errors?: string[];
+} => {
+	const errors: string[] = [];
+
+	if (!data || typeof data !== "object") {
+		errors.push("Request body must be an object");
+		return { isValid: false, errors };
+	}
+
+	const request = data as Record<string, unknown>;
+
+	// Validate events array
+	if (!Array.isArray(request.events)) {
+		errors.push("events must be an array");
+		return { isValid: false, errors };
+	}
+
+	if (request.events.length === 0) {
+		errors.push("events array must not be empty");
+		return { isValid: false, errors };
+	}
+
+	if (request.events.length > 25) {
+		errors.push("events array must not exceed 25 items");
+		return { isValid: false, errors };
+	}
+
+	// Validate each event in the array
+	for (let i = 0; i < request.events.length; i++) {
+		const eventValidation = validateStoreEventRequest(request.events[i]);
+		if (!eventValidation.isValid) {
+			errors.push(`Event ${i}: ${eventValidation.errors?.join(", ")}`);
+		}
+	}
+
+	if (errors.length > 0) {
+		return { isValid: false, errors };
+	}
+
+	return {
+		isValid: true,
+		data: {
+			events: request.events as UserEvent[],
+		},
+	};
+};
+
 // Error response helpers
 export const createErrorResponse = (
 	code: string,
@@ -217,4 +408,12 @@ export const ERROR_CODES = {
 	FETCH_ERROR: "FETCH_ERROR",
 	TIMEOUT_ERROR: "TIMEOUT_ERROR",
 	PERMISSION_ERROR: "PERMISSION_ERROR",
+	// Event-specific error codes
+	EVENT_VALIDATION_ERROR: "EVENT_VALIDATION_ERROR",
+	EVENT_STORE_ERROR: "EVENT_STORE_ERROR",
+	BATCH_STORE_ERROR: "BATCH_STORE_ERROR",
+	RATE_LIMIT_ERROR: "RATE_LIMIT_ERROR",
+	CONFLICT_ERROR: "CONFLICT_ERROR",
+	DATABASE_ERROR: "DATABASE_ERROR",
+	INVALID_JSON_ERROR: "INVALID_JSON_ERROR",
 } as const;
