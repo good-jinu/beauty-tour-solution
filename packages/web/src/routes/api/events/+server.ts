@@ -47,9 +47,9 @@ function validateEventRequest(
 			typeof processedData === "object" &&
 			"page_url" in processedData
 		) {
-			const pageUrl = (processedData as any).page_url;
+			const pageUrl = processedData.page_url;
 			if (typeof pageUrl === "string") {
-				(processedData as any).page_url = sanitizeUrl(pageUrl);
+				processedData.page_url = sanitizeUrl(pageUrl);
 			}
 		}
 	}
@@ -103,7 +103,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			return json(
 				createErrorResponse(
 					ERROR_CODES.VALIDATION_ERROR,
-					sizeValidation.error!,
+					sizeValidation.error ?? "",
 					{ requestId },
 				),
 				{ status: 413 },
@@ -178,7 +178,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 		// Validate event data with sanitization
 		const validation = validateEventRequest(requestBody, config.sanitizeData);
-		if (!validation.isValid) {
+		if (!validation.isValid || !validation.data) {
 			logEventApiEvent("warn", "Event data validation failed", {
 				requestId,
 				errors: validation.errors,
@@ -193,7 +193,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			);
 		}
 
-		const eventData = validation.data!;
+		const eventData = validation.data;
 
 		logEventApiEvent("info", "Request validated successfully", {
 			requestId,
@@ -204,7 +204,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 		// Create event repository
 		const repositoryResult = await createDynamoDBEventRepository();
-		if (!repositoryResult.success) {
+		if (!repositoryResult.success || !repositoryResult.data) {
 			logEventApiEvent("error", "Failed to create event repository", {
 				requestId,
 				error: repositoryResult.error,
@@ -220,7 +220,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		}
 
 		// Create event service and store event
-		const eventService = new EventService(repositoryResult.data!);
+		const eventService = new EventService(repositoryResult.data);
 
 		logEventApiEvent("info", "Delegating to event service", { requestId });
 		const result = await eventService.storeEvent({
@@ -376,7 +376,7 @@ export const PUT: RequestHandler = async ({ request, cookies }) => {
 			return json(
 				createErrorResponse(
 					ERROR_CODES.VALIDATION_ERROR,
-					sizeValidation.error!,
+					sizeValidation.error ?? "",
 					{ requestId },
 				),
 				{ status: 413 },
@@ -511,7 +511,7 @@ export const PUT: RequestHandler = async ({ request, cookies }) => {
 		const validatedEvents: UserEvent[] = [];
 		for (let i = 0; i < events.length; i++) {
 			const validation = validateEventRequest(events[i], config.sanitizeData);
-			if (!validation.isValid) {
+			if (!validation.isValid || !validation.data) {
 				logEventApiEvent(
 					"warn",
 					`Event validation failed in batch at index ${i}`,
@@ -530,7 +530,7 @@ export const PUT: RequestHandler = async ({ request, cookies }) => {
 					{ status: 400 },
 				);
 			}
-			validatedEvents.push(validation.data!);
+			validatedEvents.push(validation.data);
 		}
 
 		logEventApiEvent("info", "Batch request validated successfully", {
@@ -541,7 +541,7 @@ export const PUT: RequestHandler = async ({ request, cookies }) => {
 
 		// Create event repository
 		const repositoryResult = await createDynamoDBEventRepository();
-		if (!repositoryResult.success) {
+		if (!repositoryResult.success || !repositoryResult.data) {
 			logEventApiEvent("error", "Failed to create event repository for batch", {
 				requestId,
 				error: repositoryResult.error,
@@ -557,7 +557,7 @@ export const PUT: RequestHandler = async ({ request, cookies }) => {
 		}
 
 		// Create event service and store events
-		const eventService = new EventService(repositoryResult.data!);
+		const eventService = new EventService(repositoryResult.data);
 
 		logEventApiEvent(
 			"info",

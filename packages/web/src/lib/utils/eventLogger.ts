@@ -416,37 +416,6 @@ export class EventLogger {
 	}
 
 	/**
-	 * Get meaningful text content from an element
-	 */
-	private getElementText(element: HTMLElement): string | undefined {
-		// For input elements, get the type or placeholder
-		if (element.tagName === "INPUT") {
-			const input = element as HTMLInputElement;
-			return input.type || input.placeholder || undefined;
-		}
-
-		// For buttons, get the text content
-		if (element.tagName === "BUTTON") {
-			const text = element.textContent?.trim();
-			return text && text.length > 0 && text.length <= 100 ? text : undefined;
-		}
-
-		// For links, get the text content
-		if (element.tagName === "A") {
-			const text = element.textContent?.trim();
-			return text && text.length > 0 && text.length <= 100 ? text : undefined;
-		}
-
-		// For other elements with meaningful text
-		const text = element.textContent?.trim();
-		if (text && text.length > 0 && text.length <= 50) {
-			return text;
-		}
-
-		return undefined;
-	}
-
-	/**
 	 * Add event to queue and trigger batch processing
 	 */
 	private async queueEvent(event: UserEvent): Promise<void> {

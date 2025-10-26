@@ -1,18 +1,7 @@
 import type { IEventRepository } from "../repositories";
-import type {
-	EVENT_TYPES,
-	EventValidationResult,
-	ServiceResult,
-	StoredEvent,
-	UserEvent,
-	ValidEventType,
-} from "../types";
+import type { StoredEvent, UserEvent } from "../types";
 import { EVENT_VALIDATION } from "../types";
-import {
-	isValidEventType,
-	validateStoredEvent,
-	validateUserEvent,
-} from "../types/event";
+import { validateStoredEvent, validateUserEvent } from "../types/event";
 import { logger } from "../utils/logger";
 
 /**
@@ -35,7 +24,7 @@ export interface StoreEventResponse {
 	error?: {
 		code: string;
 		message: string;
-		details?: any;
+		details?: Record<string, unknown> | string[] | string;
 	};
 }
 
@@ -60,7 +49,7 @@ export interface BatchStoreEventsResponse {
 	error?: {
 		code: string;
 		message: string;
-		details?: any;
+		details?: Record<string, unknown> | string[] | string;
 	};
 }
 

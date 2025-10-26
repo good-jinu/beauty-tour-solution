@@ -225,7 +225,7 @@ export const validateStoreEventRequest = (
 		errors.push("timestamp is required and must be a string");
 	} else {
 		const date = new Date(request.timestamp);
-		if (isNaN(date.getTime())) {
+		if (Number.isNaN(date.getTime())) {
 			errors.push("timestamp must be a valid ISO 8601 date string");
 		}
 	}

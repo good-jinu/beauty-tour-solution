@@ -72,7 +72,7 @@ export function trackClickAction(node: HTMLElement) {
  * Usage: <form use:trackFormSubmit>...</form>
  */
 export function trackFormSubmit(node: HTMLFormElement) {
-	const handleSubmit = (event: SubmitEvent) => {
+	const handleSubmit = (_event: SubmitEvent) => {
 		// Track form submission as a custom click event
 		trackCustomEvent(EVENT_TYPES.CLICK, {
 			element_tag: "form",

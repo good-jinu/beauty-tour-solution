@@ -119,11 +119,13 @@ export class DynamoDBEventRepository implements IEventRepository {
 				eventType: options?.eventType,
 			});
 
-			const queryParams: any = {
+			const expressionAttributeValues: Record<string, unknown> = {
+				":guestId": guestId,
+			};
+
+			const queryParams: Record<string, unknown> = {
 				KeyConditionExpression: "guest_id = :guestId",
-				ExpressionAttributeValues: {
-					":guestId": guestId,
-				},
+				ExpressionAttributeValues: expressionAttributeValues,
 				ScanIndexForward: false, // Sort by timestamp descending (newest first)
 			};
 
@@ -144,7 +146,7 @@ export class DynamoDBEventRepository implements IEventRepository {
 
 			if (options?.eventType) {
 				queryParams.FilterExpression = "event_type = :eventType";
-				queryParams.ExpressionAttributeValues[":eventType"] = options.eventType;
+				expressionAttributeValues[":eventType"] = options.eventType;
 			}
 
 			const results = await this.dynamoService.queryItems(queryParams);

@@ -72,7 +72,7 @@ export function sanitizeText(text: string): string {
 
 	// Truncate very long text to prevent data leakage
 	if (sanitized.length > 200) {
-		sanitized = sanitized.substring(0, 200) + "...";
+		sanitized = `${sanitized.substring(0, 200)}...`;
 	}
 
 	return sanitized.trim();
@@ -168,7 +168,7 @@ export function sanitizeElementData(element: HTMLElement): {
 		return {};
 	}
 
-	const data: any = {};
+	const data: Record<string, unknown> = {};
 
 	// Add tag name (always safe)
 	data.tag = element.tagName.toLowerCase();
@@ -250,13 +250,13 @@ export function sanitizeUserAgent(userAgent: string): string {
  * Sanitize event data object
  */
 export function sanitizeEventData(
-	data: Record<string, any>,
-): Record<string, any> {
+	data: Record<string, unknown>,
+): Record<string, unknown> {
 	if (!data || typeof data !== "object") {
 		return {};
 	}
 
-	const sanitized: Record<string, any> = {};
+	const sanitized: Record<string, unknown> = {};
 
 	for (const [key, value] of Object.entries(data)) {
 		// Skip sensitive keys
@@ -275,7 +275,9 @@ export function sanitizeEventData(
 			sanitized[key] = value;
 		} else if (value && typeof value === "object") {
 			// Recursively sanitize nested objects (with depth limit)
-			const nestedSanitized = sanitizeEventData(value);
+			const nestedSanitized = sanitizeEventData(
+				value as Record<string, unknown>,
+			);
 			if (Object.keys(nestedSanitized).length > 0) {
 				sanitized[key] = nestedSanitized;
 			}
