@@ -1,5 +1,6 @@
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
+import { validateGuestId } from "$lib/server/middleware/auth";
 import {
 	createErrorResponse,
 	createSuccessResponse,
@@ -11,7 +12,7 @@ import {
 	logApiEvent,
 } from "$lib/utils/apiHelpers";
 
-export const GET: RequestHandler = async ({ params, url }) => {
+export const GET: RequestHandler = async ({ params, cookies }) => {
 	const startTime = Date.now();
 	const requestId = generateRequestId();
 
@@ -24,8 +25,9 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		// Get planId from route parameters
 		const { planId } = params;
 
-		// Get guestId from query parameters for security
-		const guestId = url.searchParams.get("guestId");
+		// Get guestId from cookies using auth middleware
+		const authResult = validateGuestId(cookies);
+		const guestId = authResult.guestId;
 
 		if (!planId || typeof planId !== "string" || planId.trim() === "") {
 			logApiEvent("warn", "Plan ID missing from route parameters", {
@@ -40,23 +42,11 @@ export const GET: RequestHandler = async ({ params, url }) => {
 			);
 		}
 
-		if (!guestId || guestId.trim() === "") {
-			logApiEvent("warn", "Guest ID missing from query parameters", {
-				requestId,
-			});
-			return json(
-				createErrorResponse(
-					ERROR_CODES.GUEST_ID_REQUIRED,
-					"Guest ID is required as a query parameter",
-				),
-				{ status: 400 },
-			);
-		}
-
 		logApiEvent("info", "Request validated successfully", {
 			requestId,
 			planId,
 			guestId,
+			isNewGuest: authResult.isNewGuest,
 		});
 
 		// Call plan service to get all plans for the guest, then filter by planId

@@ -1,5 +1,6 @@
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
+import { validateGuestId } from "$lib/server/middleware/auth";
 import {
 	createErrorResponse,
 	createSuccessResponse,
@@ -11,32 +12,21 @@ import {
 	logApiEvent,
 } from "$lib/utils/apiHelpers";
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ cookies }) => {
 	const startTime = Date.now();
 	const requestId = generateRequestId();
 
 	try {
 		logApiEvent("info", "Starting get plans request", { requestId });
 
-		// Get guestId from query parameters
-		const guestId = url.searchParams.get("guestId");
-
-		if (!guestId || guestId.trim() === "") {
-			logApiEvent("warn", "Guest ID missing from query parameters", {
-				requestId,
-			});
-			return json(
-				createErrorResponse(
-					ERROR_CODES.GUEST_ID_REQUIRED,
-					"Guest ID is required as a query parameter",
-				),
-				{ status: 400 },
-			);
-		}
+		// Get guestId from cookies using auth middleware
+		const authResult = validateGuestId(cookies);
+		const guestId = authResult.guestId;
 
 		logApiEvent("info", "Request validated successfully", {
 			requestId,
 			guestId,
+			isNewGuest: authResult.isNewGuest,
 		});
 
 		// Call plan service to get plans

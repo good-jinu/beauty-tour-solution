@@ -42,20 +42,11 @@ $: planId = $page.url.searchParams.get("planId");
 $: showDetails = !!planId;
 
 async function loadPlans() {
-	const guestId = await guestStore.getCurrent();
-	if (!guestId) {
-		error = "Guest ID not found. Please refresh the page.";
-		loading = false;
-		return;
-	}
-
 	try {
 		loading = true;
 		error = null;
 
-		const response = await fetch(
-			`/api/plans?guestId=${encodeURIComponent(guestId)}`,
-		);
+		const response = await fetch("/api/plans");
 		const result = await response.json();
 
 		if (result.success) {
@@ -77,13 +68,6 @@ async function loadPlans() {
 }
 
 async function loadPlan() {
-	const guestId = await guestStore.getCurrent();
-	if (!guestId) {
-		error = "Guest ID not found. Please refresh the page.";
-		loading = false;
-		return;
-	}
-
 	if (!planId) {
 		error = "Plan ID not found.";
 		loading = false;
@@ -94,9 +78,7 @@ async function loadPlan() {
 		loading = true;
 		error = null;
 
-		const response = await fetch(
-			`/api/plans/${encodeURIComponent(planId)}?guestId=${encodeURIComponent(guestId)}`,
-		);
+		const response = await fetch(`/api/plans/${encodeURIComponent(planId)}`);
 		const result = await response.json();
 
 		if (result.success) {

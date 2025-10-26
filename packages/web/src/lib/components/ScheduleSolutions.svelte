@@ -24,7 +24,6 @@ import type {
 	SolutionType,
 } from "$lib/types";
 import { getSolutionMetadata, SolutionCostUtils } from "$lib/types";
-import { getOrCreateGuestId } from "$lib/utils/guest";
 import ScheduleContents from "./ScheduleContents.svelte";
 
 let { formData }: ScheduleSolutionsProps = $props();
@@ -59,9 +58,6 @@ async function generateSchedule(solutionType: SolutionType) {
 	scheduleStates[solutionType].error = null;
 
 	try {
-		// Get guest ID for automatic saving
-		const guestId = await getOrCreateGuestId();
-
 		const request: GenerateScheduleRequest = {
 			region: formData.selectedCountry || "south-korea",
 			startDate: formData.startDate,
@@ -71,7 +67,6 @@ async function generateSchedule(solutionType: SolutionType) {
 			travelers: 1,
 			solutionType,
 			moreRequests: formData.moreRequests,
-			guestId, // Include guest ID for automatic saving
 		};
 
 		const response = await fetch("/api/generate-schedule", {

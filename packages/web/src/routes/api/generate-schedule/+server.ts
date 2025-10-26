@@ -2,13 +2,18 @@ import type { GenerateScheduleRequest, PlanData } from "@bts/core";
 import { ScheduleGenerator } from "@bts/core";
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
+import { validateGuestId } from "$lib/server/middleware/auth";
 import { getPlanService } from "$lib/utils/apiHelpers";
 
 const scheduleGenerator = new ScheduleGenerator();
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, cookies }) => {
 	try {
 		const requestData: GenerateScheduleRequest = await request.json();
+
+		// Get guestId from cookies using auth middleware
+		const authResult = validateGuestId(cookies);
+		const guestId = authResult.guestId;
 
 		// Validate required fields
 		if (
@@ -32,8 +37,8 @@ export const POST: RequestHandler = async ({ request }) => {
 		const result = await scheduleGenerator.generateSchedule(requestData);
 
 		if (result.success) {
-			// If guestId is provided, automatically save the schedule
-			if (requestData.guestId && result.schedule) {
+			// Automatically save the schedule using guestId from cookies
+			if (guestId && result.schedule) {
 				try {
 					const planData: PlanData = {
 						formData: {
@@ -59,7 +64,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 					const planService = await getPlanService();
 					const saveResult = await planService.savePlan({
-						guestId: requestData.guestId,
+						guestId,
 						planData,
 						title,
 					});

@@ -42,11 +42,22 @@ export default $config({
 			ttl: "ttl",
 		});
 
+		// Router
+		const router = new sst.aws.Router(
+			process.env.WEB_DOMAIN?.replace(/\./g, "_") ?? "custom_com",
+			{
+				domain: {
+					name: process.env.ROOT_DOMAIN ?? "",
+					aliases: [process.env.WEB_DOMAIN ?? ""],
+				},
+			},
+		);
+
 		// SvelteKit
 		const web = new sst.aws.SvelteKit("BeautyTourSolution", {
-			domain: {
-				name: process.env.WEB_DOMAIN ?? "",
-				redirects: [`www.${process.env.WEB_DOMAIN ?? ""}`],
+			router: {
+				instance: router,
+				domain: process.env.WEB_DOMAIN ?? "",
 			},
 			environment: {
 				APP_AWS_REGION: process.env.APP_AWS_REGION ?? "us-east-1",
