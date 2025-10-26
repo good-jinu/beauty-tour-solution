@@ -1,7 +1,9 @@
 <script lang="ts">
 import type { SavedPlan } from "@bts/core";
 import {
+	Activity,
 	ArrowLeft,
+	Calendar,
 	CalendarDays,
 	Camera,
 	Clock,
@@ -153,6 +155,23 @@ function getThemeIcon(theme: string | null | undefined) {
 			return Star;
 		default:
 			return Hotel;
+	}
+}
+
+function getCategoryIcon(category: string) {
+	switch (category) {
+		case "treatment":
+			return Heart;
+		case "consultation":
+			return Users;
+		case "recovery":
+			return Hotel;
+		case "wellness":
+			return Star;
+		case "transport":
+			return Plane;
+		default:
+			return Activity;
 	}
 }
 
@@ -381,7 +400,7 @@ $: if (planId !== previousPlanId) {
 			</Card>
 
 			<!-- Preferences -->
-			{#if plan.planData.preferences}
+			{#if plan.planData.formData}
 				<Card>
 					<CardHeader>
 						<CardTitle class="flex items-center gap-2">
@@ -390,48 +409,232 @@ $: if (planId !== previousPlanId) {
 						</CardTitle>
 					</CardHeader>
 					<CardContent class="space-y-4">
-						{#if plan.planData.preferences.inclusions && plan.planData.preferences.inclusions.length > 0}
+						{#if plan.planData.formData.theme}
 							<div>
-								<p class="font-medium mb-2">Inclusions</p>
+								<p class="font-medium mb-2">Theme</p>
+								<Badge variant="outline"
+									>{plan.planData.formData.theme}</Badge
+								>
+							</div>
+						{/if}
+
+						{#if plan.planData.formData.addOns}
+							<div>
+								<p class="font-medium mb-2">Add-ons</p>
 								<div class="flex flex-wrap gap-2">
-									{#each plan.planData.preferences.inclusions as inclusion}
+									{#if plan.planData.formData.addOns.flights}
+										<Badge variant="outline">Flights</Badge>
+									{/if}
+									{#if plan.planData.formData.addOns.hotels}
+										<Badge variant="outline">Hotels</Badge>
+									{/if}
+									{#if plan.planData.formData.addOns.activities}
 										<Badge variant="outline"
-											>{inclusion}</Badge
+											>Activities</Badge
 										>
-									{/each}
+									{/if}
+									{#if plan.planData.formData.addOns.transport}
+										<Badge variant="outline"
+											>Transport</Badge
+										>
+									{/if}
 								</div>
 							</div>
 						{/if}
 
-						{#if plan.planData.preferences.region && plan.planData.preferences.region !== plan.planData.formData?.region}
+						{#if plan.planData.formData.specialRequests}
 							<div>
-								<p class="font-medium">Preferred Region</p>
+								<p class="font-medium">Special Requests</p>
 								<p class="text-sm text-muted-foreground">
-									{plan.planData.preferences.region}
+									{plan.planData.formData.specialRequests}
 								</p>
 							</div>
 						{/if}
+					</CardContent>
+				</Card>
+			{/if}
 
-						{#if plan.planData.preferences.budget && plan.planData.preferences.budget !== plan.planData.formData?.budget}
-							<div>
-								<p class="font-medium">Preferred Budget</p>
-								<p class="text-sm text-muted-foreground">
-									{formatCurrency(
-										plan.planData.preferences.budget,
-									)}
-								</p>
-							</div>
+			<!-- Schedule -->
+			{#if plan.planData.schedule?.schedule && plan.planData.schedule.schedule.length > 0}
+				<Card>
+					<CardHeader>
+						<CardTitle class="flex items-center gap-2">
+							<Calendar class="w-5 h-5" />
+							Generated Schedule
+						</CardTitle>
+						{#if plan.planData.schedule.summary}
+							<CardDescription>
+								{plan.planData.schedule.summary.totalDays} days •
+								{plan.planData.schedule.summary.totalActivities}
+								activities •
+								{formatCurrency(
+									plan.planData.schedule.summary
+										.estimatedCost,
+								)} estimated cost
+							</CardDescription>
 						{/if}
+					</CardHeader>
+					<CardContent class="space-y-6">
+						{#each plan.planData.schedule.schedule as day}
+							<div class="space-y-3">
+								<div class="flex items-center justify-between">
+									<h4 class="font-semibold text-lg">
+										Day {day.dayNumber} - {formatDate(
+											day.date,
+										)}
+									</h4>
+									<Badge variant="outline">
+										{formatCurrency(day.totalCost)}
+									</Badge>
+								</div>
 
-						{#if plan.planData.preferences.travelers && plan.planData.preferences.travelers !== plan.planData.formData?.travelers}
-							<div>
-								<p class="font-medium">Preferred Travelers</p>
-								<p class="text-sm text-muted-foreground">
-									{plan.planData.preferences.travelers}
-									{plan.planData.preferences.travelers === 1
-										? "person"
-										: "people"}
-								</p>
+								{#if day.notes}
+									<p
+										class="text-sm text-muted-foreground italic"
+									>
+										{day.notes}
+									</p>
+								{/if}
+
+								<div class="space-y-3">
+									{#each day.activities as activity}
+										{@const CategoryIcon = getCategoryIcon(
+											activity.category,
+										)}
+										<div
+											class="flex gap-3 p-3 rounded-lg border bg-card"
+										>
+											<div class="flex-shrink-0">
+												<CategoryIcon
+													class="w-4 h-4 mt-1 text-muted-foreground"
+												/>
+											</div>
+											<div class="flex-1 space-y-1">
+												<div
+													class="flex items-start justify-between"
+												>
+													<h5 class="font-medium">
+														{activity.activity}
+													</h5>
+													<Badge
+														variant="secondary"
+														class="ml-2 capitalize"
+													>
+														{activity.category}
+													</Badge>
+												</div>
+												<p
+													class="text-sm text-muted-foreground"
+												>
+													{activity.description}
+												</p>
+												<div
+													class="flex items-center gap-4 text-xs text-muted-foreground"
+												>
+													<span
+														class="flex items-center gap-1"
+													>
+														<Clock
+															class="w-3 h-3"
+														/>
+														{activity.time}
+													</span>
+													<span
+														class="flex items-center gap-1"
+													>
+														<MapPin
+															class="w-3 h-3"
+														/>
+														{activity.location}
+													</span>
+													<span
+														>Duration: {activity.duration}</span
+													>
+													<span class="font-medium">
+														{formatCurrency(
+															activity.cost,
+														)}
+													</span>
+												</div>
+											</div>
+										</div>
+									{/each}
+								</div>
+							</div>
+							{#if day !== plan.planData.schedule.schedule[plan.planData.schedule.schedule.length - 1]}
+								<Separator />
+							{/if}
+						{/each}
+
+						{#if plan.planData.schedule.costBreakdown}
+							<div class="mt-6 p-4 rounded-lg bg-muted/50">
+								<h4 class="font-semibold mb-3">
+									Cost Breakdown
+								</h4>
+								<div class="grid gap-2 text-sm">
+									<div class="flex justify-between">
+										<span>Treatments:</span>
+										<span
+											>{formatCurrency(
+												plan.planData.schedule
+													.costBreakdown.treatments,
+											)}</span
+										>
+									</div>
+									<div class="flex justify-between">
+										<span>Accommodation:</span>
+										<span
+											>{formatCurrency(
+												plan.planData.schedule
+													.costBreakdown
+													.accommodation,
+											)}</span
+										>
+									</div>
+									<div class="flex justify-between">
+										<span>Transportation:</span>
+										<span
+											>{formatCurrency(
+												plan.planData.schedule
+													.costBreakdown
+													.transportation,
+											)}</span
+										>
+									</div>
+									<div class="flex justify-between">
+										<span>Activities:</span>
+										<span
+											>{formatCurrency(
+												plan.planData.schedule
+													.costBreakdown.activities,
+											)}</span
+										>
+									</div>
+									<Separator />
+									<div
+										class="flex justify-between font-semibold"
+									>
+										<span>Total:</span>
+										<span
+											>{formatCurrency(
+												plan.planData.schedule
+													.costBreakdown.total,
+											)}</span
+										>
+									</div>
+									<div
+										class="flex justify-between text-xs text-muted-foreground"
+									>
+										<span>Budget Utilization:</span>
+										<span
+											>{Math.round(
+												plan.planData.schedule
+													.costBreakdown
+													.budgetUtilization * 100,
+											)}%</span
+										>
+									</div>
+								</div>
 							</div>
 						{/if}
 					</CardContent>
@@ -521,7 +724,14 @@ $: if (planId !== previousPlanId) {
 									</CardDescription>
 								</div>
 								{#if planItem.planData.formData?.theme}
-									<Badge variant="secondary">
+									{@const ThemeIcon = getThemeIcon(
+										planItem.planData.formData.theme,
+									)}
+									<Badge
+										variant="secondary"
+										class="flex items-center gap-1"
+									>
+										<ThemeIcon class="w-3 h-3" />
 										{planItem.planData.formData.theme}
 									</Badge>
 								{/if}

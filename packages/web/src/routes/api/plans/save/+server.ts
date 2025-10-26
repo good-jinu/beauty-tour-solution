@@ -97,7 +97,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		logApiEvent("info", "Plan data structure validated", {
 			requestId,
 			hasFormData: !!validatedRequest.planData.formData,
-			hasPreferences: !!validatedRequest.planData.preferences,
 			region: validatedRequest.planData.formData?.region,
 			theme: validatedRequest.planData.formData?.theme,
 			budget: validatedRequest.planData.formData?.budget,

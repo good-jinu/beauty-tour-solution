@@ -26,11 +26,7 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
-			"suspicious": {
-				"noUnknownAtRules": "off",
-				"noArrayIndexKey": "off"
-			}
+			"recommended": true
 		}
 	},
 	"javascript": {

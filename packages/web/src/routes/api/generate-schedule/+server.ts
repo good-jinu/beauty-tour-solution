@@ -52,18 +52,6 @@ export const POST: RequestHandler = async ({ request }) => {
 							specialRequests: requestData.moreRequests || null,
 						},
 						schedule: result,
-						preferences: {
-							region: requestData.region,
-							budget: requestData.budget,
-							travelers: requestData.travelers || 1,
-							dates: {
-								startDate: requestData.startDate,
-								endDate: requestData.endDate,
-							},
-							theme: requestData.selectedThemes[0] || "",
-							inclusions: requestData.selectedThemes,
-							specialRequests: requestData.moreRequests,
-						},
 					};
 
 					const solutionType = requestData.solutionType || "topranking";

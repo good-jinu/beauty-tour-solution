@@ -1,5 +1,5 @@
 <script lang="ts">
-import { BadgeCheck, Info, Plus, Share2 } from "@lucide/svelte";
+import { BadgeCheck, Info, Plus } from "@lucide/svelte";
 import ScheduleSolutions from "$lib/components/ScheduleSolutions.svelte";
 import Button from "$lib/components/ui/button/button.svelte";
 import type { StepperFormData } from "$lib/types";
@@ -75,14 +75,6 @@ let { formData, onReset }: Props = $props();
                     Please consult with qualified medical professionals and 
                     conduct thorough research before making any medical tourism decisions.
                 </p>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" variant="outline" class="min-w-[200px]">
-                    <Share2 class="w-4 h-4 mr-2" />
-                    Share with Doctor
-                </Button>
             </div>
         </div>
     </div>

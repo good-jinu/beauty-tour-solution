@@ -11,18 +11,6 @@ export interface GuestUser {
 export interface PlanData {
 	formData: GenerateTourRequest;
 	schedule?: GenerateScheduleResponse;
-	preferences: {
-		region: string;
-		budget: number;
-		travelers: number;
-		dates: {
-			startDate: string;
-			endDate: string;
-		};
-		theme: string;
-		inclusions: string[];
-		specialRequests?: string;
-	};
 }
 
 // Saved Plan Types

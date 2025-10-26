@@ -299,39 +299,6 @@ export class PlanService {
 			}
 		}
 
-		// Validate preferences
-		if (!planData.preferences) {
-			errors.push({
-				field: "preferences",
-				message: "Preferences are required",
-				code: "REQUIRED_FIELD",
-			});
-		} else {
-			if (!planData.preferences.region) {
-				errors.push({
-					field: "preferences.region",
-					message: "Preferences region is required",
-					code: "REQUIRED_FIELD",
-				});
-			}
-
-			if (!planData.preferences.dates) {
-				errors.push({
-					field: "preferences.dates",
-					message: "Preferences dates are required",
-					code: "REQUIRED_FIELD",
-				});
-			}
-
-			if (!Array.isArray(planData.preferences.inclusions)) {
-				errors.push({
-					field: "preferences.inclusions",
-					message: "Inclusions must be an array",
-					code: "INVALID_TYPE",
-				});
-			}
-		}
-
 		return {
 			isValid: errors.length === 0,
 			errors,
