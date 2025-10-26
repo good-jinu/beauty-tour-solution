@@ -46,6 +46,10 @@ export interface ScheduleSolutionsProps {
 export interface ScheduleContentsProps {
 	formData: StepperFormData;
 	solutionType?: SolutionType;
+	isLoading?: boolean;
+	error?: string | null;
+	scheduleData?: import("@bts/core").GenerateScheduleResponse | null;
+	onRetry?: () => void;
 }
 
 // Cost calculation configuration

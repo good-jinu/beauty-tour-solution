@@ -1,8 +1,5 @@
 <script lang="ts">
-import type {
-	GenerateScheduleRequest,
-	GenerateScheduleResponse,
-} from "@bts/core";
+import type { GenerateScheduleResponse } from "@bts/core";
 import {
 	Activity,
 	CircleAlert,
@@ -13,7 +10,6 @@ import {
 	Sparkles,
 	Stethoscope,
 } from "@lucide/svelte";
-import { onMount } from "svelte";
 import {
 	Card,
 	CardContent,
@@ -22,56 +18,14 @@ import {
 } from "$lib/components/ui/card";
 import type { ScheduleContentsProps } from "$lib/types";
 
-let { formData, solutionType = "topranking" }: ScheduleContentsProps = $props();
-
-// State management
-let isLoading = $state(true);
-let error = $state<string | null>(null);
-let scheduleData = $state<GenerateScheduleResponse | null>(null);
-
-// API call to generate real schedule
-async function generateSchedule() {
-	isLoading = true;
-	error = null;
-
-	try {
-		const request: GenerateScheduleRequest = {
-			region: formData.selectedCountry || "south-korea", // Default to South Korea if no country selected
-			startDate: formData.startDate,
-			endDate: formData.endDate,
-			selectedThemes: formData.selectedThemes,
-			budget: formData.budget,
-			travelers: 1, // Default to 1 traveler
-			solutionType,
-			moreRequests: formData.moreRequests,
-		};
-
-		const response = await fetch("/api/generate-schedule", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(request),
-		});
-
-		const result: GenerateScheduleResponse = await response.json();
-
-		if (result.success) {
-			scheduleData = result;
-		} else {
-			error = result.error || "Failed to generate schedule";
-		}
-	} catch (err) {
-		error = err instanceof Error ? err.message : "Network error occurred";
-	} finally {
-		isLoading = false;
-	}
-}
-
-// Load schedule on component mount
-onMount(() => {
-	generateSchedule();
-});
+let {
+	formData,
+	solutionType = "topranking",
+	isLoading = false,
+	error = null,
+	scheduleData = null,
+	onRetry,
+}: ScheduleContentsProps = $props();
 
 // Derived values for display
 const schedule = $derived(scheduleData?.schedule || []);
@@ -169,7 +123,7 @@ function getActivityIconComponent(category: string) {
 				</h3>
 				<p class="text-muted-foreground mb-4">{error}</p>
 				<button
-					onclick={generateSchedule}
+					onclick={onRetry}
 					class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
 				>
 					Try Again

@@ -30,6 +30,7 @@ export interface GenerateScheduleRequest {
 	travelers?: number;
 	solutionType?: "topranking" | "premium" | "budget";
 	moreRequests?: string;
+	guestId?: string; // Optional guest ID for automatic saving
 }
 
 export interface GenerateScheduleResponse {

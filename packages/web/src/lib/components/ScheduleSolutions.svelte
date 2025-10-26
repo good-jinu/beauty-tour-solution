@@ -1,5 +1,10 @@
 <script lang="ts">
+import type {
+	GenerateScheduleRequest,
+	GenerateScheduleResponse,
+} from "@bts/core";
 import { Crown, DollarSign, Trophy } from "@lucide/svelte";
+import { onMount } from "svelte";
 import { Badge } from "$lib/components/ui/badge";
 import {
 	Card,
@@ -19,14 +24,91 @@ import type {
 	SolutionType,
 } from "$lib/types";
 import { getSolutionMetadata, SolutionCostUtils } from "$lib/types";
+import { getOrCreateGuestId } from "$lib/utils/guest";
 import ScheduleContents from "./ScheduleContents.svelte";
 
 let { formData }: ScheduleSolutionsProps = $props();
+
+// State management for schedule generation
+let scheduleStates = $state<
+	Record<
+		SolutionType,
+		{
+			isLoading: boolean;
+			error: string | null;
+			scheduleData: GenerateScheduleResponse | null;
+		}
+	>
+>({
+	topranking: { isLoading: true, error: null, scheduleData: null },
+	budget: { isLoading: true, error: null, scheduleData: null },
+	premium: { isLoading: true, error: null, scheduleData: null },
+});
+
+// Track which schedules have been saved
+let savedSchedules = $state<Set<SolutionType>>(new Set());
 
 // Calculate estimated costs for each solution type
 function calculateSolutionCost(solutionType: SolutionType): number {
 	return SolutionCostUtils.calculateSolutionCost(solutionType, formData.budget);
 }
+
+// API call to generate schedule for a specific solution type
+async function generateSchedule(solutionType: SolutionType) {
+	scheduleStates[solutionType].isLoading = true;
+	scheduleStates[solutionType].error = null;
+
+	try {
+		// Get guest ID for automatic saving
+		const guestId = getOrCreateGuestId();
+
+		const request: GenerateScheduleRequest = {
+			region: formData.selectedCountry || "south-korea",
+			startDate: formData.startDate,
+			endDate: formData.endDate,
+			selectedThemes: formData.selectedThemes,
+			budget: formData.budget,
+			travelers: 1,
+			solutionType,
+			moreRequests: formData.moreRequests,
+			guestId, // Include guest ID for automatic saving
+		};
+
+		const response = await fetch("/api/generate-schedule", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(request),
+		});
+
+		const result: GenerateScheduleResponse = await response.json();
+
+		if (result.success) {
+			scheduleStates[solutionType].scheduleData = result;
+			// Mark as saved since the API handles saving automatically
+			savedSchedules.add(solutionType);
+			console.log(
+				`Schedule for ${solutionType} generated and saved automatically`,
+			);
+		} else {
+			scheduleStates[solutionType].error =
+				result.error || "Failed to generate schedule";
+		}
+	} catch (err) {
+		scheduleStates[solutionType].error =
+			err instanceof Error ? err.message : "Network error occurred";
+	} finally {
+		scheduleStates[solutionType].isLoading = false;
+	}
+}
+
+// Generate all schedules on component mount
+onMount(() => {
+	generateSchedule("topranking");
+	generateSchedule("budget");
+	generateSchedule("premium");
+});
 
 const solutions: SolutionConfig[] = [
 	{
@@ -216,7 +298,14 @@ const solutions: SolutionConfig[] = [
 				</Card>
 
 				<!-- Schedule Content -->
-				<ScheduleContents {formData} solutionType={solution.id} />
+				<ScheduleContents
+					{formData}
+					solutionType={solution.id}
+					isLoading={scheduleStates[solution.id].isLoading}
+					error={scheduleStates[solution.id].error}
+					scheduleData={scheduleStates[solution.id].scheduleData}
+					onRetry={() => generateSchedule(solution.id)}
+				/>
 			</TabsContent>
 		{/each}
 	</Tabs>
