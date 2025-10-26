@@ -271,14 +271,6 @@ export const validateStoreEventRequest = (
 	}
 
 	if (
-		request.element_class !== undefined &&
-		(typeof request.element_class !== "string" ||
-			request.element_class.length > 200)
-	) {
-		errors.push("element_class must be a string not exceeding 200 characters");
-	}
-
-	if (
 		request.element_id !== undefined &&
 		(typeof request.element_id !== "string" || request.element_id.length > 100)
 	) {

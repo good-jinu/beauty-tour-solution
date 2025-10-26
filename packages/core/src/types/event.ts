@@ -37,7 +37,6 @@ export interface UserEvent {
 	viewport_height?: number;
 	// Event-specific data
 	element_tag?: string;
-	element_class?: string;
 	element_id?: string;
 	element_text?: string;
 	scroll_percent?: number;
@@ -61,7 +60,6 @@ export interface StoredEvent {
 
 	// Event-specific fields
 	element_tag?: string;
-	element_class?: string;
 	element_id?: string;
 	element_text?: string;
 	scroll_percent?: number;
@@ -238,13 +236,6 @@ export function isUserEvent(obj: any): obj is UserEvent {
 		return false;
 	}
 
-	if (
-		obj.element_class !== undefined &&
-		typeof obj.element_class !== "string"
-	) {
-		return false;
-	}
-
 	if (obj.element_id !== undefined && typeof obj.element_id !== "string") {
 		return false;
 	}
@@ -373,16 +364,6 @@ export function validateUserEvent(event: any): EventValidationResult {
 	) {
 		errors.push(
 			`element_tag must be a string not exceeding ${EVENT_VALIDATION.MAX_TAG_LENGTH} characters`,
-		);
-	}
-
-	if (
-		event?.element_class &&
-		(typeof event.element_class !== "string" ||
-			event.element_class.length > EVENT_VALIDATION.MAX_CLASS_LENGTH)
-	) {
-		errors.push(
-			`element_class must be a string not exceeding ${EVENT_VALIDATION.MAX_CLASS_LENGTH} characters`,
 		);
 	}
 

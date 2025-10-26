@@ -29,7 +29,6 @@ async function handleStepperComplete(stepperData: StepperFormData) {
 		await trackCustomEvent(EVENT_TYPES.CLICK, {
 			element_tag: "form",
 			element_text: "tour_planning_completed",
-			element_class: "stepper-form",
 		});
 	} catch (error) {
 		console.warn("Failed to track form completion:", error);
@@ -55,7 +54,6 @@ function resetForm() {
 		trackCustomEvent(EVENT_TYPES.CLICK, {
 			element_tag: "button",
 			element_text: "form_reset",
-			element_class: "reset-button",
 		});
 	} catch (error) {
 		console.warn("Failed to track form reset:", error);

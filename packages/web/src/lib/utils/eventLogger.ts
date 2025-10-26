@@ -251,7 +251,6 @@ export class EventLogger {
 			viewport_width: window.innerWidth,
 			viewport_height: window.innerHeight,
 			element_tag: elementData.tag,
-			element_class: elementData.class,
 			element_id: elementData.id,
 			element_text: elementData.text,
 		};

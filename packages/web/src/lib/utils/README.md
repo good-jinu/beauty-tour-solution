@@ -37,7 +37,6 @@ import { EVENT_TYPES } from "@bts/core";
 // Track a custom event
 await trackCustomEvent(EVENT_TYPES.CLICK, {
   element_text: "custom_action",
-  element_class: "my-component",
 });
 
 // Track button clicks with context

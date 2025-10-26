@@ -152,7 +152,6 @@ export class EventService {
 				viewport_width: sanitizedEvent.viewport_width,
 				viewport_height: sanitizedEvent.viewport_height,
 				element_tag: sanitizedEvent.element_tag,
-				element_class: sanitizedEvent.element_class,
 				element_id: sanitizedEvent.element_id,
 				element_text: sanitizedEvent.element_text,
 				scroll_percent: sanitizedEvent.scroll_percent,
@@ -324,7 +323,6 @@ export class EventService {
 					viewport_width: sanitizedEvent.viewport_width,
 					viewport_height: sanitizedEvent.viewport_height,
 					element_tag: sanitizedEvent.element_tag,
-					element_class: sanitizedEvent.element_class,
 					element_id: sanitizedEvent.element_id,
 					element_text: sanitizedEvent.element_text,
 					scroll_percent: sanitizedEvent.scroll_percent,
@@ -389,13 +387,6 @@ export class EventService {
 			sanitized.element_tag = this.sanitizeString(
 				event.element_tag,
 				EVENT_VALIDATION.MAX_TAG_LENGTH,
-			);
-		}
-
-		if (event.element_class) {
-			sanitized.element_class = this.sanitizeString(
-				event.element_class,
-				EVENT_VALIDATION.MAX_CLASS_LENGTH,
 			);
 		}
 

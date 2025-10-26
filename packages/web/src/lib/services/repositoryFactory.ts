@@ -71,7 +71,7 @@ export async function createDynamoDBEventRepository(): Promise<
 		const repository = factory.createEventRepository({
 			repositoryType: "dynamodb",
 			tableName,
-			region: process.env.AWS_REGION,
+			region: process.env.APP_AWS_REGION,
 		});
 
 		return {

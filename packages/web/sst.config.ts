@@ -50,7 +50,6 @@ export default $config({
 			},
 			environment: {
 				APP_AWS_REGION: process.env.APP_AWS_REGION ?? "us-east-1",
-				AWS_REGION: process.env.APP_AWS_REGION ?? "us-east-1",
 				EVENTS_TABLE_NAME: eventsTable.name,
 				PLANS_TABLE_NAME: plansTable.name,
 
@@ -100,7 +99,7 @@ export default $config({
 					resources: [
 						plansTable.arn,
 						eventsTable.arn,
-						`${eventsTable.arn}/index/*`,
+						eventsTable.arn.apply((t) => `${t}/index/*`),
 					],
 				},
 			],

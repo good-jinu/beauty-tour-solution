@@ -77,7 +77,6 @@ export function trackFormSubmit(node: HTMLFormElement) {
 		trackCustomEvent(EVENT_TYPES.CLICK, {
 			element_tag: "form",
 			element_id: node.id || undefined,
-			element_class: node.className || undefined,
 			element_text: "form_submit",
 		});
 	};
@@ -103,7 +102,6 @@ export async function trackButtonClick(
 		await logger.sendEvent(EVENT_TYPES.CLICK, {
 			element_tag: button.tagName.toLowerCase(),
 			element_id: button.id || undefined,
-			element_class: button.className || undefined,
 			element_text: context?.action || button.textContent?.trim() || undefined,
 		});
 	}
