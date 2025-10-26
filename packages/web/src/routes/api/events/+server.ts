@@ -39,6 +39,7 @@ function validateEventRequest(
 	// Sanitize data if enabled
 	let processedData = data;
 	if (sanitizeData) {
+		// biome-ignore lint/suspicious/noExplicitAny: allow any
 		processedData = sanitizeEventData(data as Record<string, any>);
 
 		// Sanitize URL if present

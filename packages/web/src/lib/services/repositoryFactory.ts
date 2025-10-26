@@ -2,13 +2,13 @@
 
 import type { RepositoryConfig, ServiceResult } from "@bts/core";
 import {
+	createEventRepository,
 	createPlanRepository,
 	type IEventRepository,
 	type IEventRepositoryFactory,
 	type IPlanRepository,
 	validateRepositoryConfig,
 } from "@bts/core";
-import { DynamoDBEventRepository } from "../repositories/index.js";
 
 export async function createDynamoDBPlanRepository(): Promise<IPlanRepository> {
 	const { Resource } = await import("sst");
@@ -30,12 +30,11 @@ export class EventRepositoryFactory implements IEventRepositoryFactory {
 			throw new Error(`Invalid repository configuration: ${validation.error}`);
 		}
 
-		// Currently only DynamoDB is supported
-		if (config.repositoryType === "dynamodb") {
-			return new DynamoDBEventRepository(config.tableName, config.region);
-		}
-
-		throw new Error(`Unsupported repository type: ${config.repositoryType}`);
+		// Use the factory from core package - this is synchronous for the interface
+		// but the actual creation happens in createDynamoDBEventRepository
+		throw new Error(
+			"Use createDynamoDBEventRepository() for async repository creation",
+		);
 	}
 
 	/**
@@ -67,8 +66,7 @@ export async function createDynamoDBEventRepository(): Promise<
 			};
 		}
 
-		const factory = new EventRepositoryFactory();
-		const repository = factory.createEventRepository({
+		const repository = await createEventRepository({
 			repositoryType: "dynamodb",
 			tableName,
 			region: process.env.APP_AWS_REGION,
@@ -89,12 +87,11 @@ export async function createDynamoDBEventRepository(): Promise<
 /**
  * Create event repository with custom configuration
  */
-export function createEventRepositoryWithConfig(
+export async function createEventRepositoryWithConfig(
 	config: RepositoryConfig,
-): ServiceResult<IEventRepository> {
+): Promise<ServiceResult<IEventRepository>> {
 	try {
-		const factory = new EventRepositoryFactory();
-		const repository = factory.createEventRepository(config);
+		const repository = await createEventRepository(config);
 
 		return {
 			success: true,

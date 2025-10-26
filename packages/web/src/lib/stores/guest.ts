@@ -20,22 +20,22 @@ function createGuestStore() {
 		 * Initialize the guest ID from cookies - should be called once when the app starts
 		 * This will read from cookies and update the store reactively
 		 */
-		initialize: () => {
+		initialize: async () => {
 			if (browser) {
 				try {
-					const guestId = getGuestIdFromCookies();
+					const guestId = await getGuestIdFromCookies();
 					if (guestId) {
 						set(guestId);
 					} else {
 						// If no valid cookie exists, create a new guest ID
 						// Note: This will use client-side cookie setting which has limitations
-						const newGuestId = getOrCreateGuestId();
+						const newGuestId = await getOrCreateGuestId();
 						set(newGuestId);
 					}
 				} catch (error) {
 					console.error("Error initializing guest store from cookies:", error);
 					// Fallback to generating a new ID without cookie persistence
-					const fallbackId = getOrCreateGuestId();
+					const fallbackId = await getOrCreateGuestId();
 					set(fallbackId);
 				}
 			}
@@ -45,10 +45,10 @@ function createGuestStore() {
 		 * Get the current guest ID, creating one if it doesn't exist
 		 * This method will update the store and attempt to set cookies
 		 */
-		getOrCreate: () => {
+		getOrCreate: async () => {
 			if (browser) {
 				try {
-					const guestId = getOrCreateGuestId();
+					const guestId = await getOrCreateGuestId();
 					set(guestId);
 					return guestId;
 				} catch (error) {
@@ -98,10 +98,10 @@ function createGuestStore() {
 		 * Update the guest ID from cookies (useful for reactive updates when cookies change)
 		 * This can be called when the component detects cookie changes
 		 */
-		refreshFromCookies: () => {
+		refreshFromCookies: async () => {
 			if (browser) {
 				try {
-					const cookieGuestId = getGuestIdFromCookies();
+					const cookieGuestId = await getGuestIdFromCookies();
 					update((currentId) => {
 						// Only update if the cookie value is different from current store value
 						if (cookieGuestId !== currentId) {
@@ -132,9 +132,9 @@ function createGuestStore() {
 		/**
 		 * Check if the current guest ID is valid
 		 */
-		isValid: () => {
+		isValid: async () => {
 			if (browser) {
-				const currentId = getGuestIdFromCookies();
+				const currentId = await getGuestIdFromCookies();
 				return currentId !== null && isValidUUID(currentId);
 			}
 			return false;

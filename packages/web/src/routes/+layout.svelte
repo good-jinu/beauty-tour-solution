@@ -1,6 +1,6 @@
 <script lang="ts">
 import "../app.css";
-import { onDestroy, onMount } from "svelte";
+import { onDestroy, onMount, type Snippet } from "svelte";
 import favicon from "$lib/assets/favicon.ico";
 import Header from "$lib/components/Header.svelte";
 import ThemeProvider from "$lib/components/ThemeProvider.svelte";
@@ -16,19 +16,20 @@ import {
 } from "$lib/utils/eventLogger";
 import type { LayoutData } from "./$types";
 
-let { children, data }: { children: any; data: LayoutData } = $props();
+let { children, data }: { children: Snippet; data: LayoutData } = $props();
 
 // Initialize guest ID and event tracking when the app mounts
-onMount(() => {
+onMount(async () => {
 	// Inject server configuration into global window object for client access
 	if (typeof window !== "undefined" && data.eventTrackingConfig) {
+		// biome-ignore lint/suspicious/noExplicitAny: allow any
 		(window as any).__EVENT_TRACKING_CONFIG__ = data.eventTrackingConfig;
 	}
 
 	guestStore.initialize();
 
 	// Initialize event tracking if enabled
-	if (isEventTrackingEnabled()) {
+	if (await isEventTrackingEnabled()) {
 		try {
 			const config = getEventLoggerConfig();
 			initializeEventLogger(config);
@@ -40,8 +41,8 @@ onMount(() => {
 });
 
 // Cleanup event tracking when component is destroyed
-onDestroy(() => {
-	if (isEventTrackingEnabled()) {
+onDestroy(async () => {
+	if (await isEventTrackingEnabled()) {
 		destroyEventLogger();
 	}
 });

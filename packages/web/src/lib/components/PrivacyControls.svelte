@@ -18,9 +18,9 @@ import {
 let isOptedOut = false;
 let isLoading = true;
 
-onMount(() => {
+onMount(async () => {
 	// Check current opt-out status
-	isOptedOut = hasUserOptedOut();
+	isOptedOut = await hasUserOptedOut();
 	isLoading = false;
 });
 

@@ -60,7 +60,7 @@ async function generateSchedule(solutionType: SolutionType) {
 
 	try {
 		// Get guest ID for automatic saving
-		const guestId = getOrCreateGuestId();
+		const guestId = await getOrCreateGuestId();
 
 		const request: GenerateScheduleRequest = {
 			region: formData.selectedCountry || "south-korea",

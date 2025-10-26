@@ -3,6 +3,12 @@
  */
 
 import { browser } from "$app/environment";
+import {
+	areCookiesSupported,
+	deleteCookie,
+	getCookie,
+	setCookie,
+} from "./cookies";
 
 const GUEST_ID_COOKIE_NAME = "beauty-tour-guest-id";
 const GUEST_ID_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
@@ -65,39 +71,16 @@ export function getGuestCookieOptions(
 }
 
 /**
- * Parses cookies from a cookie string (client-side)
- * @param cookieString The document.cookie string
- * @returns Object with cookie name-value pairs
- */
-function parseCookies(cookieString: string): Record<string, string> {
-	const cookies: Record<string, string> = {};
-
-	if (!cookieString) {
-		return cookies;
-	}
-
-	cookieString.split(";").forEach((cookie) => {
-		const [name, ...rest] = cookie.trim().split("=");
-		if (name && rest.length > 0) {
-			cookies[name] = decodeURIComponent(rest.join("="));
-		}
-	});
-
-	return cookies;
-}
-
-/**
  * Retrieves the guest ID from cookies (client-side only)
  * @returns The guest ID if it exists and is valid, null otherwise
  */
-export function getGuestIdFromCookies(): string | null {
-	if (!browser || typeof document === "undefined") {
+export async function getGuestIdFromCookies(): Promise<string | null> {
+	if (!browser) {
 		return null;
 	}
 
 	try {
-		const cookies = parseCookies(document.cookie);
-		const guestId = cookies[GUEST_ID_COOKIE_NAME];
+		const guestId = await getCookie(GUEST_ID_COOKIE_NAME);
 
 		if (guestId && isValidUUID(guestId)) {
 			return guestId;
@@ -117,39 +100,21 @@ export function getGuestIdFromCookies(): string | null {
  * @param value Cookie value
  * @param options Cookie options
  */
-export function setClientCookie(
+export async function setClientCookie(
 	name: string,
 	value: string,
 	options: Partial<GuestCookieOptions> = {},
-): void {
-	if (!browser || typeof document === "undefined") {
-		return;
+): Promise<boolean> {
+	if (!browser) {
+		return false;
 	}
 
-	try {
-		let cookieString = `${name}=${encodeURIComponent(value)}`;
-
-		if (options.maxAge) {
-			cookieString += `; Max-Age=${options.maxAge}`;
-		}
-
-		if (options.path) {
-			cookieString += `; Path=${options.path}`;
-		}
-
-		if (options.sameSite) {
-			cookieString += `; SameSite=${options.sameSite}`;
-		}
-
-		if (options.secure) {
-			cookieString += `; Secure`;
-		}
-
-		// Note: HttpOnly cannot be set from client-side JavaScript
-		document.cookie = cookieString;
-	} catch (error) {
-		console.error("Error setting client cookie:", error);
-	}
+	return await setCookie(name, value, {
+		maxAge: options.maxAge,
+		path: options.path,
+		sameSite: options.sameSite,
+		secure: options.secure,
+	});
 }
 
 /**
@@ -157,9 +122,9 @@ export function setClientCookie(
  * Note: This is client-side only and has limitations. Server-side handling is preferred.
  * @returns A valid guest ID
  */
-export function getOrCreateGuestId(): string {
+export async function getOrCreateGuestId(): Promise<string> {
 	// First try to get existing guest ID from cookies
-	const existingId = getGuestIdFromCookies();
+	const existingId = await getGuestIdFromCookies();
 	if (existingId) {
 		return existingId;
 	}
@@ -170,11 +135,17 @@ export function getOrCreateGuestId(): string {
 	// Try to set it as a cookie (client-side, limited functionality)
 	if (browser) {
 		const options = getGuestCookieOptions(false); // Assume dev environment for client-side
-		setClientCookie(GUEST_ID_COOKIE_NAME, newGuestId, {
+		const success = await setClientCookie(GUEST_ID_COOKIE_NAME, newGuestId, {
 			maxAge: options.maxAge,
 			path: options.path,
 			sameSite: options.sameSite,
 		});
+
+		if (!success) {
+			console.warn(
+				"Failed to set guest ID cookie - Cookie Store API not available",
+			);
+		}
 	}
 
 	return newGuestId;
@@ -183,27 +154,22 @@ export function getOrCreateGuestId(): string {
 /**
  * Clears the guest ID cookie (client-side)
  */
-export function clearGuestId(): void {
-	if (!browser || typeof document === "undefined") {
-		return;
+export async function clearGuestId(): Promise<boolean> {
+	if (!browser) {
+		return false;
 	}
 
-	try {
-		// Set cookie with past expiration date to delete it
-		document.cookie = `${GUEST_ID_COOKIE_NAME}=; Max-Age=0; Path=/`;
-	} catch (error) {
-		console.error("Error clearing guest ID cookie:", error);
-	}
+	return await deleteCookie(GUEST_ID_COOKIE_NAME, "/");
 }
 
 /**
  * Checks if cookie functionality is available
  */
 export function isGuestIdAvailable(): boolean {
-	return browser && typeof document !== "undefined";
+	return browser && areCookiesSupported();
 }
 
 // Legacy function for backward compatibility
-export function getGuestId(): string | null {
-	return getGuestIdFromCookies();
+export async function getGuestId(): Promise<string | null> {
+	return await getGuestIdFromCookies();
 }

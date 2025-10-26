@@ -40,7 +40,7 @@ $: planId = $page.url.searchParams.get("planId");
 $: showDetails = !!planId;
 
 async function loadPlans() {
-	const guestId = guestStore.getCurrent();
+	const guestId = await guestStore.getCurrent();
 	if (!guestId) {
 		error = "Guest ID not found. Please refresh the page.";
 		loading = false;
@@ -75,7 +75,7 @@ async function loadPlans() {
 }
 
 async function loadPlan() {
-	const guestId = guestStore.getCurrent();
+	const guestId = await guestStore.getCurrent();
 	if (!guestId) {
 		error = "Guest ID not found. Please refresh the page.";
 		loading = false;

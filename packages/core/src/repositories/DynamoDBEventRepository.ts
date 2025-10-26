@@ -1,11 +1,11 @@
-import type { StoredEvent } from "@bts/core";
+import { DynamoDBService } from "@bts/infra";
 import {
 	type IEventRepository,
 	logger,
 	RepositoryError,
 	RepositoryErrorType,
-} from "@bts/core";
-import { DynamoDBService } from "@bts/infra";
+} from "../index";
+import type { StoredEvent } from "../types";
 
 /**
  * DynamoDB implementation of the event repository

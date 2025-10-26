@@ -548,6 +548,7 @@ export function initializeEventLogger(
 
 	// Store reference in window for opt-out functionality
 	if (typeof window !== "undefined") {
+		// biome-ignore lint/suspicious/noExplicitAny: allow any
 		(window as any).__eventLogger = globalEventLogger;
 
 		// Cleanup on page unload

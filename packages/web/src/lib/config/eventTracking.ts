@@ -1,8 +1,6 @@
-/**
- * Event tracking configuration for client-side usage
- */
-
+// biome-ignore-all lint/suspicious/noExplicitAny: Resource could have any field
 import { browser } from "$app/environment";
+import { deleteCookie, getCookie, setCookie } from "$lib/utils/cookies";
 
 /**
  * Event tracking configuration interface
@@ -89,8 +87,8 @@ export function getEventTrackingConfig(): ClientEventTrackingConfig {
 /**
  * Check if user has opted out of tracking
  */
-export function hasUserOptedOut(): boolean {
-	if (!browser || typeof document === "undefined") {
+export async function hasUserOptedOut(): Promise<boolean> {
+	if (!browser) {
 		return false;
 	}
 
@@ -99,31 +97,29 @@ export function hasUserOptedOut(): boolean {
 		return false;
 	}
 
-	// Check for opt-out cookie
-	const cookies = document.cookie.split(";");
-	for (const cookie of cookies) {
-		const [name, value] = cookie.trim().split("=");
-		if (name === config.optOutCookieName && value === "true") {
-			return true;
-		}
+	// Check for opt-out cookie using Cookie Store API
+	try {
+		const cookieValue = await getCookie(config.optOutCookieName);
+		return cookieValue === "true";
+	} catch (error) {
+		console.error("Error checking opt-out cookie:", error);
+		return false;
 	}
-
-	return false;
 }
 
 /**
  * Check if event tracking is enabled and user hasn't opted out
  */
-export function isEventTrackingEnabled(): boolean {
+export async function isEventTrackingEnabled(): Promise<boolean> {
 	const config = getEventTrackingConfig();
-	return config.enabled && browser && !hasUserOptedOut();
+	return config.enabled && browser && !(await hasUserOptedOut());
 }
 
 /**
  * Opt user out of event tracking
  */
-export function optOutOfTracking(): void {
-	if (!browser || typeof document === "undefined") {
+export async function optOutOfTracking(): Promise<void> {
+	if (!browser) {
 		return;
 	}
 
@@ -133,9 +129,20 @@ export function optOutOfTracking(): void {
 		return;
 	}
 
-	// Set opt-out cookie
+	// Set opt-out cookie using Cookie Store API
 	const maxAge = 365 * 24 * 60 * 60; // 1 year
-	document.cookie = `${config.optOutCookieName}=true; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
+	const success = await setCookie(config.optOutCookieName, "true", {
+		maxAge,
+		path: "/",
+		sameSite: "lax",
+	});
+
+	if (!success) {
+		console.error(
+			"Failed to set opt-out cookie - Cookie Store API not available",
+		);
+		return;
+	}
 
 	// Clear any existing tracking data
 	if (typeof window !== "undefined" && (window as any).__eventLogger) {
@@ -146,15 +153,22 @@ export function optOutOfTracking(): void {
 /**
  * Opt user back into event tracking
  */
-export function optInToTracking(): void {
-	if (!browser || typeof document === "undefined") {
+export async function optInToTracking(): Promise<void> {
+	if (!browser) {
 		return;
 	}
 
 	const config = getEventTrackingConfig();
 
-	// Remove opt-out cookie
-	document.cookie = `${config.optOutCookieName}=; Max-Age=0; Path=/; SameSite=Lax`;
+	// Remove opt-out cookie using Cookie Store API
+	const success = await deleteCookie(config.optOutCookieName, "/");
+
+	if (!success) {
+		console.error(
+			"Failed to delete opt-out cookie - Cookie Store API not available",
+		);
+		return;
+	}
 
 	// Re-enable tracking if available
 	if (typeof window !== "undefined" && (window as any).__eventLogger) {
