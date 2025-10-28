@@ -36,14 +36,6 @@ export interface GenerateScheduleRequest {
 export interface GenerateScheduleResponse {
 	success: boolean;
 	schedule?: ScheduleDay[];
-	costBreakdown?: {
-		treatments: number;
-		accommodation: number;
-		transportation: number;
-		activities: number;
-		total: number;
-		budgetUtilization: number;
-	};
 	summary?: {
 		totalDays: number;
 		totalActivities: number;

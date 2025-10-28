@@ -29,16 +29,6 @@ let {
 
 // Derived values for display
 const schedule = $derived(scheduleData?.schedule || []);
-const costEstimate = $derived(
-	scheduleData?.costBreakdown || {
-		total: 0,
-		treatments: 0,
-		accommodation: 0,
-		transportation: 0,
-		activities: 0,
-		budgetUtilization: 0,
-	},
-);
 const summary = $derived(
 	scheduleData?.summary || {
 		totalDays: 0,
@@ -299,80 +289,7 @@ function getActivityIconComponent(category: string) {
 								{summary.totalThemes}
 							</div>
 						</div>
-						<div>
-							<div class="font-medium text-muted-foreground">
-								Est. Cost
-							</div>
-							<div class="text-2xl font-bold text-primary">
-								${costEstimate.total.toLocaleString()}
-							</div>
-						</div>
 					</div>
-
-					<!-- Budget vs Estimate -->
-					<div class="bg-muted/30 rounded-lg p-4">
-						<div class="flex justify-between items-center mb-2">
-							<span class="text-sm font-medium"
-								>Budget Utilization</span
-							>
-							<span class="text-sm text-muted-foreground">
-								${costEstimate.total.toLocaleString()} / ${formData.budget.toLocaleString()}
-							</span>
-						</div>
-						<div class="w-full bg-muted rounded-full h-2">
-							<div
-								class="bg-primary h-2 rounded-full transition-all duration-500"
-								style="width: {Math.min(
-									100,
-									costEstimate.budgetUtilization * 100,
-								)}%"
-							></div>
-						</div>
-						<div class="text-xs text-muted-foreground mt-1">
-							{Math.round(costEstimate.budgetUtilization * 100)}%
-							of budget
-						</div>
-					</div>
-
-					<!-- Cost Breakdown -->
-					{#if costEstimate.treatments > 0}
-						<div
-							class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"
-						>
-							<div class="bg-muted/20 rounded-lg p-3">
-								<div class="font-medium text-muted-foreground">
-									Treatments
-								</div>
-								<div class="text-lg font-bold text-primary">
-									${costEstimate.treatments.toLocaleString()}
-								</div>
-							</div>
-							<div class="bg-muted/20 rounded-lg p-3">
-								<div class="font-medium text-muted-foreground">
-									Accommodation
-								</div>
-								<div class="text-lg font-bold text-primary">
-									${costEstimate.accommodation.toLocaleString()}
-								</div>
-							</div>
-							<div class="bg-muted/20 rounded-lg p-3">
-								<div class="font-medium text-muted-foreground">
-									Transport
-								</div>
-								<div class="text-lg font-bold text-primary">
-									${costEstimate.transportation.toLocaleString()}
-								</div>
-							</div>
-							<div class="bg-muted/20 rounded-lg p-3">
-								<div class="font-medium text-muted-foreground">
-									Activities
-								</div>
-								<div class="text-lg font-bold text-primary">
-									${costEstimate.activities.toLocaleString()}
-								</div>
-							</div>
-						</div>
-					{/if}
 				</div>
 			</CardContent>
 		</Card>

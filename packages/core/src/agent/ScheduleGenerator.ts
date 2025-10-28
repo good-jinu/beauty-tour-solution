@@ -8,7 +8,6 @@ import type {
 
 interface ParsedSchedule {
 	schedule: ScheduleDay[];
-	costBreakdown?: GenerateScheduleResponse["costBreakdown"];
 	summary?: GenerateScheduleResponse["summary"];
 }
 
@@ -149,16 +148,6 @@ FOCUS ON:
 			day.totalCost = Math.round(day.totalCost * costMultiplier);
 		});
 
-		// Calculate cost breakdown
-		parsed.costBreakdown = {
-			treatments: Math.round(totalCost * 0.7),
-			accommodation: Math.round(totalCost * 0.2),
-			transportation: Math.round(totalCost * 0.05),
-			activities: Math.round(totalCost * 0.05),
-			total: totalCost,
-			budgetUtilization: Math.min(1.0, totalCost / request.budget),
-		};
-
 		// Calculate summary
 		const uniqueCategories = new Set();
 		parsed.schedule.forEach((day: ScheduleDay) => {
@@ -200,15 +189,6 @@ FOCUS ON:
 					notes: "Schedule generation failed - showing fallback data",
 				},
 			],
-
-			costBreakdown: {
-				treatments: Math.round(totalCost * 0.7),
-				accommodation: Math.round(totalCost * 0.2),
-				transportation: Math.round(totalCost * 0.05),
-				activities: Math.round(totalCost * 0.05),
-				total: totalCost,
-				budgetUtilization: 0.04,
-			},
 			summary: {
 				totalDays: 1,
 				totalActivities: 1,

@@ -55,16 +55,6 @@ def process_trip_planner_query(agent, query):
             total_cost += day_cost
             total_activities += len(day["activities"])
         
-        # Add business logic calculations
-        schedule_data["costBreakdown"] = {
-            "treatments": total_cost * 0.7,  # Estimate 70% treatments
-            "accommodation": total_cost * 0.2,  # 20% accommodation
-            "transportation": total_cost * 0.05,  # 5% transport
-            "activities": total_cost * 0.05,  # 5% other activities
-            "total": total_cost,
-            "budgetUtilization": min(1.0, total_cost / 5000)  # Default budget assumption
-        }
-        
         schedule_data["summary"] = {
             "totalDays": len(schedule_data["schedule"]),
             "totalActivities": total_activities,
@@ -110,15 +100,6 @@ def generate_fallback_schedule():
     # Business logic calculations
     total_cost = 200
     schedule_data["schedule"][0]["totalCost"] = total_cost
-    
-    schedule_data["costBreakdown"] = {
-        "treatments": 140,
-        "accommodation": 40,
-        "transportation": 10,
-        "activities": 10,
-        "total": total_cost,
-        "budgetUtilization": 0.04
-    }
     
     schedule_data["summary"] = {
         "totalDays": 1,
