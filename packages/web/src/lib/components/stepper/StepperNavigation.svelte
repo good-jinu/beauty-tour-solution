@@ -108,18 +108,36 @@ onMount(() => {
     }
 
     /* Mobile responsive design */
-    @media (max-width: 768px) {
+    @media (max-width: 640px) {
         .stepper-navigation {
             flex-direction: column;
             gap: 0.75rem;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
         }
 
         :global(.nav-button-previous),
         :global(.nav-button-next) {
             width: 100%;
             min-width: unset;
+            min-height: 44px;
+            font-size: 0.875rem;
+        }
+
+        :global(.button-icon) {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    @media (min-width: 641px) and (max-width: 768px) {
+        .stepper-navigation {
+            gap: 0.5rem;
+        }
+
+        :global(.nav-button-previous),
+        :global(.nav-button-next) {
+            min-width: 100px;
         }
     }
 </style>

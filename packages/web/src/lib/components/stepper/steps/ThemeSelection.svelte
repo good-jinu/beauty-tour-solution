@@ -55,12 +55,12 @@ export function validate(
     </div>
 
     <!-- Theme Options -->
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {#each JOURNEY_THEMES as theme (theme.value)}
             <button
                 type="button"
                 onclick={() => handleThemeToggle(theme.value)}
-                class="relative flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-primary text-left {isThemeSelected(
+                class="relative flex flex-col p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-primary text-left min-h-[80px] sm:min-h-[100px] {isThemeSelected(
                     theme.value,
                 )
                     ? 'border-primary bg-primary/5 shadow-md'
@@ -69,10 +69,10 @@ export function validate(
                 <!-- Selection indicator -->
                 {#if isThemeSelected(theme.value)}
                     <div
-                        class="absolute top-3 right-3 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center"
+                        class="absolute top-2 right-2 sm:top-3 sm:right-3 w-4 h-4 sm:w-5 sm:h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center"
                     >
                         <svg
-                            class="w-3 h-3"
+                            class="w-2.5 h-2.5 sm:w-3 sm:h-3"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
@@ -86,14 +86,14 @@ export function validate(
                 {/if}
 
                 <!-- Theme Content -->
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="text-xl">{theme.icon}</span>
-                    <h4 class="font-semibold text-sm pr-6">
+                <div class="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2 pr-6">
+                    <span class="text-lg sm:text-xl flex-shrink-0">{theme.icon}</span>
+                    <h4 class="font-semibold text-sm sm:text-base leading-tight">
                         {theme.label}
                     </h4>
                 </div>
 
-                <p class="text-xs text-muted-foreground">
+                <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                     {theme.description}
                 </p>
             </button>

@@ -107,13 +107,13 @@ export function validate(
 
     <!-- Country Grid -->
     <div
-        class="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        class="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     >
         {#each filteredRegions as region (region.value)}
             <button
                 type="button"
                 onclick={() => handleCountrySelect(region.value)}
-                class="group relative flex flex-col items-center justify-center p-4 sm:p-5 lg:p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-lg text-center min-h-[120px] sm:min-h-[140px] {$stepperState
+                class="group relative flex flex-col items-center justify-center p-3 sm:p-4 lg:p-5 border-2 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-lg text-center min-h-[100px] sm:min-h-[120px] lg:min-h-[140px] {$stepperState
                     .formData.selectedCountry === region.value
                     ? 'border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20'
                     : 'border-border hover:bg-muted/30'}"
@@ -121,10 +121,10 @@ export function validate(
                 <!-- Selection indicator -->
                 {#if $stepperState.formData.selectedCountry === region.value}
                     <div
-                        class="absolute top-3 right-3 sm:top-4 sm:right-4 w-5 h-5 sm:w-6 sm:h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center"
+                        class="absolute top-2 right-2 sm:top-3 sm:right-3 lg:top-4 lg:right-4 w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center"
                     >
                         <svg
-                            class="w-3 h-3 sm:w-4 sm:h-4"
+                            class="w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-4 lg:h-4"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
@@ -138,25 +138,25 @@ export function validate(
                 {/if}
 
                 <!-- Flag -->
-                <div class="text-3xl sm:text-4xl mb-2">
+                <div class="text-2xl sm:text-3xl lg:text-4xl mb-1 sm:mb-2">
                     {region.flag}
                 </div>
 
                 <!-- Country Name -->
                 <h3
-                    class="font-semibold text-base sm:text-lg mb-1 leading-tight"
+                    class="font-semibold text-sm sm:text-base lg:text-lg mb-1 leading-tight px-1"
                 >
                     {region.label}
                 </h3>
 
                 <!-- City -->
-                <p class="text-xs sm:text-sm text-muted-foreground">
+                <p class="text-xs sm:text-sm text-muted-foreground truncate px-1">
                     {region.city}
                 </p>
 
                 <!-- Hover effect -->
                 <div
-                    class="absolute inset-0 rounded-xl bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+                    class="absolute inset-0 rounded-lg sm:rounded-xl bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
                 ></div>
             </button>
         {/each}

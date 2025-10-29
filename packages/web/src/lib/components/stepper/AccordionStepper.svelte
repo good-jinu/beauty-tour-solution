@@ -374,21 +374,59 @@ function isStepAccessible(step: number): boolean {
         }
 
         :global(.step-trigger) {
-            padding: 0.75rem 1rem;
+            padding: 0.75rem 0.75rem;
+        }
+
+        .step-header {
+            gap: 0.75rem;
         }
 
         .step-indicator {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             font-size: 0.75rem;
         }
 
         .step-title {
             font-size: 0.875rem;
+            line-height: 1.3;
         }
 
         :global(.step-content) {
-            padding: 0 1rem 1rem 1rem;
+            padding: 0 0.75rem 1rem 0.75rem;
+        }
+
+        .mobile-progress {
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-text {
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Very small screens */
+    @media (max-width: 360px) {
+        :global(.step-trigger) {
+            padding: 0.5rem;
+        }
+
+        .step-header {
+            gap: 0.5rem;
+        }
+
+        .step-indicator {
+            width: 28px;
+            height: 28px;
+            font-size: 0.625rem;
+        }
+
+        .step-title {
+            font-size: 0.8125rem;
+        }
+
+        :global(.step-content) {
+            padding: 0 0.5rem 0.75rem 0.5rem;
         }
     }
 </style>

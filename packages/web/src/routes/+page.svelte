@@ -90,7 +90,17 @@ function resetForm() {
 >
 	<!-- Tour Planning Section -->
 	{#if currentFlow === "tour-planning"}
-		<div id="tour-planning-section" class="px-4 sm:px-6 lg:px-8">
+		<div id="tour-planning-section" class="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+			<!-- Mobile Header -->
+			<div class="text-center mb-6 sm:mb-8 lg:mb-12">
+				<h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3">
+					Plan Your Beauty Tour
+				</h1>
+				<p class="text-sm sm:text-base text-muted-foreground px-2">
+					Create your perfect beauty and wellness journey with our AI-powered planner
+				</p>
+			</div>
+
 			<StepperContainer oncomplete={handleStepperComplete}>
 				{#snippet children({
 					stepperState,
@@ -130,7 +140,7 @@ function resetForm() {
 
 	<!-- Results Section -->
 	{#if currentFlow === "results" && showResults && currentFormData}
-		<div id="results-section" class="px-4 sm:px-6 lg:px-8">
+		<div id="results-section" class="px-3 sm:px-4 md:px-6 lg:px-8">
 			<ResultsSection formData={currentFormData} onReset={resetForm} />
 		</div>
 	{/if}
@@ -139,5 +149,49 @@ function resetForm() {
 <style>
 	:global(html) {
 		scroll-behavior: smooth;
+	}
+
+	/* Mobile-specific optimizations */
+	@media (max-width: 640px) {
+		:global(body) {
+			font-size: 14px;
+		}
+		
+		/* Ensure proper touch targets */
+		:global(button, input, select, textarea) {
+			min-height: 44px;
+		}
+		
+		/* Improve text readability on small screens */
+		:global(h1, h2, h3, h4, h5, h6) {
+			line-height: 1.3;
+		}
+		
+		/* Optimize spacing for mobile */
+		:global(.space-y-6 > * + *) {
+			margin-top: 1rem !important;
+		}
+		
+		:global(.space-y-4 > * + *) {
+			margin-top: 0.75rem !important;
+		}
+	}
+
+	/* Landscape mobile optimization */
+	@media (max-height: 600px) and (orientation: landscape) {
+		:global(.min-h-screen) {
+			min-height: 100vh;
+		}
+	}
+
+	/* Very small screens */
+	@media (max-width: 360px) {
+		:global(.text-2xl) {
+			font-size: 1.25rem !important;
+		}
+		
+		:global(.text-3xl) {
+			font-size: 1.5rem !important;
+		}
 	}
 </style>

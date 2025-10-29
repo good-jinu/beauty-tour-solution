@@ -463,45 +463,50 @@ let globalWarning = $derived($stepperState.errors.global);
 		width: 100%;
 		max-width: 900px;
 		margin: 0 auto;
-		padding: 1rem;
-		min-height: 100vh;
+		padding: 0.5rem;
+		min-height: auto;
 		display: flex;
 		flex-direction: column;
 	}
 
 	/* Mobile-first responsive design */
+	@media (min-width: 480px) {
+		.stepper-container {
+			padding: 0.75rem;
+		}
+	}
+
 	@media (min-width: 640px) {
 		.stepper-container {
-			padding: 1.5rem;
+			padding: 1rem;
 		}
 	}
 
 	@media (min-width: 768px) {
 		.stepper-container {
-			padding: 2rem;
+			padding: 1.5rem;
 			max-width: 1000px;
 		}
 	}
 
 	@media (min-width: 1024px) {
 		.stepper-container {
-			padding: 2.5rem;
+			padding: 2rem;
 			max-width: 1200px;
 		}
 	}
 
 	@media (min-width: 1280px) {
 		.stepper-container {
-			padding: 3rem;
+			padding: 2.5rem;
 			max-width: 1400px;
 		}
 	}
 
-	/* Ensure proper spacing on very small screens */
-	@media (max-width: 480px) {
+	/* Very small screens optimization */
+	@media (max-width: 360px) {
 		.stepper-container {
-			padding: 0.75rem;
-			min-height: calc(100vh - 2rem);
+			padding: 0.25rem;
 		}
 	}
 
@@ -509,7 +514,7 @@ let globalWarning = $derived($stepperState.errors.global);
 	@media (max-height: 600px) and (orientation: landscape) {
 		.stepper-container {
 			min-height: auto;
-			padding: 1rem;
+			padding: 0.5rem;
 		}
 	}
 </style>
