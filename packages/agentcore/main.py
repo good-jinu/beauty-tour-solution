@@ -7,9 +7,10 @@ from agents.query_classifier import determine_query_type, QueryType
 from agents.trip_planner import process_trip_planner_query
 from agents.default_query_handler import process_default_query
 
-# Set knowledge base ID (can be overridden by environment variable)
-os.environ["STRANDS_KNOWLEDGE_BASE_ID"] = 'yourId'
+# Get knowledge base ID from environment variable
 KB_ID = os.environ.get("STRANDS_KNOWLEDGE_BASE_ID")
+if not KB_ID:
+    raise ValueError("STRANDS_KNOWLEDGE_BASE_ID environment variable is required")
 print(f"Using Knowledge Base ID: {KB_ID}")
 
 model_id = "us.amazon.nova-pro-v1:0"

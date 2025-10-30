@@ -74,7 +74,6 @@ function getDeploymentInfo() {
 
 		fs.writeFileSync(envPath, envContent);
 
-		console.log("✅ Deployment info saved to:", outputPath);
 		console.log("✅ Environment variables saved to:", envPath);
 		console.log("📋 Deployment info:");
 		console.log(`   ARN: ${deploymentInfo.arn}`);
