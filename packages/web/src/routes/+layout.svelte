@@ -3,6 +3,7 @@ import "../app.css";
 import { onDestroy, onMount, type Snippet } from "svelte";
 import favicon from "$lib/assets/favicon.ico";
 import Header from "$lib/components/Header.svelte";
+import PWAManager from "$lib/components/PWAManager.svelte";
 import ThemeProvider from "$lib/components/ThemeProvider.svelte";
 import { Toaster } from "$lib/components/ui/sonner";
 import {
@@ -50,10 +51,14 @@ onDestroy(async () => {
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<link rel="manifest" href="/manifest.webmanifest" />
 </svelte:head>
 
 <ThemeProvider>
 	<div class="min-h-screen bg-background text-foreground">
+		<!-- PWA Manager -->
+		<PWAManager />
+
 		<Header />
 
 		<!-- Main Content -->
