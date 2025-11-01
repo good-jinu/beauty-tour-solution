@@ -276,14 +276,6 @@ export class PlanService {
 				});
 			}
 
-			if (planData.formData.travelers <= 0) {
-				errors.push({
-					field: "formData.travelers",
-					message: "Number of travelers must be greater than 0",
-					code: "INVALID_VALUE",
-				});
-			}
-
 			// Validate date range
 			if (planData.formData.startDate && planData.formData.endDate) {
 				const startDate = new Date(planData.formData.startDate);

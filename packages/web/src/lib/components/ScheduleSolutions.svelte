@@ -64,7 +64,6 @@ async function generateSchedule(solutionType: SolutionType) {
 			endDate: formData.endDate,
 			selectedThemes: formData.selectedThemes,
 			budget: formData.budget,
-			travelers: 1,
 			solutionType,
 			moreRequests: formData.moreRequests,
 		};

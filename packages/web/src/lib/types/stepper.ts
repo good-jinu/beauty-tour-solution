@@ -471,11 +471,6 @@ export const StepperUtils = {
 			endDate: stepperData.endDate,
 			selectedTheme: stepperData.selectedThemes[0] || "", // Use first theme for legacy compatibility
 			budget: stepperData.budget,
-			includeFlights: additionalData.includeFlights ?? true,
-			includeHotels: additionalData.includeHotels ?? true,
-			includeActivities: additionalData.includeActivities ?? true,
-			includeTransport: additionalData.includeTransport ?? true,
-			travelers: additionalData.travelers ?? 1,
 			specialRequests: additionalData.specialRequests ?? "",
 			moreRequests: stepperData.moreRequests || "",
 		};

@@ -20,11 +20,6 @@ export interface FormData {
 	endDate: string;
 	selectedTheme: string;
 	budget: number;
-	includeFlights: boolean;
-	includeHotels: boolean;
-	includeActivities: boolean;
-	includeTransport: boolean;
-	travelers: number;
 	specialRequests: string;
 	moreRequests?: string; // Additional user requests from the stepper
 }

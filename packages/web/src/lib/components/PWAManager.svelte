@@ -5,7 +5,6 @@ import { PWALifecycle, PWAStatus, pwaInstaller } from "$lib/utils/pwa";
 
 // PWA state
 let isInstallAvailable = false;
-let isOnline = true;
 let isPWA = false;
 let showInstallBanner = false;
 
@@ -26,16 +25,9 @@ onMount(() => {
 	// Check PWA capabilities
 	capabilities = PWAStatus.getCapabilities();
 	isPWA = PWAStatus.isRunningAsPWA();
-	isOnline = navigator.onLine;
 
 	// Check if install is available
 	checkInstallAvailability();
-
-	// Set up network status monitoring
-	PWALifecycle.onNetworkChange((online) => {
-		isOnline = online;
-		console.log(`Network status changed: ${online ? "online" : "offline"}`);
-	});
 
 	// Set up visibility change monitoring
 	PWALifecycle.onVisibilityChange((visible) => {
@@ -50,7 +42,6 @@ onMount(() => {
 	// Log PWA status
 	console.log("PWA Manager initialized:", {
 		isPWA,
-		isOnline,
 		capabilities,
 		displayMode: PWAStatus.getDisplayMode(),
 	});
@@ -93,7 +84,9 @@ function dismissInstallBanner() {
         class="top-0 left-0 right-0 z-[60] bg-blue-600 text-white shadow-lg install-banner"
         style="height: 4rem;"
     >
-        <div class="flex items-center justify-between max-w-4xl mx-auto h-full px-4">
+        <div
+            class="flex items-center justify-between max-w-4xl mx-auto h-full px-4"
+        >
             <div class="flex items-center space-x-3">
                 <svg
                     class="w-6 h-6 flex-shrink-0"
@@ -109,7 +102,9 @@ function dismissInstallBanner() {
                     />
                 </svg>
                 <div class="min-w-0">
-                    <p class="font-medium text-sm sm:text-base">Install Beauty Tours</p>
+                    <p class="font-medium text-sm sm:text-base">
+                        Install Beauty Tours
+                    </p>
                     <p class="text-xs sm:text-sm opacity-90 truncate">
                         Get the app experience on your device
                     </p>
@@ -146,31 +141,6 @@ function dismissInstallBanner() {
     </div>
 {/if}
 
-<!-- Offline Indicator -->
-{#if !isOnline}
-    <div
-        class="fixed bottom-4 left-4 right-4 z-40 bg-orange-500 text-white p-3 rounded-lg shadow-lg"
-    >
-        <div class="flex items-center space-x-2">
-            <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2v6m0 8v6m-8-4h6m8 0h6"
-                />
-            </svg>
-            <span class="font-medium">You're offline</span>
-            <span class="text-sm opacity-90">Some features may be limited</span>
-        </div>
-    </div>
-{/if}
-
 <!-- PWA Debug Info (only in development) -->
 {#if browser && import.meta.env.DEV}
     <div
@@ -178,7 +148,6 @@ function dismissInstallBanner() {
     >
         <div class="font-bold mb-1">PWA Status</div>
         <div>Mode: {PWAStatus.getDisplayMode()}</div>
-        <div>Online: {isOnline ? "Yes" : "No"}</div>
         <div>Install Available: {isInstallAvailable ? "Yes" : "No"}</div>
         <div class="mt-1 text-xs opacity-75">
             SW: {capabilities.serviceWorker ? "✓" : "✗"}

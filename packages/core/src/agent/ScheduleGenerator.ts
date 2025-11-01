@@ -21,19 +21,34 @@ export class ScheduleGenerator {
 	async generateSchedule(
 		request: GenerateScheduleRequest,
 	): Promise<GenerateScheduleResponse> {
-		const prompt = this.createStructuredPrompt(request);
+		const structuredData = this.prepareStructuredData(request);
 
 		try {
-			const result = await this.agentService.queryAgent(prompt, "trip-planner");
+			const result =
+				await this.agentService.queryAgentWithStructuredData<ParsedSchedule>(
+					structuredData,
+					"trip-planner",
+				);
 
-			// Parse the structured JSON response and add business logic calculations
-			const parsedResult = this.parseAgentResponse(result, request);
+			// Validate and normalize the structured response
+			const validatedResult = this.validateAndNormalizeSchedule(result);
+
+			// Add business logic calculations
+			const parsedResult = this.addBusinessLogicCalculations(
+				validatedResult,
+				request,
+			);
 
 			return {
 				success: true,
 				...parsedResult,
 			};
 		} catch (error) {
+			console.error("Failed to generate schedule with structured data:", error);
+
+			// Fallback to creating a basic schedule
+			const fallbackResult = this.createFallbackSchedule();
+
 			return {
 				success: false,
 				error:
@@ -41,81 +56,93 @@ export class ScheduleGenerator {
 						? error.message
 						: "Failed to generate beauty schedule",
 				details: error instanceof Error ? error.stack : undefined,
+				...fallbackResult,
 			};
 		}
 	}
 
-	private createStructuredPrompt(request: GenerateScheduleRequest): string {
+	private prepareStructuredData(
+		request: GenerateScheduleRequest,
+	): Record<string, unknown> {
 		const duration = this.calculateDuration(request.startDate, request.endDate);
 		const solutionType = request.solutionType || "topranking";
 
-		return `Create a beauty tourism schedule for ${request.region}.
-
-TRIP DETAILS:
-- Dates: ${request.startDate} to ${request.endDate} (${duration} days)
-- Themes: ${request.selectedThemes.join(", ")}
-- Budget: $${request.budget} USD
-- Solution Type: ${solutionType}
-- Travelers: ${request.travelers || 1}
-${request.moreRequests ? `- Special Requests: ${request.moreRequests}` : ""}
-
-FOCUS ON:
-- Generate activities with individual costs only
-- Don't calculate totals or summaries
-- Day 1: consultations, Day 2+: treatments, Final day: follow-ups
-- Categories: consultation, treatment, recovery, wellness, transport
-- Include specific locations and detailed descriptions
-- Use realistic individual activity costs for ${request.region}`;
+		return {
+			action: "generate_beauty_schedule",
+			tripDetails: {
+				region: request.region,
+				startDate: request.startDate,
+				endDate: request.endDate,
+				duration,
+				themes: request.selectedThemes,
+				budget: request.budget,
+				solutionType,
+				specialRequests: request.moreRequests || null,
+			},
+			requirements: {
+				generateIndividualCosts: true,
+				skipTotalCalculations: true,
+				dayStructure: {
+					day1: "consultations",
+					day2Plus: "treatments",
+					finalDay: "follow-ups",
+				},
+				categories: [
+					"consultation",
+					"treatment",
+					"recovery",
+					"wellness",
+					"transport",
+				],
+				includeLocations: true,
+				includeDetailedDescriptions: true,
+				useRealisticCosts: true,
+			},
+			outputFormat: {
+				structure: "schedule_array",
+				fields: {
+					schedule: {
+						type: "array",
+						items: {
+							date: "string (ISO)",
+							dayNumber: "number",
+							activities: {
+								type: "array",
+								items: {
+									time: "string",
+									activity: "string",
+									location: "string",
+									duration: "string",
+									cost: "number",
+									description: "string",
+									category:
+										"string (consultation|treatment|recovery|wellness|transport)",
+								},
+							},
+							notes: "string",
+						},
+					},
+				},
+			},
+		};
 	}
 
-	private parseAgentResponse(
-		response: GenerateScheduleResponse | string,
-		request: GenerateScheduleRequest,
-	): Partial<GenerateScheduleResponse> {
-		try {
-			if (typeof response !== "string") {
-				return response;
-			}
-
-			// Clean and parse JSON response
-			let cleanResponse = response.trim();
-
-			// Remove markdown code blocks
-			cleanResponse = cleanResponse
-				.replace(/```json\n?/g, "")
-				.replace(/```\n?/g, "");
-
-			// Extract JSON object
-			const jsonStart = cleanResponse.indexOf("{");
-			const jsonEnd = cleanResponse.lastIndexOf("}") + 1;
-
-			if (jsonStart === -1 || jsonEnd === 0) {
-				throw new Error("No JSON found in response");
-			}
-
-			const jsonString = cleanResponse.substring(jsonStart, jsonEnd);
-			const parsed: ParsedSchedule = JSON.parse(jsonString);
-
-			// Basic validation
-			if (!parsed.schedule || !Array.isArray(parsed.schedule)) {
-				throw new Error("Invalid schedule structure");
-			}
-
-			// Ensure all required fields exist
-			parsed.schedule.forEach((day: ScheduleDay) => {
-				if (!day.activities) day.activities = [];
-				if (!day.notes) day.notes = "";
-				day.activities.forEach((activity: ScheduleActivity) => {
-					if (!activity.description) activity.description = "";
-				});
-			});
-
-			// Add business logic calculations here (moved from Python)
-			return this.addBusinessLogicCalculations(parsed, request);
-		} catch (error) {
-			console.error("Failed to parse agent response:", error);
-			return this.createFallbackSchedule();
+	private validateAndNormalizeSchedule(parsed: ParsedSchedule): ParsedSchedule {
+		// Basic validation
+		if (!parsed.schedule || !Array.isArray(parsed.schedule)) {
+			throw new Error("Invalid schedule structure");
 		}
+
+		// Ensure all required fields exist
+		parsed.schedule.forEach((day: ScheduleDay) => {
+			if (!day.activities) day.activities = [];
+			if (!day.notes) day.notes = "";
+			day.activities.forEach((activity: ScheduleActivity) => {
+				if (!activity.description) activity.description = "";
+			});
+		});
+
+		return parsed;
 	}
 
 	private addBusinessLogicCalculations(

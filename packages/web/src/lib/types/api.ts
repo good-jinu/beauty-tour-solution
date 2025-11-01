@@ -101,15 +101,6 @@ export const validateSavePlanRequest = (
 				);
 			}
 
-			if (
-				typeof preferences.travelers !== "number" ||
-				preferences.travelers <= 0
-			) {
-				errors.push(
-					"planData.preferences.travelers is required and must be a positive number",
-				);
-			}
-
 			if (!preferences.dates || typeof preferences.dates !== "object") {
 				errors.push(
 					"planData.preferences.dates is required and must be an object",

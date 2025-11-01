@@ -27,7 +27,6 @@ export interface GenerateScheduleRequest {
 	endDate: string;
 	selectedThemes: string[];
 	budget: number;
-	travelers?: number;
 	solutionType?: "topranking" | "premium" | "budget";
 	moreRequests?: string;
 	guestId?: string; // Optional guest ID for automatic saving

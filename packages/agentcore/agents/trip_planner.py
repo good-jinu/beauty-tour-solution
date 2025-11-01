@@ -68,6 +68,49 @@ def process_trip_planner_query(agent, query):
         print(f"Trip planner generation error: {e}")
         return generate_fallback_schedule()
 
+def process_structured_trip_planner_query(agent, structured_data):
+    """Process structured trip planner data - no calculations."""
+    try:
+        # Extract trip details from structured data
+        trip_details = structured_data.get("tripDetails", {})
+        requirements = structured_data.get("requirements", {})
+        
+        # Create a detailed prompt from structured data
+        prompt = f"""
+Generate a beauty tourism schedule for {trip_details.get('region', 'Seoul')}.
+
+TRIP DETAILS:
+- Dates: {trip_details.get('startDate')} to {trip_details.get('endDate')} ({trip_details.get('duration')} days)
+- Themes: {', '.join(trip_details.get('themes', []))}
+- Budget: ${trip_details.get('budget', 0)} USD
+- Solution Type: {trip_details.get('solutionType', 'topranking')}
+{f"- Special Requests: {trip_details.get('specialRequests')}" if trip_details.get('specialRequests') else ""}
+
+REQUIREMENTS:
+- Day structure: {requirements.get('dayStructure', {})}
+- Categories: {', '.join(requirements.get('categories', []))}
+- Include specific locations and detailed descriptions
+- Use realistic individual activity costs for {trip_details.get('region', 'Seoul')}
+- Generate activities with individual costs only
+- Don't calculate totals or summaries
+"""
+        
+        # Use structured output - LLM only generates activities
+        result = agent.structured_output(
+            TripSchedule,
+            TRIP_PLANNER_SYSTEM_PROMPT + "\n\n" + prompt,
+        )
+        
+        # Convert to dict - calculations will be done in TypeScript business logic
+        schedule_data = result.model_dump()
+        
+        # Don't add calculations here - let TypeScript handle it
+        return schedule_data
+        
+    except Exception as e:
+        print(f"Structured trip planner generation error: {e}")
+        return generate_fallback_schedule()
+
 def generate_fallback_schedule():
     """Generate fallback schedule with business logic calculations"""
     today = datetime.now()

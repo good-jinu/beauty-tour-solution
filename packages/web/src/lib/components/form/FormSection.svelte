@@ -3,11 +3,9 @@ import Button from "$lib/components/ui/button/button.svelte";
 import type { FormData, FormErrors } from "$lib/types";
 import BudgetSlider from "./BudgetSlider.svelte";
 import DateSelector from "./DateSelector.svelte";
-import PackageInclusions from "./PackageInclusions.svelte";
 import RegionSelector from "./RegionSelector.svelte";
 import SpecialRequests from "./SpecialRequests.svelte";
 import ThemeSelector from "./ThemeSelector.svelte";
-import TravelersInput from "./TravelersInput.svelte";
 
 interface Props {
 	formData: FormData;
@@ -81,10 +79,6 @@ let { formData = $bindable(), errors, isLoading, onSubmit }: Props = $props();
                                 bind:selectedTheme={formData.selectedTheme}
                                 {errors}
                             />
-                            <TravelersInput
-                                bind:travelers={formData.travelers}
-                                {errors}
-                            />
                         </div>
                     </section>
 
@@ -139,13 +133,6 @@ let { formData = $bindable(), errors, isLoading, onSubmit }: Props = $props();
                                 </p>
                             </div>
                         </div>
-
-                        <PackageInclusions
-                            bind:includeFlights={formData.includeFlights}
-                            bind:includeHotels={formData.includeHotels}
-                            bind:includeActivities={formData.includeActivities}
-                            bind:includeTransport={formData.includeTransport}
-                        />
                     </section>
 
                     <!-- Special Requests Section -->

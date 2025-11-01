@@ -347,21 +347,6 @@ $: if (planId !== previousPlanId) {
 							</div>
 						{/if}
 
-						{#if plan.planData.formData?.travelers}
-							<div class="flex items-center gap-3">
-								<Users class="w-4 h-4 text-muted-foreground" />
-								<div>
-									<p class="font-medium">Travelers</p>
-									<p class="text-sm text-muted-foreground">
-										{plan.planData.formData.travelers}
-										{plan.planData.formData.travelers === 1
-											? "person"
-											: "people"}
-									</p>
-								</div>
-							</div>
-						{/if}
-
 						{#if plan.planData.formData?.budget}
 							<div class="flex items-center gap-3">
 								<DollarSign
@@ -397,30 +382,6 @@ $: if (planId !== previousPlanId) {
 								<Badge variant="outline"
 									>{plan.planData.formData.theme}</Badge
 								>
-							</div>
-						{/if}
-
-						{#if plan.planData.formData.addOns}
-							<div>
-								<p class="font-medium mb-2">Add-ons</p>
-								<div class="flex flex-wrap gap-2">
-									{#if plan.planData.formData.addOns.flights}
-										<Badge variant="outline">Flights</Badge>
-									{/if}
-									{#if plan.planData.formData.addOns.hotels}
-										<Badge variant="outline">Hotels</Badge>
-									{/if}
-									{#if plan.planData.formData.addOns.activities}
-										<Badge variant="outline"
-											>Activities</Badge
-										>
-									{/if}
-									{#if plan.planData.formData.addOns.transport}
-										<Badge variant="outline"
-											>Transport</Badge
-										>
-									{/if}
-								</div>
 							</div>
 						{/if}
 
@@ -671,19 +632,6 @@ $: if (planId !== previousPlanId) {
 										)} - {formatDate(
 											planItem.planData.formData.endDate,
 										)}
-									</div>
-								{/if}
-
-								{#if planItem.planData.formData?.travelers}
-									<div
-										class="flex items-center gap-2 text-sm text-muted-foreground"
-									>
-										<Users class="w-4 h-4" />
-										{planItem.planData.formData.travelers}
-										{planItem.planData.formData
-											.travelers === 1
-											? "person"
-											: "people"}
 									</div>
 								{/if}
 

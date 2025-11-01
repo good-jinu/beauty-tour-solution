@@ -47,13 +47,6 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 							endDate: requestData.endDate,
 							theme: requestData.selectedThemes[0] || "",
 							budget: requestData.budget,
-							travelers: requestData.travelers || 1,
-							addOns: {
-								flights: false,
-								hotels: true,
-								activities: true,
-								transport: true,
-							},
 							specialRequests: requestData.moreRequests || null,
 						},
 						schedule: result,
