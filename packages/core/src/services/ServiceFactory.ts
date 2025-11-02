@@ -2,8 +2,13 @@
 import {
 	DynamoDBEventRepository,
 	DynamoDBPlanRepository,
+	DynamoDBScheduleRepository,
 } from "../repositories";
 import type { IEventRepository } from "../repositories/EventRepository";
+import type {
+	IScheduleRepository,
+	StoredSchedule,
+} from "../repositories/ScheduleRepository";
 import type { SavedPlan } from "../types/plan";
 import type { IPlanRepository } from "./PlanService";
 
@@ -39,6 +44,24 @@ export async function createEventRepository(
 		case "memory": {
 			// For testing or development
 			return new InMemoryEventRepository();
+		}
+		default: {
+			const exhaustiveCheck: never = config;
+			throw new Error(`Unsupported repository type: ${exhaustiveCheck}`);
+		}
+	}
+}
+
+export async function createScheduleRepository(
+	config: ServiceFactoryConfig,
+): Promise<IScheduleRepository> {
+	switch (config.repositoryType) {
+		case "dynamodb": {
+			return new DynamoDBScheduleRepository(config.tableName, config.region);
+		}
+		case "memory": {
+			// For testing or development
+			return new InMemoryScheduleRepository();
 		}
 		default: {
 			const exhaustiveCheck: never = config;
@@ -93,5 +116,55 @@ class InMemoryEventRepository implements IEventRepository {
 
 	async eventExists(): Promise<boolean> {
 		return false;
+	}
+}
+
+// Simple in-memory implementation for testing
+class InMemoryScheduleRepository implements IScheduleRepository {
+	private schedules: Map<string, StoredSchedule[]> = new Map();
+
+	async saveSchedule(schedule: StoredSchedule): Promise<StoredSchedule> {
+		const guestSchedules = this.schedules.get(schedule.guestId) || [];
+		guestSchedules.push(schedule);
+		this.schedules.set(schedule.guestId, guestSchedules);
+		return schedule;
+	}
+
+	async getSchedulesByGuestId(guestId: string): Promise<StoredSchedule[]> {
+		return this.schedules.get(guestId) || [];
+	}
+
+	async getSchedule(
+		guestId: string,
+		scheduleId: string,
+	): Promise<StoredSchedule | null> {
+		const guestSchedules = this.schedules.get(guestId) || [];
+		return guestSchedules.find((s) => s.scheduleId === scheduleId) || null;
+	}
+
+	async updateSchedule(schedule: StoredSchedule): Promise<StoredSchedule> {
+		const guestSchedules = this.schedules.get(schedule.guestId) || [];
+		const index = guestSchedules.findIndex(
+			(s) => s.scheduleId === schedule.scheduleId,
+		);
+		if (index >= 0) {
+			guestSchedules[index] = schedule;
+		}
+		return schedule;
+	}
+
+	async deleteSchedule(guestId: string, scheduleId: string): Promise<void> {
+		const guestSchedules = this.schedules.get(guestId) || [];
+		const filtered = guestSchedules.filter((s) => s.scheduleId !== scheduleId);
+		this.schedules.set(guestId, filtered);
+	}
+
+	async deleteSchedulesByGuestId(guestId: string): Promise<void> {
+		this.schedules.delete(guestId);
+	}
+
+	async scheduleExists(guestId: string, scheduleId: string): Promise<boolean> {
+		const schedule = await this.getSchedule(guestId, scheduleId);
+		return schedule !== null;
 	}
 }

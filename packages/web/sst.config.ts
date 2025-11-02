@@ -42,6 +42,19 @@ export default $config({
 			ttl: "ttl",
 		});
 
+		// DynamoDB table for storing user schedules
+		const schedulesTable = new sst.aws.Dynamo("BeautyTourSchedules", {
+			fields: {
+				guestId: "string",
+				scheduleId: "string",
+			},
+			primaryIndex: {
+				hashKey: "guestId",
+				rangeKey: "scheduleId",
+			},
+			ttl: "ttl",
+		});
+
 		// Router
 		const router = new sst.aws.Router(
 			process.env.WEB_DOMAIN?.replace(/\./g, "_") ?? "custom_com",
@@ -63,6 +76,7 @@ export default $config({
 				APP_AWS_REGION: process.env.APP_AWS_REGION ?? "us-east-1",
 				EVENTS_TABLE_NAME: eventsTable.name,
 				PLANS_TABLE_NAME: plansTable.name,
+				SCHEDULES_TABLE_NAME: schedulesTable.name,
 
 				// Event Tracking Configuration
 				EVENT_TRACKING_ENABLED: process.env.EVENT_TRACKING_ENABLED ?? "true",
@@ -84,7 +98,7 @@ export default $config({
 				EVENT_TRACKING_LOG_LEVEL:
 					process.env.EVENT_TRACKING_LOG_LEVEL ?? "info",
 			},
-			link: [plansTable, eventsTable],
+			link: [plansTable, eventsTable, schedulesTable],
 			permissions: [
 				{
 					actions: [
@@ -111,6 +125,7 @@ export default $config({
 						plansTable.arn,
 						eventsTable.arn,
 						eventsTable.arn.apply((t) => `${t}/index/*`),
+						schedulesTable.arn,
 					],
 				},
 			],
@@ -123,6 +138,7 @@ export default $config({
 			url: web.url,
 			plansTable: plansTable.name,
 			eventsTable: eventsTable.name,
+			schedulesTable: schedulesTable.name,
 		};
 	},
 });

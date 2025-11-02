@@ -1,12 +1,14 @@
-import { EventService, PlanService } from "@bts/core";
+import { EventService, PlanService, ScheduleService } from "@bts/core";
 import {
 	createDynamoDBEventRepository,
 	createDynamoDBPlanRepository,
+	createDynamoDBScheduleRepository,
 } from "$lib/services/repositoryFactory";
 
 // Shared service instances
 let planService: PlanService | null = null;
 let eventService: EventService | null = null;
+let scheduleService: ScheduleService | null = null;
 
 export async function getPlanService(): Promise<PlanService> {
 	if (!planService) {
@@ -27,6 +29,14 @@ export async function getEventService(): Promise<EventService> {
 		eventService = new EventService(repositoryResult.data);
 	}
 	return eventService;
+}
+
+export async function getScheduleService(): Promise<ScheduleService> {
+	if (!scheduleService) {
+		const scheduleRepository = await createDynamoDBScheduleRepository();
+		scheduleService = new ScheduleService(scheduleRepository);
+	}
+	return scheduleService;
 }
 
 // Simple API logger for web layer

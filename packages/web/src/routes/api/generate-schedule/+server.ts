@@ -3,7 +3,7 @@ import { ScheduleGenerator } from "@bts/core";
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
 import { validateGuestId } from "$lib/server/middleware/auth";
-import { getPlanService } from "$lib/utils/apiHelpers";
+import { getPlanService, getScheduleService } from "$lib/utils/apiHelpers";
 
 const scheduleGenerator = new ScheduleGenerator();
 
@@ -40,39 +40,79 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			// Automatically save the schedule using guestId from cookies
 			if (guestId && result.schedule) {
 				try {
-					const planData: PlanData = {
-						formData: {
-							region: requestData.region,
-							startDate: requestData.startDate,
-							endDate: requestData.endDate,
-							theme: requestData.selectedThemes[0] || "",
-							budget: requestData.budget,
-							specialRequests: requestData.moreRequests || null,
-						},
-						schedule: result,
-					};
-
 					const solutionType = requestData.solutionType || "topranking";
 					const title = `${solutionType.charAt(0).toUpperCase() + solutionType.slice(1)} Beauty Tour Plan`;
 
-					const planService = await getPlanService();
-					const saveResult = await planService.savePlan({
-						guestId,
-						planData,
-						title,
-					});
+					// Save to both plans table (for backward compatibility) and schedules table
+					const [planSavePromise, scheduleSavePromise] =
+						await Promise.allSettled([
+							// Save to plans table (existing functionality)
+							(async () => {
+								const planData: PlanData = {
+									formData: {
+										region: requestData.region,
+										startDate: requestData.startDate,
+										endDate: requestData.endDate,
+										theme: requestData.selectedThemes[0] || "",
+										budget: requestData.budget,
+										specialRequests: requestData.moreRequests || null,
+									},
+									schedule: result,
+								};
 
-					if (saveResult.success) {
+								const planService = await getPlanService();
+								return await planService.savePlan({
+									guestId,
+									planData,
+									title,
+								});
+							})(),
+
+							// Save to schedules table (new functionality)
+							(async () => {
+								const scheduleService = await getScheduleService();
+								return await scheduleService.saveSchedule({
+									guestId,
+									title,
+									request: requestData,
+									schedule: result.schedule || [],
+								});
+							})(),
+						]);
+
+					// Log results
+					if (
+						planSavePromise.status === "fulfilled" &&
+						planSavePromise.value.success
+					) {
 						console.log(
-							`Schedule automatically saved for ${solutionType}:`,
-							saveResult.data.planId,
+							`Schedule saved to plans table for ${solutionType}:`,
+							planSavePromise.value.data.planId,
 						);
 					} else {
 						console.error(
-							`Failed to auto-save schedule for ${solutionType}:`,
-							saveResult.error,
+							`Failed to save to plans table for ${solutionType}:`,
+							planSavePromise.status === "fulfilled"
+								? planSavePromise.value
+								: planSavePromise.reason,
 						);
-						// Don't fail the generation if saving fails, just log the error
+					}
+
+					if (
+						scheduleSavePromise.status === "fulfilled" &&
+						scheduleSavePromise.value.success
+					) {
+						console.log(
+							`Schedule saved to schedules table for ${solutionType}:`,
+							scheduleSavePromise.value.data?.scheduleId,
+						);
+					} else {
+						console.error(
+							`Failed to save to schedules table for ${solutionType}:`,
+							scheduleSavePromise.status === "fulfilled"
+								? scheduleSavePromise.value.error
+								: scheduleSavePromise.reason,
+						);
 					}
 				} catch (saveError) {
 					console.error("Error during auto-save:", saveError);

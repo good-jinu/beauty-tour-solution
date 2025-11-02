@@ -4,9 +4,11 @@ import type { RepositoryConfig, ServiceResult } from "@bts/core";
 import {
 	createEventRepository,
 	createPlanRepository,
+	createScheduleRepository,
 	type IEventRepository,
 	type IEventRepositoryFactory,
 	type IPlanRepository,
+	type IScheduleRepository,
 	validateRepositoryConfig,
 } from "@bts/core";
 
@@ -14,6 +16,12 @@ export async function createDynamoDBPlanRepository(): Promise<IPlanRepository> {
 	const { Resource } = await import("sst");
 	const tableName = (Resource as any).BeautyTourPlans.name;
 	return createPlanRepository({ repositoryType: "dynamodb", tableName });
+}
+
+export async function createDynamoDBScheduleRepository(): Promise<IScheduleRepository> {
+	const { Resource } = await import("sst");
+	const tableName = (Resource as any).BeautyTourSchedules.name;
+	return createScheduleRepository({ repositoryType: "dynamodb", tableName });
 }
 
 /**
@@ -85,6 +93,44 @@ export async function createDynamoDBEventRepository(): Promise<
 }
 
 /**
+ * Create a DynamoDB schedule repository using SST resources
+ */
+export async function createDynamoDBScheduleRepositoryWithConfig(): Promise<
+	ServiceResult<IScheduleRepository>
+> {
+	try {
+		const { Resource } = await import("sst");
+
+		// Get the schedules table name from SST resources
+		const tableName = (Resource as any).BeautyTourSchedules?.name;
+
+		if (!tableName) {
+			return {
+				success: false,
+				error:
+					"BeautyTourSchedules table not found in SST resources. Make sure the table is defined in sst.config.ts",
+			};
+		}
+
+		const repository = await createScheduleRepository({
+			repositoryType: "dynamodb",
+			tableName,
+			region: process.env.APP_AWS_REGION,
+		});
+
+		return {
+			success: true,
+			data: repository,
+		};
+	} catch (error) {
+		return {
+			success: false,
+			error: `Failed to create schedule repository: ${(error as Error).message}`,
+		};
+	}
+}
+
+/**
  * Create event repository with custom configuration
  */
 export async function createEventRepositoryWithConfig(
@@ -101,6 +147,27 @@ export async function createEventRepositoryWithConfig(
 		return {
 			success: false,
 			error: `Failed to create event repository: ${(error as Error).message}`,
+		};
+	}
+}
+
+/**
+ * Create schedule repository with custom configuration
+ */
+export async function createScheduleRepositoryWithConfig(
+	config: RepositoryConfig,
+): Promise<ServiceResult<IScheduleRepository>> {
+	try {
+		const repository = await createScheduleRepository(config);
+
+		return {
+			success: true,
+			data: repository,
+		};
+	} catch (error) {
+		return {
+			success: false,
+			error: `Failed to create schedule repository: ${(error as Error).message}`,
 		};
 	}
 }
