@@ -1,5 +1,11 @@
-import { EventService, PlanService, ScheduleService } from "@bts/core";
 import {
+	ActivityService,
+	EventService,
+	PlanService,
+	ScheduleService,
+} from "@bts/core";
+import {
+	createDynamoDBActivityRepository,
 	createDynamoDBEventRepository,
 	createDynamoDBPlanRepository,
 	createDynamoDBScheduleRepository,
@@ -9,6 +15,7 @@ import {
 let planService: PlanService | null = null;
 let eventService: EventService | null = null;
 let scheduleService: ScheduleService | null = null;
+let activityService: ActivityService | null = null;
 
 export async function getPlanService(): Promise<PlanService> {
 	if (!planService) {
@@ -37,6 +44,14 @@ export async function getScheduleService(): Promise<ScheduleService> {
 		scheduleService = new ScheduleService(scheduleRepository);
 	}
 	return scheduleService;
+}
+
+export async function getActivityService(): Promise<ActivityService> {
+	if (!activityService) {
+		const activityRepository = await createDynamoDBActivityRepository();
+		activityService = new ActivityService(activityRepository);
+	}
+	return activityService;
 }
 
 // Simple API logger for web layer

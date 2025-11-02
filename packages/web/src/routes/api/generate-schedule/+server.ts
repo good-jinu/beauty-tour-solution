@@ -3,9 +3,22 @@ import { ScheduleGenerator } from "@bts/core";
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
 import { validateGuestId } from "$lib/server/middleware/auth";
-import { getPlanService, getScheduleService } from "$lib/utils/apiHelpers";
+import {
+	getActivityService,
+	getPlanService,
+	getScheduleService,
+} from "$lib/utils/apiHelpers";
 
-const scheduleGenerator = new ScheduleGenerator();
+// Create schedule generator with activity service
+let scheduleGenerator: ScheduleGenerator | null = null;
+
+async function getScheduleGenerator(): Promise<ScheduleGenerator> {
+	if (!scheduleGenerator) {
+		const activityService = await getActivityService();
+		scheduleGenerator = new ScheduleGenerator(activityService);
+	}
+	return scheduleGenerator;
+}
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
 	try {
@@ -34,7 +47,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			);
 		}
 
-		const result = await scheduleGenerator.generateSchedule(requestData);
+		const generator = await getScheduleGenerator();
+		const result = await generator.generateSchedule(requestData);
 
 		if (result.success) {
 			// Automatically save the schedule using guestId from cookies
