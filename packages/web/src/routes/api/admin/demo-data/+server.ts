@@ -25,36 +25,33 @@ export const POST: RequestHandler = async () => {
 			{
 				date: "2024-12-15",
 				dayNumber: 1,
-				activities: [
+				items: [
 					{
-						time: "09:00",
-						activity: "Premium Facial Treatment",
-						location: "Gangnam Beauty Clinic",
+						activityId: "demo_activity_001",
+						scheduledTime: "09:00",
 						duration: "2 hours",
-						cost: 300,
-						description:
+						status: "planned",
+						notes:
 							"Deep cleansing facial with Korean skincare techniques and premium products",
-						category: "treatment",
+						customPrice: 300,
 					},
 					{
-						time: "14:00",
-						activity: "Skin Analysis Consultation",
-						location: "Seoul Dermatology Center",
+						activityId: "demo_activity_002",
+						scheduledTime: "14:00",
 						duration: "1 hour",
-						cost: 150,
-						description:
+						status: "planned",
+						notes:
 							"Professional skin analysis and personalized skincare recommendations",
-						category: "consultation",
+						customPrice: 150,
 					},
 					{
-						time: "16:00",
-						activity: "Traditional Korean Spa",
-						location: "Dragon Hill Spa",
+						activityId: "demo_activity_003",
+						scheduledTime: "16:00",
 						duration: "3 hours",
-						cost: 80,
-						description:
+						status: "planned",
+						notes:
 							"Relaxing traditional Korean spa experience with various baths and saunas",
-						category: "wellness",
+						customPrice: 80,
 					},
 				],
 				totalCost: 530,
@@ -63,25 +60,23 @@ export const POST: RequestHandler = async () => {
 			{
 				date: "2024-12-16",
 				dayNumber: 2,
-				activities: [
+				items: [
 					{
-						time: "10:00",
-						activity: "Anti-Aging Treatment",
-						location: "Premium Beauty Center",
+						activityId: "demo_activity_004",
+						scheduledTime: "10:00",
 						duration: "2.5 hours",
-						cost: 450,
-						description:
+						status: "planned",
+						notes:
 							"Advanced anti-aging treatment with latest Korean technology",
-						category: "treatment",
+						customPrice: 450,
 					},
 					{
-						time: "15:00",
-						activity: "Wellness Massage",
-						location: "Healing Touch Spa",
+						activityId: "demo_activity_005",
+						scheduledTime: "15:00",
 						duration: "90 minutes",
-						cost: 120,
-						description: "Therapeutic massage for relaxation and recovery",
-						category: "wellness",
+						status: "planned",
+						notes: "Therapeutic massage for relaxation and recovery",
+						customPrice: 120,
 					},
 				],
 				totalCost: 570,
@@ -90,26 +85,23 @@ export const POST: RequestHandler = async () => {
 			{
 				date: "2024-12-17",
 				dayNumber: 3,
-				activities: [
+				items: [
 					{
-						time: "11:00",
-						activity: "Skincare Shopping Tour",
-						location: "Myeongdong Beauty District",
+						activityId: "demo_activity_006",
+						scheduledTime: "11:00",
 						duration: "3 hours",
-						cost: 200,
-						description:
+						status: "planned",
+						notes:
 							"Guided tour of best Korean skincare shops with expert recommendations",
-						category: "wellness",
+						customPrice: 200,
 					},
 					{
-						time: "16:00",
-						activity: "Final Consultation",
-						location: "Beauty Clinic",
+						activityId: "demo_activity_007",
+						scheduledTime: "16:00",
 						duration: "1 hour",
-						cost: 100,
-						description:
-							"Final assessment and take-home skincare routine planning",
-						category: "consultation",
+						status: "planned",
+						notes: "Final assessment and take-home skincare routine planning",
+						customPrice: 100,
 					},
 				],
 				totalCost: 300,
@@ -131,24 +123,22 @@ export const POST: RequestHandler = async () => {
 			{
 				date: "2024-12-20",
 				dayNumber: 1,
-				activities: [
+				items: [
 					{
-						time: "10:00",
-						activity: "Beach Spa Treatment",
-						location: "Haeundae Beach Resort",
+						activityId: "demo_activity_008",
+						scheduledTime: "10:00",
 						duration: "2 hours",
-						cost: 180,
-						description: "Relaxing spa treatment with ocean views",
-						category: "wellness",
+						status: "planned",
+						notes: "Relaxing spa treatment with ocean views",
+						customPrice: 180,
 					},
 					{
-						time: "14:00",
-						activity: "Traditional Korean Bath",
-						location: "Busan Jjimjilbang",
+						activityId: "demo_activity_009",
+						scheduledTime: "14:00",
 						duration: "3 hours",
-						cost: 50,
-						description: "Traditional Korean public bath experience",
-						category: "wellness",
+						status: "planned",
+						notes: "Traditional Korean public bath experience",
+						customPrice: 50,
 					},
 				],
 				totalCost: 230,
@@ -157,24 +147,22 @@ export const POST: RequestHandler = async () => {
 			{
 				date: "2024-12-21",
 				dayNumber: 2,
-				activities: [
+				items: [
 					{
-						time: "09:00",
-						activity: "Hiking and Nature Therapy",
-						location: "Geumjeongsan Mountain",
+						activityId: "demo_activity_010",
+						scheduledTime: "09:00",
 						duration: "4 hours",
-						cost: 30,
-						description: "Guided nature walk and forest therapy session",
-						category: "wellness",
+						status: "planned",
+						notes: "Guided nature walk and forest therapy session",
+						customPrice: 30,
 					},
 					{
-						time: "15:00",
-						activity: "Meditation Session",
-						location: "Beomeosa Temple",
+						activityId: "demo_activity_011",
+						scheduledTime: "15:00",
 						duration: "2 hours",
-						cost: 40,
-						description: "Traditional meditation and mindfulness practice",
-						category: "wellness",
+						status: "planned",
+						notes: "Traditional meditation and mindfulness practice",
+						customPrice: 40,
 					},
 				],
 				totalCost: 70,

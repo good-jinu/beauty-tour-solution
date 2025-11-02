@@ -55,6 +55,34 @@ export default $config({
 			ttl: "ttl",
 		});
 
+		// DynamoDB table for storing beauty tour activities
+		const activitiesTable = new sst.aws.Dynamo("BeautyTourActivities", {
+			fields: {
+				activityId: "string",
+				theme: "string",
+				region: "string",
+				price: "number",
+				createdAt: "string",
+			},
+			primaryIndex: {
+				hashKey: "activityId",
+			},
+			globalIndexes: {
+				ThemeIndex: {
+					hashKey: "theme",
+					rangeKey: "createdAt",
+				},
+				LocationIndex: {
+					hashKey: "region",
+					rangeKey: "price",
+				},
+				PriceIndex: {
+					hashKey: "price",
+					rangeKey: "createdAt",
+				},
+			},
+		});
+
 		// Router
 		const router = new sst.aws.Router(
 			process.env.WEB_DOMAIN?.replace(/\./g, "_") ?? "custom_com",
@@ -77,6 +105,7 @@ export default $config({
 				EVENTS_TABLE_NAME: eventsTable.name,
 				PLANS_TABLE_NAME: plansTable.name,
 				SCHEDULES_TABLE_NAME: schedulesTable.name,
+				ACTIVITIES_TABLE_NAME: activitiesTable.name,
 
 				// Event Tracking Configuration
 				EVENT_TRACKING_ENABLED: process.env.EVENT_TRACKING_ENABLED ?? "true",
@@ -98,7 +127,7 @@ export default $config({
 				EVENT_TRACKING_LOG_LEVEL:
 					process.env.EVENT_TRACKING_LOG_LEVEL ?? "info",
 			},
-			link: [plansTable, eventsTable, schedulesTable],
+			link: [plansTable, eventsTable, schedulesTable, activitiesTable],
 			permissions: [
 				{
 					actions: [
@@ -120,12 +149,15 @@ export default $config({
 						"dynamodb:UpdateItem",
 						"dynamodb:DeleteItem",
 						"dynamodb:BatchWriteItem",
+						"dynamodb:Scan",
 					],
 					resources: [
 						plansTable.arn,
 						eventsTable.arn,
 						eventsTable.arn.apply((t) => `${t}/index/*`),
 						schedulesTable.arn,
+						activitiesTable.arn,
+						activitiesTable.arn.apply((t) => `${t}/index/*`),
 					],
 				},
 			],
@@ -139,6 +171,7 @@ export default $config({
 			plansTable: plansTable.name,
 			eventsTable: eventsTable.name,
 			schedulesTable: schedulesTable.name,
+			activitiesTable: activitiesTable.name,
 		};
 	},
 });

@@ -440,36 +440,32 @@ $: if (planId !== previousPlanId) {
 								{/if}
 
 								<div class="space-y-3">
-									{#each day.activities as activity}
-										{@const CategoryIcon = getCategoryIcon(
-											activity.category,
+									{#each day.items || [] as item}
 										)}
 										<div
 											class="flex gap-3 p-3 rounded-lg border bg-card"
 										>
 											<div class="flex-shrink-0">
-												<CategoryIcon
-													class="w-4 h-4 mt-1 text-muted-foreground"
-												/>
+												<div class="w-4 h-4 mt-1 bg-primary rounded-full"></div>
 											</div>
 											<div class="flex-1 space-y-1">
 												<div
 													class="flex items-start justify-between"
 												>
 													<h5 class="font-medium">
-														{activity.activity}
+														Activity: {item.activityId}
 													</h5>
 													<Badge
 														variant="secondary"
 														class="ml-2 capitalize"
 													>
-														{activity.category}
+														{item.status}
 													</Badge>
 												</div>
 												<p
 													class="text-sm text-muted-foreground"
 												>
-													{activity.description}
+													{item.notes || "No notes"}
 												</p>
 												<div
 													class="flex items-center gap-4 text-xs text-muted-foreground"
@@ -480,22 +476,14 @@ $: if (planId !== previousPlanId) {
 														<Clock
 															class="w-3 h-3"
 														/>
-														{activity.time}
+														{item.scheduledTime}
 													</span>
 													<span
-														class="flex items-center gap-1"
-													>
-														<MapPin
-															class="w-3 h-3"
-														/>
-														{activity.location}
-													</span>
-													<span
-														>Duration: {activity.duration}</span
+														>Duration: {item.duration}</span
 													>
 													<span class="font-medium">
 														{formatCurrency(
-															activity.cost,
+															item.customPrice || 0,
 														)}
 													</span>
 												</div>

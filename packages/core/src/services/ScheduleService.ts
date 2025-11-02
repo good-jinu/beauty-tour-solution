@@ -576,11 +576,73 @@ export class ScheduleService {
 					});
 				}
 
-				if (!day.activities || day.activities.length === 0) {
+				if (!day.items || day.items.length === 0) {
 					errors.push({
-						field: `schedule[${index}].activities`,
-						message: "Schedule day must have at least one activity",
+						field: `schedule[${index}].items`,
+						message: "Schedule day must have at least one item",
 						code: "REQUIRED_FIELD",
+					});
+				} else {
+					// Validate each schedule item
+					day.items.forEach((item, itemIndex) => {
+						if (!item.activityId) {
+							errors.push({
+								field: `schedule[${index}].items[${itemIndex}].activityId`,
+								message: "Schedule item must reference an activity",
+								code: "REQUIRED_FIELD",
+							});
+						}
+
+						if (!item.scheduledTime) {
+							errors.push({
+								field: `schedule[${index}].items[${itemIndex}].scheduledTime`,
+								message: "Schedule item must have a scheduled time",
+								code: "REQUIRED_FIELD",
+							});
+						}
+
+						if (!item.duration) {
+							errors.push({
+								field: `schedule[${index}].items[${itemIndex}].duration`,
+								message: "Schedule item must have a duration",
+								code: "REQUIRED_FIELD",
+							});
+						}
+
+						if (!item.status) {
+							errors.push({
+								field: `schedule[${index}].items[${itemIndex}].status`,
+								message: "Schedule item must have a status",
+								code: "REQUIRED_FIELD",
+							});
+						}
+
+						// Validate time format (HH:MM)
+						if (
+							item.scheduledTime &&
+							!/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(item.scheduledTime)
+						) {
+							errors.push({
+								field: `schedule[${index}].items[${itemIndex}].scheduledTime`,
+								message: "Scheduled time must be in HH:MM format",
+								code: "INVALID_FORMAT",
+							});
+						}
+
+						// Validate status values
+						const validStatuses = [
+							"planned",
+							"booked",
+							"completed",
+							"cancelled",
+						];
+						if (item.status && !validStatuses.includes(item.status)) {
+							errors.push({
+								field: `schedule[${index}].items[${itemIndex}].status`,
+								message: `Status must be one of: ${validStatuses.join(", ")}`,
+								code: "INVALID_VALUE",
+							});
+						}
 					});
 				}
 			});

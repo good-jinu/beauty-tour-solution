@@ -2,8 +2,8 @@ import { BedrockAgentCoreService } from "@bts/infra";
 import type {
 	GenerateScheduleRequest,
 	GenerateScheduleResponse,
-	ScheduleActivity,
 	ScheduleDay,
+	ScheduleItem,
 } from "../types";
 
 interface ParsedSchedule {
@@ -106,17 +106,15 @@ export class ScheduleGenerator {
 						items: {
 							date: "string (ISO)",
 							dayNumber: "number",
-							activities: {
+							items: {
 								type: "array",
 								items: {
-									time: "string",
-									activity: "string",
-									location: "string",
+									activityId: "string",
+									scheduledTime: "string",
 									duration: "string",
-									cost: "number",
-									description: "string",
-									category:
-										"string (consultation|treatment|recovery|wellness|transport)",
+									status: "string (planned|booked|completed|cancelled)",
+									notes: "string",
+									customPrice: "number (optional)",
 								},
 							},
 							notes: "string",
@@ -135,10 +133,11 @@ export class ScheduleGenerator {
 
 		// Ensure all required fields exist
 		parsed.schedule.forEach((day: ScheduleDay) => {
-			if (!day.activities) day.activities = [];
+			if (!day.items) day.items = [];
 			if (!day.notes) day.notes = "";
-			day.activities.forEach((activity: ScheduleActivity) => {
-				if (!activity.description) activity.description = "";
+			day.items.forEach((item: ScheduleItem) => {
+				if (!item.notes) item.notes = "";
+				if (!item.status) item.status = "planned";
 			});
 		});
 
@@ -155,13 +154,13 @@ export class ScheduleGenerator {
 
 		// Calculate day totals
 		parsed.schedule.forEach((day: ScheduleDay) => {
-			const dayCost = day.activities.reduce(
-				(sum: number, activity: ScheduleActivity) => sum + (activity.cost || 0),
+			const dayCost = day.items.reduce(
+				(sum: number, item: ScheduleItem) => sum + (item.customPrice || 0),
 				0,
 			);
 			day.totalCost = dayCost;
 			totalCost += dayCost;
-			totalActivities += day.activities.length;
+			totalActivities += day.items.length;
 		});
 
 		// Apply solution type multiplier
@@ -176,18 +175,19 @@ export class ScheduleGenerator {
 		});
 
 		// Calculate summary
-		const uniqueCategories = new Set();
+		const uniqueActivityIds = new Set<string>();
 		parsed.schedule.forEach((day: ScheduleDay) => {
-			day.activities.forEach((activity: ScheduleActivity) => {
-				uniqueCategories.add(activity.category);
+			day.items.forEach((item: ScheduleItem) => {
+				uniqueActivityIds.add(item.activityId);
 			});
 		});
 
 		parsed.summary = {
 			totalDays: parsed.schedule.length,
 			totalActivities,
-			totalThemes: uniqueCategories.size,
+			totalThemes: uniqueActivityIds.size, // Using activity count as theme approximation
 			estimatedCost: totalCost,
+			activitiesUsed: Array.from(uniqueActivityIds),
 		};
 
 		return parsed;
@@ -195,21 +195,21 @@ export class ScheduleGenerator {
 
 	private createFallbackSchedule(): Partial<GenerateScheduleResponse> {
 		const totalCost = 200;
+		const fallbackActivityId = "fallback_activity_001";
 
 		return {
 			schedule: [
 				{
 					date: new Date().toISOString().split("T")[0],
 					dayNumber: 1,
-					activities: [
+					items: [
 						{
-							time: "09:00",
-							activity: "Initial Consultation",
-							location: "Beauty Clinic",
+							activityId: fallbackActivityId,
+							scheduledTime: "09:00",
 							duration: "2h",
-							cost: 200,
-							description: "Comprehensive consultation and planning",
-							category: "consultation" as const,
+							status: "planned" as const,
+							notes: "Comprehensive consultation and planning",
+							customPrice: 200,
 						},
 					],
 					totalCost: totalCost,
@@ -221,6 +221,7 @@ export class ScheduleGenerator {
 				totalActivities: 1,
 				totalThemes: 1,
 				estimatedCost: totalCost,
+				activitiesUsed: [fallbackActivityId],
 			},
 		};
 	}

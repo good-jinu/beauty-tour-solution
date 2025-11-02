@@ -162,14 +162,7 @@ function getActivityIconComponent(category: string) {
 							</div>
 							<div class="text-center sm:text-right">
 								<div class="text-lg sm:text-xl font-bold text-primary">
-									${day.totalCost?.toLocaleString() ||
-										day.activities
-											.reduce(
-												(sum, activity) =>
-													sum + (activity.cost || 0),
-												0,
-											)
-											.toLocaleString()}
+									${day.totalCost?.toLocaleString() || "0"}
 								</div>
 								<div class="text-xs text-muted-foreground">
 									Daily Total
@@ -179,33 +172,29 @@ function getActivityIconComponent(category: string) {
 					</CardHeader>
 					<CardContent class="p-4 sm:p-6">
 						<div class="space-y-3 sm:space-y-4">
-							{#each day.activities as activity}
-								{@const IconComponent =
-									getActivityIconComponent(activity.category)}
+							{#each day.items || [] as item}
 								<div
 									class="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border bg-card/50 hover:bg-card/70 transition-colors"
 								>
-									<!-- Time and Icon Row for Mobile -->
+									<!-- Time and Duration -->
 									<div class="flex items-center gap-3 sm:flex-col sm:items-center sm:gap-1">
 										<div class="flex-shrink-0 text-center">
 											<div
 												class="text-sm sm:text-lg font-semibold text-primary"
 											>
-												{activity.time}
+												{item.scheduledTime}
 											</div>
 											<div
 												class="text-xs text-muted-foreground"
 											>
-												{activity.duration}
+												{item.duration}
 											</div>
 										</div>
 										<div class="flex-shrink-0">
 											<div
 												class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center"
 											>
-												<IconComponent
-													class="w-3 h-3 sm:w-4 sm:h-4 text-primary"
-												/>
+												<div class="w-3 h-3 sm:w-4 sm:h-4 bg-primary rounded-full"></div>
 											</div>
 										</div>
 									</div>
@@ -216,13 +205,13 @@ function getActivityIconComponent(category: string) {
 											class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2"
 										>
 											<h4 class="font-semibold text-sm sm:text-base leading-tight">
-												{activity.activity}
+												Activity ID: {item.activityId}
 											</h4>
 											<div class="text-left sm:text-right flex-shrink-0">
 												<div
 													class="text-base sm:text-lg font-bold text-primary"
 												>
-													${activity.cost?.toLocaleString()}
+													${item.customPrice?.toLocaleString() || "TBD"}
 												</div>
 												<div
 													class="text-xs text-muted-foreground"
@@ -239,13 +228,12 @@ function getActivityIconComponent(category: string) {
 										<p
 											class="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mb-1"
 										>
-											<MapPin class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-											<span class="truncate">{activity.location}</span>
+											<span class="truncate">Status: {item.status}</span>
 										</p>
 										<p
 											class="text-xs sm:text-sm text-muted-foreground leading-relaxed"
 										>
-											{activity.description}
+											{item.notes || "No additional notes"}
 										</p>
 									</div>
 								</div>

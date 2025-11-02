@@ -5,6 +5,8 @@ import {
 	createEventRepository,
 	createPlanRepository,
 	createScheduleRepository,
+	DynamoDBActivityRepository,
+	type IActivityRepository,
 	type IEventRepository,
 	type IEventRepositoryFactory,
 	type IPlanRepository,
@@ -22,6 +24,12 @@ export async function createDynamoDBScheduleRepository(): Promise<IScheduleRepos
 	const { Resource } = await import("sst");
 	const tableName = (Resource as any).BeautyTourSchedules.name;
 	return createScheduleRepository({ repositoryType: "dynamodb", tableName });
+}
+
+export async function createDynamoDBActivityRepository(): Promise<IActivityRepository> {
+	const { Resource } = await import("sst");
+	const tableName = (Resource as any).BeautyTourActivities.name;
+	return new DynamoDBActivityRepository(tableName);
 }
 
 /**

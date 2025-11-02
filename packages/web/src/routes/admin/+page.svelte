@@ -30,18 +30,13 @@ import { Textarea } from "$lib/components/ui/textarea";
 
 // Types for the admin interface
 interface ActivityFormData {
-	time: string;
-	activity: string;
-	location: string;
+	activityId: string;
+	scheduledTime: string;
 	duration: string;
-	cost: number;
-	description: string;
-	category:
-		| "treatment"
-		| "consultation"
-		| "recovery"
-		| "wellness"
-		| "transport";
+	status: "planned" | "booked" | "completed" | "cancelled";
+	notes?: string;
+	customPrice?: number;
+	bookingReference?: string;
 }
 
 interface ScheduleFormData {
@@ -66,13 +61,13 @@ const showScheduleForm = writable(false);
 
 // Form data
 let activityForm: ActivityFormData = {
-	time: "",
-	activity: "",
-	location: "",
+	activityId: "",
+	scheduledTime: "",
 	duration: "",
-	cost: 0,
-	description: "",
-	category: "treatment",
+	status: "planned",
+	notes: "",
+	customPrice: 0,
+	bookingReference: "",
 };
 
 let scheduleForm: ScheduleFormData = {
@@ -88,14 +83,7 @@ let scheduleForm: ScheduleFormData = {
 let currentDayIndex = 0;
 let loading = false;
 
-// Category options
-const categoryOptions = [
-	{ value: "treatment", label: "Treatment" },
-	{ value: "consultation", label: "Consultation" },
-	{ value: "recovery", label: "Recovery" },
-	{ value: "wellness", label: "Wellness" },
-	{ value: "transport", label: "Transport" },
-];
+// Category options removed - no longer needed with new structure
 
 // Theme options
 const themeOptions = [
@@ -168,7 +156,7 @@ function addNewDay() {
 	const newDay: ScheduleDay = {
 		date: date.toISOString().split("T")[0],
 		dayNumber,
-		activities: [],
+		items: [],
 		totalCost: 0,
 		notes: "",
 	};
@@ -191,20 +179,20 @@ function openActivityForm(dayIndex: number, activityIndex?: number) {
 	currentDayIndex = dayIndex;
 
 	if (activityIndex !== undefined) {
-		// Editing existing activity
-		const activity = scheduleForm.days[dayIndex].activities[activityIndex];
-		activityForm = { ...activity };
+		// Editing existing item
+		const item = scheduleForm.days[dayIndex].items[activityIndex];
+		activityForm = { ...item };
 		editingActivity.set({ dayIndex, activityIndex });
 	} else {
 		// Adding new activity
 		activityForm = {
-			time: "",
-			activity: "",
-			location: "",
+			activityId: "",
+			scheduledTime: "",
 			duration: "",
-			cost: 0,
-			description: "",
-			category: "treatment",
+			status: "planned",
+			notes: "",
+			customPrice: 0,
+			bookingReference: "",
 		};
 		editingActivity.set(null);
 	}
@@ -216,13 +204,13 @@ function closeActivityForm() {
 	showActivityForm.set(false);
 	editingActivity.set(null);
 	activityForm = {
-		time: "",
-		activity: "",
-		location: "",
+		activityId: "",
+		scheduledTime: "",
 		duration: "",
-		cost: 0,
-		description: "",
-		category: "treatment",
+		status: "planned",
+		notes: "",
+		customPrice: 0,
+		bookingReference: "",
 	};
 }
 
@@ -230,14 +218,14 @@ function saveActivity() {
 	const editing = $editingActivity;
 
 	if (editing) {
-		// Update existing activity
-		scheduleForm.days[editing.dayIndex].activities[editing.activityIndex] = {
+		// Update existing item
+		scheduleForm.days[editing.dayIndex].items[editing.activityIndex] = {
 			...activityForm,
 		};
 	} else {
-		// Add new activity
-		scheduleForm.days[currentDayIndex].activities = [
-			...scheduleForm.days[currentDayIndex].activities,
+		// Add new item
+		scheduleForm.days[currentDayIndex].items = [
+			...scheduleForm.days[currentDayIndex].items,
 			{ ...activityForm },
 		];
 	}
@@ -245,21 +233,21 @@ function saveActivity() {
 	// Recalculate day total cost
 	scheduleForm.days[currentDayIndex].totalCost = scheduleForm.days[
 		currentDayIndex
-	].activities.reduce((sum, activity) => sum + activity.cost, 0);
+	].items.reduce((sum: number, item: any) => sum + (item.customPrice || 0), 0);
 
 	closeActivityForm();
 	toast.success(editing ? "Activity updated" : "Activity added");
 }
 
 function deleteActivity(dayIndex: number, activityIndex: number) {
-	scheduleForm.days[dayIndex].activities = scheduleForm.days[
-		dayIndex
-	].activities.filter((_, index) => index !== activityIndex);
+	scheduleForm.days[dayIndex].items = scheduleForm.days[dayIndex].items.filter(
+		(_: any, index: number) => index !== activityIndex,
+	);
 
 	// Recalculate day total cost
 	scheduleForm.days[dayIndex].totalCost = scheduleForm.days[
 		dayIndex
-	].activities.reduce((sum, activity) => sum + activity.cost, 0);
+	].items.reduce((sum: number, item: any) => sum + (item.customPrice || 0), 0);
 
 	toast.success("Activity deleted");
 }
@@ -560,36 +548,35 @@ function getCategoryColor(category: string) {
 												</div>
 											</CardHeader>
 											<CardContent>
-												{#if day.activities.length === 0}
+												{#if day.items.length === 0}
 													<div class="text-center py-4 text-muted-foreground text-sm">
-														No activities added yet
+														No items added yet
 													</div>
 												{:else}
 													<div class="space-y-3">
-														{#each day.activities as activity, activityIndex}
+														{#each day.items as item, activityIndex}
 															<div class="flex items-start justify-between p-3 border rounded-lg">
 																<div class="flex-1">
 																	<div class="flex items-center gap-2 mb-2">
-																		<Badge class={getCategoryColor(activity.category)}>
-																			{activity.category}
+																		<Badge class="bg-blue-100 text-blue-800">
+																			{item.status}
 																		</Badge>
 																		<div class="flex items-center gap-1 text-sm text-muted-foreground">
 																			<Clock size={12} />
-																			{activity.time}
+																			{item.scheduledTime}
 																		</div>
 																		<div class="flex items-center gap-1 text-sm text-muted-foreground">
 																			<DollarSign size={12} />
-																			{activity.cost}
+																			{item.customPrice || 0}
 																		</div>
 																	</div>
-																	<div class="font-medium">{activity.activity}</div>
+																	<div class="font-medium">Activity ID: {item.activityId}</div>
 																	<div class="flex items-center gap-1 text-sm text-muted-foreground">
-																		<MapPin size={12} />
-																		{activity.location} • {activity.duration}
+																		<span>Duration: {item.duration}</span>
 																	</div>
-																	{#if activity.description}
+																	{#if item.notes}
 																		<div class="text-sm text-muted-foreground mt-1">
-																			{activity.description}
+																			{item.notes}
 																		</div>
 																	{/if}
 																</div>
@@ -667,8 +654,8 @@ function getCategoryColor(category: string) {
 			<CardContent class="space-y-4">
 				<div class="grid grid-cols-2 gap-4">
 					<div class="space-y-2">
-						<Label for="activity-time">Time</Label>
-						<Input id="activity-time" bind:value={activityForm.time} placeholder="09:00" />
+						<Label for="activity-time">Scheduled Time</Label>
+						<Input id="activity-time" bind:value={activityForm.scheduledTime} placeholder="09:00" />
 					</div>
 					<div class="space-y-2">
 						<Label for="activity-duration">Duration</Label>
@@ -677,40 +664,41 @@ function getCategoryColor(category: string) {
 				</div>
 				
 				<div class="space-y-2">
-					<Label for="activity-name">Activity</Label>
-					<Input id="activity-name" bind:value={activityForm.activity} placeholder="Facial Treatment" />
+					<Label for="activity-name">Activity ID</Label>
+					<Input id="activity-name" bind:value={activityForm.activityId} placeholder="activity_001" />
 				</div>
 				
 				<div class="space-y-2">
-					<Label for="activity-location">Location</Label>
-					<Input id="activity-location" bind:value={activityForm.location} placeholder="Gangnam Beauty Clinic" />
+					<Label for="activity-status">Status</Label>
+					<select id="activity-status" bind:value={activityForm.status} class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm">
+						<option value="planned">Planned</option>
+						<option value="booked">Booked</option>
+						<option value="completed">Completed</option>
+						<option value="cancelled">Cancelled</option>
+					</select>
 				</div>
 				
 				<div class="grid grid-cols-2 gap-4">
 					<div class="space-y-2">
-						<Label for="activity-cost">Cost ($)</Label>
-						<Input id="activity-cost" type="number" bind:value={activityForm.cost} placeholder="200" />
+						<Label for="activity-cost">Custom Price ($)</Label>
+						<Input id="activity-cost" type="number" bind:value={activityForm.customPrice} placeholder="200" />
 					</div>
 					<div class="space-y-2">
-						<Label for="activity-category">Category</Label>
-						<select 
-							id="activity-category" 
-							bind:value={activityForm.category}
-							class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							{#each categoryOptions as option}
-								<option value={option.value}>{option.label}</option>
-							{/each}
-						</select>
+						<Label for="activity-booking-ref">Booking Reference</Label>
+						<Input 
+							id="activity-booking-ref" 
+							bind:value={activityForm.bookingReference}
+							placeholder="Optional booking reference"
+						/>
 					</div>
 				</div>
 				
 				<div class="space-y-2">
-					<Label for="activity-description">Description</Label>
+					<Label for="activity-description">Notes</Label>
 					<Textarea 
 						id="activity-description" 
-						bind:value={activityForm.description} 
-						placeholder="Detailed description of the activity..."
+						bind:value={activityForm.notes} 
+						placeholder="Additional notes for this schedule item..."
 					/>
 				</div>
 				
