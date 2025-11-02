@@ -6,6 +6,7 @@ import type {
 } from "@bts/core";
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
+import { validateAdminAuth } from "$lib/server/middleware";
 import {
 	createErrorResponse,
 	createSuccessResponse,
@@ -19,7 +20,18 @@ import {
 } from "$lib/utils/activityValidation";
 import { generateRequestId, logApiEvent } from "$lib/utils/apiHelpers";
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, cookies }) => {
+	// Check admin authentication
+	const authResult = validateAdminAuth(cookies);
+	if (!authResult.isAuthenticated) {
+		return json(
+			createErrorResponse(
+				ERROR_CODES.UNAUTHORIZED,
+				"Admin authentication required",
+			),
+			{ status: HTTP_STATUS.UNAUTHORIZED },
+		);
+	}
 	const startTime = Date.now();
 	const requestId = generateRequestId();
 
@@ -163,7 +175,18 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 };
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, cookies }) => {
+	// Check admin authentication
+	const authResult = validateAdminAuth(cookies);
+	if (!authResult.isAuthenticated) {
+		return json(
+			createErrorResponse(
+				ERROR_CODES.UNAUTHORIZED,
+				"Admin authentication required",
+			),
+			{ status: HTTP_STATUS.UNAUTHORIZED },
+		);
+	}
 	const startTime = Date.now();
 	const requestId = generateRequestId();
 

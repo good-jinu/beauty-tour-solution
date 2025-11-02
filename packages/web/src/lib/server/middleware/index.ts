@@ -3,6 +3,16 @@
  */
 
 export {
+	AdminAuthMiddleware,
+	type AdminAuthResult,
+	type AdminSessionCookieConfig,
+	adminAuthMiddleware,
+	createAdminSession,
+	destroyAdminSession,
+	validateAdminAuth,
+	validateAdminCredentials,
+} from "./adminAuth.js";
+export {
 	AuthMiddleware,
 	type AuthResult,
 	authMiddleware,
