@@ -1,7 +1,7 @@
 import type {
 	Activity,
 	ActivityFilters,
-	CreateActivityData,
+	ActivityTheme,
 	PaginatedActivities,
 } from "@bts/core";
 import type { RequestHandler } from "@sveltejs/kit";
@@ -31,25 +31,30 @@ export const GET: RequestHandler = async ({ url }) => {
 		const searchParams = url.searchParams;
 		const filters: ActivityFilters = {
 			page: searchParams.get("page")
-				? parseInt(searchParams.get("page")!, 10)
+				? parseInt(searchParams.get("page") || "1", 10)
 				: 1,
 			limit: searchParams.get("limit")
-				? parseInt(searchParams.get("limit")!, 10)
+				? parseInt(searchParams.get("limit") || "50", 10)
 				: 50,
 			search: searchParams.get("search") || undefined,
-			theme: (searchParams.get("theme") as any) || undefined,
+			theme: (searchParams.get("theme") as ActivityTheme) || undefined,
 			region: searchParams.get("region") || undefined,
 			minPrice: searchParams.get("minPrice")
-				? parseFloat(searchParams.get("minPrice")!)
+				? parseFloat(searchParams.get("minPrice") || "0")
 				: undefined,
 			maxPrice: searchParams.get("maxPrice")
-				? parseFloat(searchParams.get("maxPrice")!)
+				? parseFloat(searchParams.get("maxPrice") || "0")
 				: undefined,
 			isActive: searchParams.get("isActive")
 				? searchParams.get("isActive") === "true"
 				: undefined,
-			sortBy: (searchParams.get("sortBy") as any) || "createdAt",
-			sortOrder: (searchParams.get("sortOrder") as any) || "desc",
+			sortBy:
+				(searchParams.get("sortBy") as
+					| "name"
+					| "theme"
+					| "price"
+					| "createdAt") || "createdAt",
+			sortOrder: (searchParams.get("sortOrder") as "asc" | "desc") || "desc",
 		};
 
 		// Validate filters
@@ -191,7 +196,13 @@ export const POST: RequestHandler = async ({ request }) => {
 			);
 		}
 
-		const activityData: CreateActivityData = validation.data!;
+		const activityData = validation.data;
+		if (!activityData) {
+			return json(
+				createErrorResponse("VALIDATION_ERROR", "Invalid activity data"),
+				{ status: HTTP_STATUS.BAD_REQUEST },
+			);
+		}
 
 		logApiEvent("info", "Activity data validated successfully", {
 			requestId,

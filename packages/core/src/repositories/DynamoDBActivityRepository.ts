@@ -100,11 +100,11 @@ export class DynamoDBActivityRepository implements IActivityRepository {
 			});
 
 			// Build scan parameters - using queryItems for now but this would be better with scan
-			const scanParams: any = {};
+			const scanParams: Record<string, unknown> = {};
 
 			// Add filter expressions
 			const filterExpressions: string[] = [];
-			const expressionAttributeValues: Record<string, any> = {};
+			const expressionAttributeValues: Record<string, unknown> = {};
 			const expressionAttributeNames: Record<string, string> = {};
 
 			if (filters?.search) {
@@ -161,9 +161,10 @@ export class DynamoDBActivityRepository implements IActivityRepository {
 
 			// Apply sorting
 			if (filters?.sortBy) {
+				const sortBy = filters.sortBy;
 				allActivities.sort((a, b) => {
-					const aValue = this.getSortValue(a, filters.sortBy!);
-					const bValue = this.getSortValue(b, filters.sortBy!);
+					const aValue = this.getSortValue(a, sortBy);
+					const bValue = this.getSortValue(b, sortBy);
 					const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
 					return filters.sortOrder === "desc" ? -comparison : comparison;
 				});

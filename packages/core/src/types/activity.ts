@@ -180,7 +180,7 @@ export interface ErrorResponse {
 		code: string;
 		message: string;
 		field?: string; // For validation errors
-		details?: any;
+		details?: unknown;
 	};
 }
 

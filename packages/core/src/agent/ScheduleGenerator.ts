@@ -84,70 +84,6 @@ export class ScheduleGenerator {
 		}
 	}
 
-	private prepareStructuredData(
-		request: GenerateScheduleRequest,
-	): Record<string, unknown> {
-		const duration = this.calculateDuration(request.startDate, request.endDate);
-		const solutionType = request.solutionType || "topranking";
-
-		return {
-			action: "generate_beauty_schedule",
-			tripDetails: {
-				region: request.region,
-				startDate: request.startDate,
-				endDate: request.endDate,
-				duration,
-				themes: request.selectedThemes,
-				budget: request.budget,
-				solutionType,
-				specialRequests: request.moreRequests || null,
-			},
-			requirements: {
-				generateIndividualCosts: true,
-				skipTotalCalculations: true,
-				dayStructure: {
-					day1: "consultations",
-					day2Plus: "treatments",
-					finalDay: "follow-ups",
-				},
-				categories: [
-					"consultation",
-					"treatment",
-					"recovery",
-					"wellness",
-					"transport",
-				],
-				includeLocations: true,
-				includeDetailedDescriptions: true,
-				useRealisticCosts: true,
-			},
-			outputFormat: {
-				structure: "schedule_array",
-				fields: {
-					schedule: {
-						type: "array",
-						items: {
-							date: "string (ISO)",
-							dayNumber: "number",
-							items: {
-								type: "array",
-								items: {
-									activityId: "string",
-									scheduledTime: "string",
-									duration: "string",
-									status: "string (planned|booked|completed|cancelled)",
-									notes: "string",
-									customPrice: "number (optional)",
-								},
-							},
-							notes: "string",
-						},
-					},
-				},
-			},
-		};
-	}
-
 	/**
 	 * Prepare structured data with real activity information for better AI generation
 	 */
@@ -235,8 +171,8 @@ export class ScheduleGenerator {
 	 */
 	private groupActivitiesByTheme(
 		activities: Activity[],
-	): Record<string, any[]> {
-		const grouped: Record<string, any[]> = {};
+	): Record<string, Activity[]> {
+		const grouped: Record<string, Activity[]> = {};
 
 		for (const activity of activities) {
 			const theme = activity.theme;
@@ -247,10 +183,13 @@ export class ScheduleGenerator {
 			grouped[theme].push({
 				activityId: activity.activityId,
 				name: activity.name,
+				theme: activity.theme,
 				location: {
 					name: activity.location.name,
 					district: activity.location.district,
 					address: activity.location.address,
+					city: activity.location.city,
+					region: activity.location.region,
 				},
 				price: {
 					amount: activity.price.amount,
@@ -258,11 +197,11 @@ export class ScheduleGenerator {
 					type: activity.price.type,
 				},
 				workingHours: activity.workingHours,
-				availableTimeSlots: this.generateAvailableTimeSlots(
-					activity.workingHours,
-				),
 				description: activity.description,
 				amenities: activity.amenities,
+				isActive: activity.isActive,
+				createdAt: activity.createdAt,
+				updatedAt: activity.updatedAt,
 			});
 		}
 
@@ -284,55 +223,6 @@ export class ScheduleGenerator {
 				if (!item.status) item.status = "planned";
 			});
 		});
-
-		return parsed;
-	}
-
-	private addBusinessLogicCalculations(
-		parsed: ParsedSchedule,
-		request: GenerateScheduleRequest,
-	): ParsedSchedule {
-		// Calculate totals in business logic, not LLM
-		let totalCost = 0;
-		let totalActivities = 0;
-
-		// Calculate day totals
-		parsed.schedule.forEach((day: ScheduleDay) => {
-			const dayCost = day.items.reduce(
-				(sum: number, item: ScheduleItem) => sum + (item.customPrice || 0),
-				0,
-			);
-			day.totalCost = dayCost;
-			totalCost += dayCost;
-			totalActivities += day.items.length;
-		});
-
-		// Apply solution type multiplier
-		const solutionType = request.solutionType || "topranking";
-		const costMultiplier =
-			solutionType === "premium" ? 1.5 : solutionType === "budget" ? 0.6 : 1.0;
-		totalCost = Math.round(totalCost * costMultiplier);
-
-		// Update day costs with multiplier
-		parsed.schedule.forEach((day: ScheduleDay) => {
-			day.totalCost = Math.round(day.totalCost * costMultiplier);
-		});
-
-		// Calculate summary
-		const uniqueActivityIds = new Set<string>();
-		parsed.schedule.forEach((day: ScheduleDay) => {
-			day.items.forEach((item: ScheduleItem) => {
-				uniqueActivityIds.add(item.activityId);
-			});
-		});
-
-		parsed.summary = {
-			totalDays: parsed.schedule.length,
-			totalActivities,
-			totalThemes: uniqueActivityIds.size, // Using activity count as theme approximation
-			estimatedCost: totalCost,
-			activitiesUsed: Array.from(uniqueActivityIds),
-		};
 
 		return parsed;
 	}
@@ -767,7 +657,7 @@ export class ScheduleGenerator {
 		};
 
 		// Check if regions are related
-		for (const [mainRegion, variations] of Object.entries(regionMappings)) {
+		for (const [_mainRegion, variations] of Object.entries(regionMappings)) {
 			if (
 				variations.includes(normalizedActivityRegion) &&
 				variations.includes(normalizedUserRegion)
@@ -1024,7 +914,7 @@ export class ScheduleGenerator {
 	 */
 	private filterActivitiesByWorkingHours(
 		activities: Activity[],
-		schedule: ScheduleDay[],
+		_schedule: ScheduleDay[],
 	): Activity[] {
 		return activities.filter((activity) => {
 			// Check if activity has at least one day when it's open
@@ -1204,37 +1094,5 @@ export class ScheduleGenerator {
 		const hours = Math.floor(minutes / 60);
 		const mins = minutes % 60;
 		return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
-	}
-
-	/**
-	 * Generate available time slots for an activity based on working hours
-	 */
-	private generateAvailableTimeSlots(
-		workingHours: Activity["workingHours"],
-	): Record<string, string[]> {
-		const timeSlots: Record<string, string[]> = {};
-
-		Object.entries(workingHours).forEach(([day, timeSlot]) => {
-			if (timeSlot.isOpen && timeSlot.openTime && timeSlot.closeTime) {
-				const slots: string[] = [];
-				const openMinutes = this.timeToMinutes(timeSlot.openTime);
-				const closeMinutes = this.timeToMinutes(timeSlot.closeTime);
-
-				// Generate 1-hour slots within working hours
-				for (
-					let minutes = openMinutes;
-					minutes <= closeMinutes - 60;
-					minutes += 60
-				) {
-					slots.push(this.minutesToTime(minutes));
-				}
-
-				timeSlots[day] = slots;
-			} else {
-				timeSlots[day] = []; // No available slots if closed
-			}
-		});
-
-		return timeSlots;
 	}
 }

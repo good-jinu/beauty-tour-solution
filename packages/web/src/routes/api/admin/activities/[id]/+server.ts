@@ -1,4 +1,4 @@
-import type { Activity, UpdateActivityData } from "@bts/core";
+import type { Activity } from "@bts/core";
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
 
@@ -134,7 +134,13 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			);
 		}
 
-		const updateData: UpdateActivityData = validation.data!;
+		const updateData = validation.data;
+		if (!updateData) {
+			return json(
+				createErrorResponse("VALIDATION_ERROR", "Invalid update data"),
+				{ status: HTTP_STATUS.BAD_REQUEST },
+			);
+		}
 
 		logApiEvent("info", "Activity update data validated successfully", {
 			requestId,

@@ -68,10 +68,10 @@ function formatPrice(activity: Activity): string {
 function formatWorkingHours(activity: Activity): string {
 	const { workingHours } = activity;
 	const openDays = Object.entries(workingHours)
-		.filter(([_, schedule]) => (schedule as any).isOpen)
+		.filter(([_, schedule]) => (schedule as { isOpen: boolean }).isOpen)
 		.map(([day, schedule]) => {
 			const dayName = day.charAt(0).toUpperCase() + day.slice(1, 3);
-			const s = schedule as any;
+			const s = schedule as { openTime: string; closeTime: string };
 			return `${dayName}: ${s.openTime}-${s.closeTime}`;
 		});
 

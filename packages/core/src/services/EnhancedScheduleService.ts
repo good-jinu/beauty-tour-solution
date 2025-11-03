@@ -1,5 +1,5 @@
 import type { IScheduleRepository } from "../repositories/ScheduleRepository";
-import type { ScheduleCriteria } from "../types/activity";
+import type { ActivityTheme, ScheduleCriteria } from "../types/activity";
 import type {
 	GenerateScheduleRequest,
 	GenerateScheduleResponse,
@@ -63,7 +63,7 @@ export class EnhancedScheduleService extends ScheduleService {
 				budget: number;
 				solutionType?: "topranking" | "premium" | "budget";
 			} = {
-				theme: request.selectedThemes[0] as any, // Primary theme
+				theme: request.selectedThemes[0] as ActivityTheme, // Primary theme
 				region: request.region,
 				maxPrice: request.budget,
 				startDate: request.startDate,

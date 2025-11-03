@@ -127,7 +127,13 @@ export const GET: RequestHandler = async ({ url }) => {
 			);
 		}
 
-		const criteria = validation.data!;
+		const criteria = validation.data;
+		if (!criteria) {
+			return json(
+				createErrorResponse("VALIDATION_ERROR", "Invalid search criteria"),
+				{ status: HTTP_STATUS.BAD_REQUEST },
+			);
+		}
 
 		logApiEvent("info", "Search criteria validated successfully", {
 			requestId,

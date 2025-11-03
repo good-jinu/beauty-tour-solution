@@ -63,19 +63,19 @@ export function validateCreateActivityRequest(
 	// Validate working hours
 	const workingHoursValidation = validateWorkingHours(request.workingHours);
 	if (!workingHoursValidation.isValid) {
-		errors.push(...workingHoursValidation.errors!);
+		errors.push(...(workingHoursValidation.errors || []));
 	}
 
 	// Validate location
 	const locationValidation = validateLocation(request.location);
 	if (!locationValidation.isValid) {
-		errors.push(...locationValidation.errors!);
+		errors.push(...(locationValidation.errors || []));
 	}
 
 	// Validate price
 	const priceValidation = validatePrice(request.price);
 	if (!priceValidation.isValid) {
-		errors.push(...priceValidation.errors!);
+		errors.push(...(priceValidation.errors || []));
 	}
 
 	// Validate optional fields
@@ -103,7 +103,7 @@ export function validateCreateActivityRequest(
 	if (request.contactInfo !== undefined) {
 		contactValidation = validateContactInfo(request.contactInfo);
 		if (!contactValidation.isValid) {
-			errors.push(...contactValidation.errors!);
+			errors.push(...(contactValidation.errors || []));
 		}
 	}
 
@@ -132,9 +132,27 @@ export function validateCreateActivityRequest(
 		data: {
 			name: request.name as string,
 			theme: request.theme as ActivityTheme,
-			workingHours: workingHoursValidation.data!,
-			location: locationValidation.data!,
-			price: priceValidation.data!,
+			workingHours: workingHoursValidation.data || {
+				monday: { isOpen: false },
+				tuesday: { isOpen: false },
+				wednesday: { isOpen: false },
+				thursday: { isOpen: false },
+				friday: { isOpen: false },
+				saturday: { isOpen: false },
+				sunday: { isOpen: false },
+			},
+			location: locationValidation.data || {
+				name: "",
+				address: "",
+				district: "",
+				city: "",
+				region: "",
+			},
+			price: priceValidation.data || {
+				amount: 0,
+				currency: "USD",
+				type: "fixed",
+			},
 			description: request.description as string | undefined,
 			images: request.images as string[] | undefined,
 			contactInfo: contactValidation?.data,
@@ -216,9 +234,9 @@ export function validateUpdateActivityRequest(
 	if (request.workingHours !== undefined) {
 		const workingHoursValidation = validateWorkingHours(request.workingHours);
 		if (!workingHoursValidation.isValid) {
-			errors.push(...workingHoursValidation.errors!);
+			errors.push(...(workingHoursValidation.errors || []));
 		} else {
-			workingHours = workingHoursValidation.data!;
+			workingHours = workingHoursValidation.data;
 		}
 	}
 
@@ -226,9 +244,9 @@ export function validateUpdateActivityRequest(
 	if (request.location !== undefined) {
 		const locationValidation = validateLocation(request.location);
 		if (!locationValidation.isValid) {
-			errors.push(...locationValidation.errors!);
+			errors.push(...(locationValidation.errors || []));
 		} else {
-			location = locationValidation.data!;
+			location = locationValidation.data;
 		}
 	}
 
@@ -236,9 +254,9 @@ export function validateUpdateActivityRequest(
 	if (request.price !== undefined) {
 		const priceValidation = validatePrice(request.price);
 		if (!priceValidation.isValid) {
-			errors.push(...priceValidation.errors!);
+			errors.push(...(priceValidation.errors || []));
 		} else {
-			price = priceValidation.data!;
+			price = priceValidation.data;
 		}
 	}
 
@@ -246,9 +264,9 @@ export function validateUpdateActivityRequest(
 	if (request.contactInfo !== undefined) {
 		const contactValidation = validateContactInfo(request.contactInfo);
 		if (!contactValidation.isValid) {
-			errors.push(...contactValidation.errors!);
+			errors.push(...(contactValidation.errors || []));
 		} else {
-			contactInfo = contactValidation.data!;
+			contactInfo = contactValidation.data;
 		}
 	}
 
@@ -558,8 +576,9 @@ function validateLocation(data: unknown): ValidationResult<Location> {
 			region: location.region as string,
 			coordinates: location.coordinates
 				? {
-						latitude: (location.coordinates as any).latitude,
-						longitude: (location.coordinates as any).longitude,
+						latitude: (location.coordinates as { latitude: number }).latitude,
+						longitude: (location.coordinates as { longitude: number })
+							.longitude,
 					}
 				: undefined,
 		},

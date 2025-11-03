@@ -1,4 +1,8 @@
-import type { Activity, ScheduleCriteria } from "../types/activity";
+import type {
+	Activity,
+	ActivityTheme,
+	ScheduleCriteria,
+} from "../types/activity";
 import type {
 	ScheduleDay,
 	ScheduleDayWithActivities,
@@ -164,7 +168,7 @@ export class ScheduleActivityService {
 			for (const theme of criteria.selectedThemes) {
 				const themeActivities =
 					await this.activityService.searchActivitiesForSchedule({
-						theme: theme as any,
+						theme: theme as ActivityTheme,
 						region: criteria.region,
 						maxPrice: criteria.budget / criteria.selectedThemes.length, // Rough budget per theme
 					});

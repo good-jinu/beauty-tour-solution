@@ -12,6 +12,7 @@ import type {
  * Comprehensive activity data validation utility
  * Provides detailed validation for all activity-related data structures
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: It is used as a namespace
 export class ActivityValidator {
 	/**
 	 * Validate complete activity data for creation or updates
@@ -645,7 +646,7 @@ export class ActivityValidator {
 				return errors;
 			}
 
-			const contact = contactInfo as any;
+			const contact = contactInfo as Record<string, unknown>;
 
 			// Validate phone
 			if (contact.phone !== undefined) {
