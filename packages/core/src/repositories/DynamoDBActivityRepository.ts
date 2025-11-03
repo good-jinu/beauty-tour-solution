@@ -99,7 +99,7 @@ export class DynamoDBActivityRepository implements IActivityRepository {
 				limit,
 			});
 
-			// Build scan parameters - using queryItems for now but this would be better with scan
+			// Build scan parameters for filtering
 			const scanParams: Record<string, unknown> = {};
 
 			// Add filter expressions
@@ -152,9 +152,8 @@ export class DynamoDBActivityRepository implements IActivityRepository {
 				scanParams.ExpressionAttributeNames = expressionAttributeNames;
 			}
 
-			// For now, we'll use a simple approach - in production this should use scan
-			// Get all items and filter/paginate in memory
-			const results = await this.dynamoService.queryItems(scanParams);
+			// Use scan operation to get all items with filters
+			const results = await this.dynamoService.scanItems(scanParams);
 			const allActivities = results.map((item) =>
 				this.dynamoItemToActivity(item as unknown as DynamoDBActivityItem),
 			);
@@ -538,7 +537,7 @@ export class DynamoDBActivityRepository implements IActivityRepository {
 	 * Generate a unique activity ID
 	 */
 	private generateActivityId(): string {
-		return `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		return `activity_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 	}
 
 	/**

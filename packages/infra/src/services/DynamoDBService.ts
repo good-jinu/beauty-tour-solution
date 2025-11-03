@@ -5,6 +5,7 @@ import {
 	GetCommand,
 	PutCommand,
 	QueryCommand,
+	ScanCommand,
 	UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { logger } from "../utils/logger.js";
@@ -91,5 +92,16 @@ export class DynamoDBService {
 			Key: key,
 		});
 		await this.client.send(command);
+	}
+
+	public async scanItems(
+		params: Omit<ScanCommand["input"], "TableName">,
+	): Promise<Record<string, unknown>[]> {
+		const command = new ScanCommand({
+			TableName: this.tableName,
+			...params,
+		});
+		const result = await this.client.send(command);
+		return result.Items ?? [];
 	}
 }
