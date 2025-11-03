@@ -1,7 +1,7 @@
 import type { Activity, UpdateActivityData } from "@bts/core";
 import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
-import { validateAdminAuth } from "$lib/server/middleware";
+
 import {
 	createErrorResponse,
 	createSuccessResponse,
@@ -12,18 +12,7 @@ import { getActivityService } from "$lib/utils/activityApiHelpers";
 import { validateUpdateActivityRequest } from "$lib/utils/activityValidation";
 import { generateRequestId, logApiEvent } from "$lib/utils/apiHelpers";
 
-export const GET: RequestHandler = async ({ params, cookies }) => {
-	// Check admin authentication
-	const authResult = validateAdminAuth(cookies);
-	if (!authResult.isAuthenticated) {
-		return json(
-			createErrorResponse(
-				ERROR_CODES.UNAUTHORIZED,
-				"Admin authentication required",
-			),
-			{ status: HTTP_STATUS.UNAUTHORIZED },
-		);
-	}
+export const GET: RequestHandler = async ({ params }) => {
 	const startTime = Date.now();
 	const requestId = generateRequestId();
 	const activityId = params.id;
@@ -103,18 +92,7 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 	}
 };
 
-export const PUT: RequestHandler = async ({ params, request, cookies }) => {
-	// Check admin authentication
-	const authResult = validateAdminAuth(cookies);
-	if (!authResult.isAuthenticated) {
-		return json(
-			createErrorResponse(
-				ERROR_CODES.UNAUTHORIZED,
-				"Admin authentication required",
-			),
-			{ status: HTTP_STATUS.UNAUTHORIZED },
-		);
-	}
+export const PUT: RequestHandler = async ({ params, request }) => {
 	const startTime = Date.now();
 	const requestId = generateRequestId();
 	const activityId = params.id;
@@ -236,18 +214,7 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 	}
 };
 
-export const DELETE: RequestHandler = async ({ params, cookies }) => {
-	// Check admin authentication
-	const authResult = validateAdminAuth(cookies);
-	if (!authResult.isAuthenticated) {
-		return json(
-			createErrorResponse(
-				ERROR_CODES.UNAUTHORIZED,
-				"Admin authentication required",
-			),
-			{ status: HTTP_STATUS.UNAUTHORIZED },
-		);
-	}
+export const DELETE: RequestHandler = async ({ params }) => {
 	const startTime = Date.now();
 	const requestId = generateRequestId();
 	const activityId = params.id;

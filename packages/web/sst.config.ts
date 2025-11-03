@@ -87,10 +87,15 @@ export default $config({
 		const router = new sst.aws.Router(
 			process.env.WEB_DOMAIN?.replace(/\./g, "_") ?? "custom_com",
 			{
-				domain: {
-					name: process.env.ROOT_DOMAIN ?? "",
-					aliases: [process.env.WEB_DOMAIN ?? ""],
-				},
+				// Only configure custom domain if environment variables are set
+				...(process.env.ROOT_DOMAIN && process.env.WEB_DOMAIN
+					? {
+							domain: {
+								name: process.env.ROOT_DOMAIN,
+								aliases: [process.env.WEB_DOMAIN],
+							},
+						}
+					: {}),
 			},
 		);
 
