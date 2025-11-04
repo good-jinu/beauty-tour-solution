@@ -1,5 +1,5 @@
 import { BedrockAgentCoreService } from "@bts/infra";
-import type { IActivityService } from "../services/ActivityService";
+import type { IActivityService } from "./ActivityService";
 import type {
 	GenerateScheduleRequest,
 	GenerateScheduleResponse,
