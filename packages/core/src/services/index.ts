@@ -5,3 +5,4 @@ export * from "./PlanService";
 export * from "./ScheduleActivityService";
 export * from "./ScheduleService";
 export * from "./ServiceFactory";
+export * from "./ScheduleGenerator";

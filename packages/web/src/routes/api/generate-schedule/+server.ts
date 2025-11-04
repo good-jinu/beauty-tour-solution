@@ -9,17 +9,6 @@ import {
 	getScheduleService,
 } from "$lib/utils/apiHelpers";
 
-// Create schedule generator with activity service
-let scheduleGenerator: ScheduleGenerator | null = null;
-
-async function getScheduleGenerator(): Promise<ScheduleGenerator> {
-	if (!scheduleGenerator) {
-		const activityService = await getActivityService();
-		scheduleGenerator = new ScheduleGenerator(activityService);
-	}
-	return scheduleGenerator;
-}
-
 export const POST: RequestHandler = async ({ request, cookies }) => {
 	try {
 		const requestData: GenerateScheduleRequest = await request.json();
@@ -47,7 +36,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			);
 		}
 
-		const generator = await getScheduleGenerator();
+		// Create a new ScheduleGenerator for each request
+		const activityService = await getActivityService();
+		const generator = new ScheduleGenerator(activityService);
 		const result = await generator.generateSchedule(requestData);
 
 		if (result.success) {
