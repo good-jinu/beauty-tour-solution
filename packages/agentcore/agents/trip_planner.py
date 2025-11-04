@@ -2,65 +2,56 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import List
 
-# Simplified models - LLM only generates activities, no calculations
-class Activity(BaseModel):
-    time: str
-    activity: str
-    location: str
+# Models matching TypeScript interface expectations
+class ScheduleItem(BaseModel):
+    activityId: str
+    scheduledTime: str
     duration: str
-    cost: int
-    description: str
-    category: str
+    status: str = "planned"
+    notes: str = ""
+    customPrice: int = None
 
-class DaySchedule(BaseModel):
+class ScheduleDay(BaseModel):
     date: str
     dayNumber: int
-    activities: List[Activity]
-    notes: str
+    items: List[ScheduleItem]
+    notes: str = ""
 
 class TripSchedule(BaseModel):
-    schedule: List[DaySchedule]
+    schedule: List[ScheduleDay]
 
 TRIP_PLANNER_SYSTEM_PROMPT = """
-You are a beauty tourism consultant. Generate activities for each day.
+You are a beauty tourism consultant. Generate a schedule using ONLY the provided real activities.
 
-RULES:
-- Day 1: consultations
-- Day 2+: treatments  
-- Final day: follow-ups
-- Categories: consultation, treatment, recovery, wellness, transport
-- Use realistic individual activity costs
-- Don't calculate totals - just list activities
+CRITICAL RULES:
+- Use ONLY activityId values from the provided available activities list
+- Day 1: Focus on consultations and planning
+- Day 2+: Main treatments and procedures
+- Final day: Follow-ups and recovery activities
+- Schedule items during business hours when possible
+- Use realistic time slots and durations
+- Each activityId must match exactly from the available activities
+
+OUTPUT FORMAT:
+- activityId: Must be exact match from available activities
+- scheduledTime: Format as "HH:MM" (e.g., "09:00", "14:30")  
+- duration: Format as "1h", "2h", "30min", etc.
+- status: Always "planned"
+- notes: Brief description or special instructions
 """
 
 def process_trip_planner_query(agent, query):
-    """Process trip planner query with structured output - no calculations."""
+    """Process simple trip planner query - fallback for non-structured requests."""
     try:
-        # Use structured output - LLM only generates activities
+        # For simple queries without structured data, generate basic schedule
         result = agent.structured_output(
             TripSchedule,
-            TRIP_PLANNER_SYSTEM_PROMPT + "\n\nRequest: " + query,
+            TRIP_PLANNER_SYSTEM_PROMPT + "\n\nRequest: " + query + 
+            "\n\nNote: Generate generic activities since no real activity data provided.",
         )
         
-        # Convert to dict and add calculations in business logic
+        # Convert to dict - calculations will be done in TypeScript
         schedule_data = result.model_dump()
-        
-        # Calculate totals in business logic, not LLM
-        total_cost = 0
-        total_activities = 0
-        
-        for day in schedule_data["schedule"]:
-            day_cost = sum(activity["cost"] for activity in day["activities"])
-            day["totalCost"] = day_cost
-            total_cost += day_cost
-            total_activities += len(day["activities"])
-        
-        schedule_data["summary"] = {
-            "totalDays": len(schedule_data["schedule"]),
-            "totalActivities": total_activities,
-            "totalThemes": len(set(activity["category"] for day in schedule_data["schedule"] for activity in day["activities"])),
-            "estimatedCost": total_cost
-        }
         
         return schedule_data
         
@@ -69,86 +60,128 @@ def process_trip_planner_query(agent, query):
         return generate_fallback_schedule()
 
 def process_structured_trip_planner_query(agent, structured_data):
-    """Process structured trip planner data - no calculations."""
+    """Process structured trip planner data using real activities."""
     try:
-        # Extract trip details from structured data
+        # Extract trip details and available activities
         trip_details = structured_data.get("tripDetails", {})
         requirements = structured_data.get("requirements", {})
+        available_activities = structured_data.get("availableActivities", {})
         
-        # Create a detailed prompt from structured data
+        # Flatten activities from theme groups
+        all_activities = []
+        for theme, activities in available_activities.items():
+            all_activities.extend(activities)
+        
+        if not all_activities:
+            print("No available activities provided, using fallback")
+            return generate_fallback_schedule()
+        
+        # Create activity lookup for easy reference
+        activity_list = "\n".join([
+            f"- {act['activityId']}: {act['name']} at {act['location']['name']} "
+            f"(${act['price']['amount']}, {act['theme']}, "
+            f"Hours: {format_working_hours(act.get('workingHours', {}))})"
+            for act in all_activities
+        ])
+        
+        # Create detailed prompt with real activity data
         prompt = f"""
-Generate a beauty tourism schedule for {trip_details.get('region', 'Seoul')}.
+Generate a beauty tourism schedule using ONLY the provided real activities.
 
 TRIP DETAILS:
+- Region: {trip_details.get('region', 'Seoul')}
 - Dates: {trip_details.get('startDate')} to {trip_details.get('endDate')} ({trip_details.get('duration')} days)
 - Themes: {', '.join(trip_details.get('themes', []))}
 - Budget: ${trip_details.get('budget', 0)} USD
 - Solution Type: {trip_details.get('solutionType', 'topranking')}
 {f"- Special Requests: {trip_details.get('specialRequests')}" if trip_details.get('specialRequests') else ""}
 
+AVAILABLE ACTIVITIES (use activityId exactly as shown):
+{activity_list}
+
 REQUIREMENTS:
-- Day structure: {requirements.get('dayStructure', {})}
-- Categories: {', '.join(requirements.get('categories', []))}
-- Include specific locations and detailed descriptions
-- Use realistic individual activity costs for {trip_details.get('region', 'Seoul')}
-- Generate activities with individual costs only
-- Don't calculate totals or summaries
+- Use ONLY activityId values from the list above
+- Day 1: Focus on consultations
+- Day 2+: Focus on treatments
+- Final day: Follow-ups and recovery
+- Schedule within working hours when possible
+- Use realistic durations (30min-3h)
+- Respect the day structure: {requirements.get('dayStructure', {})}
+
+IMPORTANT: 
+- activityId must match exactly from the available activities list
+- scheduledTime should be in HH:MM format (e.g., "09:00", "14:30")
+- duration should be like "1h", "2h", "30min"
+- Only use activities that are provided in the list above
 """
         
-        # Use structured output - LLM only generates activities
+        # Use structured output with real activity constraints
         result = agent.structured_output(
             TripSchedule,
             TRIP_PLANNER_SYSTEM_PROMPT + "\n\n" + prompt,
         )
         
-        # Convert to dict - calculations will be done in TypeScript business logic
+        # Convert to dict and validate activity IDs
         schedule_data = result.model_dump()
         
-        # Don't add calculations here - let TypeScript handle it
+        # Validate that all activityIds exist in available activities
+        valid_activity_ids = {act['activityId'] for act in all_activities}
+        
+        for day in schedule_data["schedule"]:
+            for item in day["items"]:
+                if item["activityId"] not in valid_activity_ids:
+                    print(f"Warning: Invalid activityId {item['activityId']}, replacing with fallback")
+                    # Replace with first available activity as fallback
+                    if all_activities:
+                        item["activityId"] = all_activities[0]["activityId"]
+                        item["notes"] = f"{item.get('notes', '')} (Activity ID corrected)".strip()
+        
         return schedule_data
         
     except Exception as e:
         print(f"Structured trip planner generation error: {e}")
         return generate_fallback_schedule()
 
+def format_working_hours(working_hours):
+    """Format working hours for display in prompt"""
+    if not working_hours:
+        return "Not specified"
+    
+    # Find a typical day that's open
+    for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
+        if day in working_hours and working_hours[day].get('isOpen'):
+            hours = working_hours[day]
+            if hours.get('openTime') and hours.get('closeTime'):
+                return f"{hours['openTime']}-{hours['closeTime']}"
+    
+    return "Varies by day"
+
 def generate_fallback_schedule():
-    """Generate fallback schedule with business logic calculations"""
+    """Generate fallback schedule matching expected format"""
     today = datetime.now()
     
-    # Create fallback using Pydantic model
+    # Create fallback using updated Pydantic model
     fallback = TripSchedule(
         schedule=[
-            DaySchedule(
+            ScheduleDay(
                 date=today.strftime("%Y-%m-%d"),
                 dayNumber=1,
-                activities=[
-                    Activity(
-                        time="09:00",
-                        activity="Beauty Consultation",
-                        location="Seoul Beauty Center",
-                        duration="1h",
-                        cost=200,
-                        description="Initial consultation and treatment planning",
-                        category="consultation"
+                items=[
+                    ScheduleItem(
+                        activityId="fallback_activity_001",
+                        scheduledTime="09:00",
+                        duration="2h",
+                        status="planned",
+                        notes="Comprehensive consultation and planning",
+                        customPrice=200
                     )
                 ],
-                notes="Initial consultation day"
+                notes="Schedule generation failed - showing fallback data"
             )
         ]
     )
     
-    # Convert and add calculations
+    # Convert to dict - calculations will be done in TypeScript
     schedule_data = fallback.model_dump()
-    
-    # Business logic calculations
-    total_cost = 200
-    schedule_data["schedule"][0]["totalCost"] = total_cost
-    
-    schedule_data["summary"] = {
-        "totalDays": 1,
-        "totalActivities": 1,
-        "totalThemes": 1,
-        "estimatedCost": total_cost
-    }
     
     return schedule_data

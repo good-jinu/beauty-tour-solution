@@ -1,5 +1,4 @@
 import { BedrockAgentCoreService } from "@bts/infra";
-import type { IActivityService } from "./ActivityService";
 import type {
 	GenerateScheduleRequest,
 	GenerateScheduleResponse,
@@ -11,6 +10,7 @@ import type {
 	ActivityTheme,
 	ScheduleCriteria,
 } from "../types/activity";
+import type { IActivityService } from "./ActivityService";
 
 interface ParsedSchedule {
 	schedule: ScheduleDay[];
