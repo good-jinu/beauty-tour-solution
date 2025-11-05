@@ -45,7 +45,7 @@ let formData = $state({
 		thursday: { isOpen: true, openTime: "09:00", closeTime: "18:00" },
 		friday: { isOpen: true, openTime: "09:00", closeTime: "18:00" },
 		saturday: { isOpen: true, openTime: "09:00", closeTime: "18:00" },
-		sunday: { isOpen: false, openTime: "", closeTime: "" },
+		sunday: { isOpen: false, openTime: undefined, closeTime: undefined },
 	},
 	// Contact info
 	phone: activity?.contactInfo?.phone || "",
@@ -194,8 +194,8 @@ async function handleSubmit(event: Event) {
 function toggleDay(day: keyof typeof formData.workingHours) {
 	formData.workingHours[day].isOpen = !formData.workingHours[day].isOpen;
 	if (!formData.workingHours[day].isOpen) {
-		formData.workingHours[day].openTime = "";
-		formData.workingHours[day].closeTime = "";
+		formData.workingHours[day].openTime = undefined;
+		formData.workingHours[day].closeTime = undefined;
 	} else {
 		formData.workingHours[day].openTime = "09:00";
 		formData.workingHours[day].closeTime = "18:00";
