@@ -24,7 +24,7 @@ let { activity, isLoading = false, onSubmit, onCancel }: Props = $props();
 // Form data
 let formData = $state({
 	name: activity?.name || "",
-	theme: activity?.theme || ActivityTheme.PLASTIC_SURGERY_EYE,
+	theme: activity?.theme || ActivityTheme.PLASTIC_SURGERY,
 	description: activity?.description || "",
 	// Location fields
 	locationName: activity?.location?.name || "",
@@ -62,14 +62,12 @@ let isSubmitting = $state(false);
 
 // Theme options
 const themeOptions = [
-	{ value: ActivityTheme.PLASTIC_SURGERY_EYE, label: "Eye Surgery" },
-	{ value: ActivityTheme.PLASTIC_SURGERY_NOSE, label: "Nose Surgery" },
-	{ value: ActivityTheme.PLASTIC_SURGERY_FACE, label: "Face Surgery" },
+	{ value: ActivityTheme.PLASTIC_SURGERY, label: "Plastic Surgery" },
 	{ value: ActivityTheme.HAIR_SALON, label: "Hair Salon" },
-	{ value: ActivityTheme.NAIL_SALON, label: "Nail Salon" },
-	{ value: ActivityTheme.SPA_WELLNESS, label: "Spa & Wellness" },
-	{ value: ActivityTheme.DENTAL, label: "Dental" },
-	{ value: ActivityTheme.DERMATOLOGY, label: "Dermatology" },
+	{ value: ActivityTheme.SKIN_CLINIC, label: "Skin Clinic" },
+	{ value: ActivityTheme.DIET_ACTIVITIES, label: "Diet Activities" },
+	{ value: ActivityTheme.NAIL, label: "Nail" },
+	{ value: ActivityTheme.MAKEUP, label: "Makeup" },
 ];
 
 const priceTypeOptions = [

@@ -13,34 +13,28 @@ let { activity, onEdit, onDelete, isDeleting = false }: Props = $props();
 
 // Theme display mapping
 const themeLabels: Record<ActivityTheme, string> = {
-	[ActivityTheme.PLASTIC_SURGERY_EYE]: "Eye Surgery",
-	[ActivityTheme.PLASTIC_SURGERY_NOSE]: "Nose Surgery",
-	[ActivityTheme.PLASTIC_SURGERY_FACE]: "Face Surgery",
+	[ActivityTheme.PLASTIC_SURGERY]: "Plastic Surgery",
 	[ActivityTheme.HAIR_SALON]: "Hair Salon",
-	[ActivityTheme.NAIL_SALON]: "Nail Salon",
-	[ActivityTheme.SPA_WELLNESS]: "Spa & Wellness",
-	[ActivityTheme.DENTAL]: "Dental",
-	[ActivityTheme.DERMATOLOGY]: "Dermatology",
+	[ActivityTheme.SKIN_CLINIC]: "Skin Clinic",
+	[ActivityTheme.DIET_ACTIVITIES]: "Diet Acitivities",
+	[ActivityTheme.NAIL]: "Nail",
+	[ActivityTheme.MAKEUP]: "Makeup",
 };
 
 // Theme colors for badges
 const themeColors: Record<ActivityTheme, string> = {
-	[ActivityTheme.PLASTIC_SURGERY_EYE]:
+	[ActivityTheme.PLASTIC_SURGERY]:
 		"bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-	[ActivityTheme.PLASTIC_SURGERY_NOSE]:
-		"bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-	[ActivityTheme.PLASTIC_SURGERY_FACE]:
-		"bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
 	[ActivityTheme.HAIR_SALON]:
 		"bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-	[ActivityTheme.NAIL_SALON]:
-		"bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-	[ActivityTheme.SPA_WELLNESS]:
+	[ActivityTheme.SKIN_CLINIC]:
 		"bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
-	[ActivityTheme.DENTAL]:
-		"bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-	[ActivityTheme.DERMATOLOGY]:
+	[ActivityTheme.DIET_ACTIVITIES]:
 		"bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+	[ActivityTheme.NAIL]:
+		"bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+	[ActivityTheme.MAKEUP]:
+		"bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
 };
 
 // Format price display

@@ -3,14 +3,12 @@
  */
 
 export enum ActivityTheme {
-	PLASTIC_SURGERY_EYE = "plastic_surgery_eye",
-	PLASTIC_SURGERY_NOSE = "plastic_surgery_nose",
-	PLASTIC_SURGERY_FACE = "plastic_surgery_face",
-	HAIR_SALON = "hair_salon",
-	NAIL_SALON = "nail_salon",
-	SPA_WELLNESS = "spa_wellness",
-	DENTAL = "dental",
-	DERMATOLOGY = "dermatology",
+	PLASTIC_SURGERY = "plastic-surgery",
+	HAIR_SALON = "hair-salon",
+	SKIN_CLINIC = "skin-clinic",
+	DIET_ACTIVITIES = "diet-activities",
+	NAIL = "nail",
+	MAKEUP = "makeup",
 }
 
 export interface TimeSlot {

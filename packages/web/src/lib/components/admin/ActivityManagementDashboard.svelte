@@ -46,14 +46,12 @@ let filters = $state<ActivityFilters>({
 // Theme options for filtering
 const themeOptions = [
 	{ value: "", label: "All Themes" },
-	{ value: ActivityTheme.PLASTIC_SURGERY_EYE, label: "Eye Surgery" },
-	{ value: ActivityTheme.PLASTIC_SURGERY_NOSE, label: "Nose Surgery" },
-	{ value: ActivityTheme.PLASTIC_SURGERY_FACE, label: "Face Surgery" },
+	{ value: ActivityTheme.PLASTIC_SURGERY, label: "Plastic Surgery" },
 	{ value: ActivityTheme.HAIR_SALON, label: "Hair Salon" },
-	{ value: ActivityTheme.NAIL_SALON, label: "Nail Salon" },
-	{ value: ActivityTheme.SPA_WELLNESS, label: "Spa & Wellness" },
-	{ value: ActivityTheme.DENTAL, label: "Dental" },
-	{ value: ActivityTheme.DERMATOLOGY, label: "Dermatology" },
+	{ value: ActivityTheme.SKIN_CLINIC, label: "Skin Clinic" },
+	{ value: ActivityTheme.DIET_ACTIVITIES, label: "Diet Activities" },
+	{ value: ActivityTheme.NAIL, label: "Nail" },
+	{ value: ActivityTheme.MAKEUP, label: "Makeup" },
 ];
 
 const statusOptions = [

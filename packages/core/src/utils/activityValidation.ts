@@ -150,14 +150,12 @@ export class ActivityValidator {
 		}
 
 		const validThemes = [
-			"plastic_surgery_eye",
-			"plastic_surgery_nose",
-			"plastic_surgery_face",
-			"hair_salon",
-			"nail_salon",
-			"spa_wellness",
-			"dental",
-			"dermatology",
+			"plastic-surgery",
+			"hair-salon",
+			"skin-clinic",
+			"diet-activities",
+			"nail",
+			"makeup",
 		];
 
 		if (!validThemes.includes(theme)) {

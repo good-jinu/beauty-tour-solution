@@ -46,14 +46,12 @@ export function validateCreateActivityRequest(
 		errors.push("theme is required and must be a string");
 	} else {
 		const validThemes = [
-			"plastic_surgery_eye",
-			"plastic_surgery_nose",
-			"plastic_surgery_face",
-			"hair_salon",
-			"nail_salon",
-			"spa_wellness",
-			"dental",
-			"dermatology",
+			"plastic-surgery",
+			"hair-salon",
+			"skin-clinic",
+			"diet-activities",
+			"nail",
+			"makeup",
 		];
 		if (!validThemes.includes(request.theme)) {
 			errors.push(`theme must be one of: ${validThemes.join(", ")}`);
@@ -215,14 +213,12 @@ export function validateUpdateActivityRequest(
 			errors.push("theme must be a string");
 		} else {
 			const validThemes = [
-				"plastic_surgery_eye",
-				"plastic_surgery_nose",
-				"plastic_surgery_face",
-				"hair_salon",
-				"nail_salon",
-				"spa_wellness",
-				"dental",
-				"dermatology",
+				"plastic-surgery",
+				"hair-salon",
+				"skin-clinic",
+				"diet-activities",
+				"nail",
+				"makeup",
 			];
 			if (!validThemes.includes(request.theme)) {
 				errors.push(`theme must be one of: ${validThemes.join(", ")}`);
@@ -364,14 +360,12 @@ export function validateActivityFilters(
 	// Validate theme
 	if (filters.theme !== undefined) {
 		const validThemes = [
-			"plastic_surgery_eye",
-			"plastic_surgery_nose",
-			"plastic_surgery_face",
-			"hair_salon",
-			"nail_salon",
-			"spa_wellness",
-			"dental",
-			"dermatology",
+			"plastic-surgery",
+			"hair-salon",
+			"skin-clinic",
+			"diet-activities",
+			"nail",
+			"makeup",
 		];
 		if (!validThemes.includes(filters.theme)) {
 			errors.push(`theme must be one of: ${validThemes.join(", ")}`);

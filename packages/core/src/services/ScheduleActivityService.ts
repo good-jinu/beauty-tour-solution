@@ -408,14 +408,12 @@ export class ScheduleActivityService {
 	 */
 	private estimateDuration(theme: string): string {
 		const durationMap: Record<string, string> = {
-			plastic_surgery_eye: "3h",
-			plastic_surgery_nose: "4h",
-			plastic_surgery_face: "5h",
-			hair_salon: "2h",
-			nail_salon: "1h 30min",
-			spa_wellness: "2h 30min",
-			dental: "1h",
-			dermatology: "1h 30min",
+			"plastic-surgery": "4h",
+			"hair-salon": "2h",
+			"skin-clinic": "1h",
+			"diet-activities": "1h",
+			nail: "1h",
+			makeup: "1h 30min",
 		};
 
 		return durationMap[theme] || "2h";

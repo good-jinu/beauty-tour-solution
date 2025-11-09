@@ -122,11 +122,11 @@ export class DynamoDBActivityRepository implements IActivityRepository {
 				expressionAttributeValues[":theme"] = filters.theme;
 			}
 
-			if (filters?.region) {
-				filterExpressions.push("#region = :region");
-				expressionAttributeNames["#region"] = "region";
-				expressionAttributeValues[":region"] = filters.region;
-			}
+			// if (filters?.region) {
+			// 	filterExpressions.push("#region = :region");
+			// 	expressionAttributeNames["#region"] = "region";
+			// 	expressionAttributeValues[":region"] = filters.region;
+			// }
 
 			if (filters?.minPrice !== undefined) {
 				filterExpressions.push("#price >= :minPrice");

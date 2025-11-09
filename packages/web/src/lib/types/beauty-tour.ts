@@ -122,8 +122,8 @@ export const JOURNEY_THEMES: TourTheme[] = [
 		icon: "🏥",
 	},
 	{
-		value: "hair-treatments",
-		label: "Hair Treatments",
+		value: "hair-salon",
+		label: "Hair Salon",
 		description: "Hair restoration and treatment procedures",
 		icon: "💇‍♀️",
 	},

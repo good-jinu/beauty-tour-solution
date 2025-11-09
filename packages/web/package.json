@@ -11,6 +11,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"sst:dev": "sst dev --stage development",
 		"dev-remove": "sst remove --stage development",
+		"prod-dev": "sst dev --stage production",
 		"prod-deploy": "sst deploy --stage production",
 		"prod-remove": "sst remove --stage production"
 	},

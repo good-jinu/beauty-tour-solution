@@ -505,22 +505,26 @@ export class ScheduleGenerator {
 
 		// Remove duplicates and apply additional filtering
 		const uniqueActivities = this.removeDuplicateActivities(allActivities);
+		console.log("uniqueActivities", uniqueActivities);
 		const filteredActivities = this.applyActivityFiltering(
 			uniqueActivities,
 			request,
 		);
+		console.log("filtered: ", filteredActivities);
 
 		// Filter by working hours to ensure activities are generally available
 		const workingHoursFilteredActivities = this.filterActivitiesByWorkingHours(
 			filteredActivities,
 			[],
 		);
+		console.log("working: ", workingHoursFilteredActivities);
 
 		// Sort by relevance and user preferences
 		const sortedActivities = this.sortActivitiesByRelevance(
 			workingHoursFilteredActivities,
 			request,
 		);
+		console.log("sorted: ", sortedActivities);
 
 		// Limit results to prevent overwhelming the AI with too many options
 		const maxActivitiesPerTheme = 10;
@@ -596,11 +600,6 @@ export class ScheduleGenerator {
 				return false;
 			}
 
-			// Filter by region preferences
-			if (!this.isLocationMatching(activity.location, request.region)) {
-				return false;
-			}
-
 			// Apply budget constraints with flexible pricing
 			if (
 				!this.isBudgetCompatible(
@@ -627,49 +626,6 @@ export class ScheduleGenerator {
 	}
 
 	/**
-	 * Check if activity location matches user region preferences
-	 */
-	private isLocationMatching(
-		activityLocation: Activity["location"],
-		userRegion: string,
-	): boolean {
-		// Exact region match
-		if (activityLocation.region === userRegion) {
-			return true;
-		}
-
-		// Flexible matching for common region variations
-		const normalizedActivityRegion = activityLocation.region
-			.toLowerCase()
-			.replace(/[-\s]/g, "");
-		const normalizedUserRegion = userRegion.toLowerCase().replace(/[-\s]/g, "");
-
-		// Handle common region name variations
-		const regionMappings: Record<string, string[]> = {
-			seoul: ["seoul", "seoulcity", "gangnam", "hongdae", "myeongdong"],
-			busan: ["busan", "pusansi", "haeundae"],
-			jeju: ["jeju", "jejuisland", "jejudo"],
-			incheon: ["incheon", "incheoncity"],
-			daegu: ["daegu", "daegucity"],
-			daejeon: ["daejeon", "daejeoncity"],
-			gwangju: ["gwangju", "gwangjucity"],
-			ulsan: ["ulsan", "ulsancity"],
-		};
-
-		// Check if regions are related
-		for (const [_mainRegion, variations] of Object.entries(regionMappings)) {
-			if (
-				variations.includes(normalizedActivityRegion) &&
-				variations.includes(normalizedUserRegion)
-			) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
 	 * Check if activity price is compatible with user budget
 	 */
 	private isBudgetCompatible(
@@ -682,7 +638,7 @@ export class ScheduleGenerator {
 		}
 
 		// Calculate budget per theme with some flexibility
-		const budgetPerTheme = userBudget / themeCount;
+		const budgetPerTheme = (userBudget * 1450) / themeCount;
 		const maxAllowedPrice = budgetPerTheme * 1.2; // Allow 20% over budget per activity
 
 		// Handle different price types
