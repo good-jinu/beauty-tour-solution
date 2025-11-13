@@ -638,7 +638,7 @@ export class ScheduleGenerator {
 		}
 
 		// Calculate budget per theme with some flexibility
-		const budgetPerTheme = (userBudget * 1450) / themeCount;
+		const budgetPerTheme = userBudget / themeCount;
 		const maxAllowedPrice = budgetPerTheme * 1.2; // Allow 20% over budget per activity
 
 		// Handle different price types

@@ -337,10 +337,7 @@ export class ActivityService implements IActivityService {
 				if (!activity.isActive) return false;
 
 				// Apply budget constraints with some flexibility (allow 10% over budget)
-				if (
-					criteria.maxPrice &&
-					activity.price.amount > criteria.maxPrice * 1450
-				) {
+				if (criteria.maxPrice && activity.price.amount > criteria.maxPrice) {
 					return false;
 				}
 
