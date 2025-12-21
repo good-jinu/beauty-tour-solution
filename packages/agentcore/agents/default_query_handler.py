@@ -18,11 +18,11 @@ Use the provided information to give accurate, helpful responses.
 If the information is not sufficient, say so clearly.
 """
 
+
 def determine_action(agent, query):
     """Determine if the query is a store or retrieve action for default queries."""
     result = agent.tool.use_llm(
-        prompt=f"Query: {query}",
-        system_prompt=ACTION_SYSTEM_PROMPT
+        prompt=f"Query: {query}", system_prompt=ACTION_SYSTEM_PROMPT
     )
 
     # Clean and extract the action
@@ -33,6 +33,7 @@ def determine_action(agent, query):
         return "store"
     else:
         return "retrieve"
+
 
 def process_default_query(agent, query):
     """Process a default query using the knowledge base workflow."""
@@ -55,8 +56,7 @@ def process_default_query(agent, query):
 
             # Generate response from retrieved information
             answer = agent.tool.use_llm(
-                prompt=f"{query}",
-                system_prompt=ANSWER_SYSTEM_PROMPT
+                prompt=f"{query}", system_prompt=ANSWER_SYSTEM_PROMPT
             )
             return answer
         except Exception as e:

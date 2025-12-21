@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - name: Install dependencies
+        run: pnpm install
+      - name: Check (Lint & Format)
+        run: pnpm check
+      - name: Run Tests
+        run: pnpm test
