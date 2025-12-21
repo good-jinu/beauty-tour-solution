@@ -1,9 +1,12 @@
 from enum import Enum
 
+
 class QueryType(Enum):
     """Enum for different query types"""
+
     DEFAULT = "default"
     TRIP_PLANNER = "trip-planner"
+
 
 # System prompts for different query types
 QUERY_TYPE_CLASSIFIER_PROMPT = """
@@ -26,12 +29,12 @@ Default query indicators:
 Respond with only "trip-planner" or "default".
 """
 
+
 def determine_query_type(agent, query):
     """Determine the type of query: default or trip-planner"""
     try:
         result = agent.tool.use_llm(
-            prompt=f"Query: {query}",
-            system_prompt=QUERY_TYPE_CLASSIFIER_PROMPT
+            prompt=f"Query: {query}", system_prompt=QUERY_TYPE_CLASSIFIER_PROMPT
         )
 
         # Clean and extract the query type

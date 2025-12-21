@@ -72,6 +72,32 @@ pnpm install
 pnpm run dev # if you prefer running local dev directly, but using `mise run dev` is recommended
 ```
 
+## Quality Assurance
+
+To ensure code quality, we use `biome` for linting and formatting, and `vitest` for testing.
+
+### Running Tests
+
+To run the unit tests:
+
+```bash
+pnpm test
+```
+
+### Linting and Formatting
+
+To check for linting and formatting issues:
+
+```bash
+pnpm check
+```
+
+To format the code:
+
+```bash
+pnpm format
+```
+
 ## Troubleshooting
 
 - If `mise` is not installed or the `mise` command is not found, follow the installer instructions on the mise repo: https://github.com/jdx/mise
